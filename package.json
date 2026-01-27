@@ -11,7 +11,7 @@
     "start": "next start",
     "lint": "eslint",
     "type-check": "tsc --noEmit",
-    "export": "next build && next export"
+    "export": "next build"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",
