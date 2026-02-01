@@ -1,4 +1,4 @@
-name: Deploy to GitHub Pages
+name: Deploy Next.js to GitHub Pages
 
 on:
   push:
@@ -27,19 +27,18 @@ jobs:
           node-version: '18'
           cache: 'npm'
           
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
-        with:
-          static_site_generator: next
-          
       - name: Install dependencies
         run: npm ci
         
-      - name: Build with Next.js
+      - name: Build Next.js
         run: npm run build
         env:
+          NODE_ENV: production
           NEXT_PUBLIC_APP_URL: https://mianhassam96.github.io/MianScan
           
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+        
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
