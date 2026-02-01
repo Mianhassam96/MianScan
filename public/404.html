@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MianScan - Website Performance Analyzer</title>
-    <meta http-equiv="refresh" content="0; url=/MianScan/">
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -31,18 +30,6 @@
             margin-bottom: 2rem;
             opacity: 0.9;
         }
-        .loading {
-            display: inline-block;
-            width: 40px;
-            height: 40px;
-            border: 4px solid rgba(255,255,255,0.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 1s ease-in-out infinite;
-        }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
         .btn {
             display: inline-block;
             padding: 12px 24px;
@@ -51,7 +38,6 @@
             text-decoration: none;
             border-radius: 12px;
             font-weight: 600;
-            margin-top: 1rem;
             transition: all 0.3s ease;
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255,255,255,0.3);
@@ -62,19 +48,19 @@
         }
     </style>
     <script>
-        // Redirect to the correct GitHub Pages path
-        setTimeout(() => {
-            window.location.href = '/MianScan/';
-        }, 1000);
+        // Redirect to the correct path for GitHub Pages
+        const path = window.location.pathname;
+        if (path !== '/MianScan/' && path !== '/MianScan/index.html') {
+            window.location.replace('/MianScan/');
+        }
     </script>
 </head>
 <body>
     <div class="container">
         <h1>MianScan</h1>
         <p>Website Performance, SEO & Accessibility Analyzer</p>
-        <div class="loading"></div>
-        <p>Loading your professional website analyzer...</p>
-        <a href="/MianScan/" class="btn">Click here if not redirected</a>
+        <p>Redirecting to the main application...</p>
+        <a href="/MianScan/" class="btn">Go to MianScan</a>
     </div>
 </body>
 </html>

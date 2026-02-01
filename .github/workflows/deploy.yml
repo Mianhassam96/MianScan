@@ -34,8 +34,12 @@ jobs:
         run: npm run build
         env:
           NODE_ENV: production
+          GITHUB_ACTIONS: true
           NEXT_PUBLIC_APP_URL: https://mianhassam96.github.io/MianScan
           
+      - name: Add .nojekyll file
+        run: touch ./out/.nojekyll
+        
       - name: Setup Pages
         uses: actions/configure-pages@v4
         

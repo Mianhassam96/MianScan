@@ -1,23 +1,22 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Only use static export for production builds
-  ...(process.env.NODE_ENV === 'production' && {
-    output: 'export',
-    trailingSlash: true,
-    images: {
-      unoptimized: true
-    },
-    assetPrefix: '/MianScan',
+  // Static export configuration for GitHub Pages
+  output: 'export',
+  trailingSlash: true,
+  skipTrailingSlashRedirect: true,
+  images: {
+    unoptimized: true
+  },
+  // Only add basePath and assetPrefix for production GitHub Pages
+  ...(process.env.NODE_ENV === 'production' && process.env.GITHUB_ACTIONS && {
     basePath: '/MianScan',
+    assetPrefix: '/MianScan/',
   }),
-  
-  // Development configuration
-  ...(process.env.NODE_ENV !== 'production' && {
-    images: {
-      unoptimized: true
-    }
-  })
+  // Disable server-side features for static export
+  experimental: {
+    esmExternals: false
+  }
 };
 
 export default nextConfig;
