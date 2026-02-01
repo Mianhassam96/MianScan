@@ -1,13 +1,23 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: 'export',
-  trailingSlash: true,
-  images: {
-    unoptimized: true
-  },
-  assetPrefix: process.env.NODE_ENV === 'production' ? '/MianScan' : '',
-  basePath: process.env.NODE_ENV === 'production' ? '/MianScan' : '',
+  // Only use static export for production builds
+  ...(process.env.NODE_ENV === 'production' && {
+    output: 'export',
+    trailingSlash: true,
+    images: {
+      unoptimized: true
+    },
+    assetPrefix: '/MianScan',
+    basePath: '/MianScan',
+  }),
+  
+  // Development configuration
+  ...(process.env.NODE_ENV !== 'production' && {
+    images: {
+      unoptimized: true
+    }
+  })
 };
 
 export default nextConfig;
