@@ -23,6 +23,11 @@ const nextConfig: NextConfig = {
   
   // Skip trailing slash redirect for static export
   skipTrailingSlashRedirect: true,
+  
+  // Disable experimental features that cause warnings
+  experimental: {
+    // Remove esmExternals to fix Turbopack warning
+  },
 };
 
 export default nextConfig;
