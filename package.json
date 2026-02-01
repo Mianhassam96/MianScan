@@ -1,8 +1,9 @@
 {
   "name": "mianscan",
   "version": "1.0.0",
-  "private": true,
+  "homepage": "https://mianhassam96.github.io/MianScan",
   "description": "Website Performance, SEO & Accessibility Analyzer - Website health made simple.",
+  "private": true,
   "author": "MultiMian",
   "keywords": ["website analyzer", "SEO audit", "performance test", "accessibility check", "website health"],
   "scripts": {
