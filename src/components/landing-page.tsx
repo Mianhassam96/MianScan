@@ -233,10 +233,13 @@ export function LandingPage({ onAnalyze }: LandingPageProps) {
                   key={index} 
                   className="text-center group"
                   whileHover={{ scale: 1.1, y: -5 }}
-                  transition={{ type: "spring", stiffness: 300 }}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 1.2 + index * 0.1 }}
+                  transition={{ 
+                    type: "spring", 
+                    stiffness: 300,
+                    delay: 1.2 + index * 0.1 
+                  }}
                 >
                   <motion.div 
                     className="inline-flex items-center justify-center w-16 h-16 glass-card mb-3 group-hover:shadow-glow transition-all duration-300"
