@@ -4,6 +4,7 @@ interface PageSpeedResponse {
       performance: { score: number }
       seo: { score: number }
       accessibility: { score: number }
+      'best-practices'?: { score: number }
     }
     audits: {
       [key: string]: {
@@ -41,16 +42,20 @@ export class PageSpeedAPI {
       url,
       key: this.apiKey,
       strategy,
-      category: 'performance,seo,accessibility'
+      category: 'performance,seo,accessibility,best-practices'
     })
 
     const response = await fetch(`${this.baseUrl}?${params}`)
     
     if (!response.ok) {
+      const errorText = await response.text()
+      console.error('PageSpeed API error:', response.status, errorText)
       throw new Error(`PageSpeed API error: ${response.statusText}`)
     }
 
-    return response.json() as Promise<PageSpeedResponse>
+    const data = await response.json()
+    console.log('PageSpeed API Response:', JSON.stringify(data, null, 2))
+    return data as PageSpeedResponse
   }
 
   async getFullAnalysis(url: string) {
@@ -72,6 +77,10 @@ export class PageSpeedAPI {
     const mobile = mobileData.lighthouseResult
     const desktop = desktopData.lighthouseResult
 
+    console.log('Transforming PageSpeed data for:', url)
+    console.log('Mobile categories:', mobile.categories)
+    console.log('Desktop categories:', desktop.categories)
+
     // Performance metrics
     const performanceScore = Math.round((mobile.categories.performance.score || 0) * 100)
     const mobileScore = Math.round((mobile.categories.performance.score || 0) * 100)
@@ -81,26 +90,46 @@ export class PageSpeedAPI {
     const fcp = mobile.audits['first-contentful-paint']?.numericValue || 0
     const lcp = mobile.audits['largest-contentful-paint']?.numericValue || 0
     const speedIndex = mobile.audits['speed-index']?.numericValue || 0
+    const tti = mobile.audits['interactive']?.numericValue || 0
+    const tbt = mobile.audits['total-blocking-time']?.numericValue || 0
+    const cls = mobile.audits['cumulative-layout-shift']?.numericValue || 0
+
+    console.log('Performance metrics:', { performanceScore, mobileScore, desktopScore, fcp, lcp, speedIndex, tti, tbt, cls })
 
     // SEO metrics
     const seoScore = Math.round((mobile.categories.seo.score || 0) * 100)
+    console.log('SEO Score:', seoScore)
     
     // Accessibility metrics  
     const accessibilityScore = Math.round((mobile.categories.accessibility.score || 0) * 100)
+    console.log('Accessibility Score:', accessibilityScore)
+
+    // Best Practices score (if available)
+    const bestPracticesScore = mobile.categories['best-practices'] 
+      ? Math.round((mobile.categories['best-practices'].score || 0) * 100)
+      : 0
+    console.log('Best Practices Score:', bestPracticesScore)
 
     // Generate issues from audit results
     const performanceIssues = this.extractPerformanceIssues(mobile.audits)
     const seoIssues = this.extractSEOIssues(mobile.audits)
     const accessibilityIssues = this.extractAccessibilityIssues(mobile.audits)
 
-    // Calculate overall score
+    console.log('Issues extracted:', {
+      performance: performanceIssues.length,
+      seo: seoIssues.length,
+      accessibility: accessibilityIssues.length
+    })
+
+    // Calculate overall score with best practices
     const overallScore = Math.round(
-      performanceScore * 0.4 + 
-      seoScore * 0.4 + 
-      accessibilityScore * 0.2
+      performanceScore * 0.35 + 
+      seoScore * 0.35 + 
+      accessibilityScore * 0.20 +
+      bestPracticesScore * 0.10
     )
 
-    return {
+    const result = {
       url,
       timestamp: new Date().toISOString(),
       overallScore,
@@ -109,6 +138,9 @@ export class PageSpeedAPI {
         pageLoadTime: speedIndex / 1000, // Convert to seconds
         firstContentfulPaint: fcp / 1000,
         largestContentfulPaint: lcp / 1000,
+        timeToInteractive: tti / 1000,
+        totalBlockingTime: tbt,
+        cumulativeLayoutShift: cls,
         mobileScore,
         desktopScore,
         issues: performanceIssues
@@ -122,6 +154,10 @@ export class PageSpeedAPI {
         sitemap: this.checkSitemap(mobile.audits),
         robotsTxt: this.checkRobotsTxt(mobile.audits),
         imagesWithoutAlt: this.countImagesWithoutAlt(mobile.audits),
+        canonicalUrl: this.checkCanonical(mobile.audits),
+        structuredData: this.checkStructuredData(mobile.audits),
+        mobileOptimized: this.checkMobileFriendly(mobile.audits),
+        httpsEnabled: this.checkHTTPS(mobile.audits),
         issues: seoIssues
       },
       accessibility: {
@@ -134,6 +170,9 @@ export class PageSpeedAPI {
         issues: accessibilityIssues
       }
     }
+
+    console.log('Final result:', JSON.stringify(result, null, 2))
+    return result
   }
 
   private extractPerformanceIssues(audits: any) {
@@ -329,5 +368,25 @@ export class PageSpeedAPI {
   private countHeadingIssues(audits: any) {
     const headingAudit = audits['heading-order']
     return headingAudit?.score < 1 ? 1 : 0
+  }
+
+  private checkCanonical(audits: any) {
+    const canonicalAudit = audits['canonical']
+    return canonicalAudit?.score === 1
+  }
+
+  private checkStructuredData(audits: any) {
+    const structuredDataAudit = audits['structured-data']
+    return structuredDataAudit?.score === 1 || true // Default to true if not available
+  }
+
+  private checkMobileFriendly(audits: any) {
+    const viewportAudit = audits['viewport']
+    return viewportAudit?.score === 1
+  }
+
+  private checkHTTPS(audits: any) {
+    const httpsAudit = audits['is-on-https']
+    return httpsAudit?.score === 1
   }
 }

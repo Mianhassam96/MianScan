@@ -3,6 +3,9 @@ export interface PerformanceMetrics {
   pageLoadTime: number
   firstContentfulPaint: number
   largestContentfulPaint: number
+  timeToInteractive?: number
+  totalBlockingTime?: number
+  cumulativeLayoutShift?: number
   mobileScore: number
   desktopScore: number
   issues: Issue[]
@@ -28,6 +31,10 @@ export interface SEOMetrics {
   sitemap: boolean
   robotsTxt: boolean
   imagesWithoutAlt: number
+  canonicalUrl?: boolean
+  structuredData?: boolean
+  mobileOptimized?: boolean
+  httpsEnabled?: boolean
   issues: Issue[]
 }
 
