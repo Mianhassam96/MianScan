@@ -22,86 +22,51 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Initialize PageSpeed API
-    const pageSpeedAPI = new PageSpeedAPI()
+    // Check if API key is configured
+    const apiKey = process.env.GOOGLE_PAGESPEED_API_KEY
+    console.log('API Key configured:', apiKey ? 'YES' : 'NO')
+    console.log('API Key length:', apiKey?.length || 0)
+    
+    if (!apiKey) {
+      console.error('No API key found in environment variables')
+      return NextResponse.json({
+        error: 'API key not configured',
+        message: 'Please add GOOGLE_PAGESPEED_API_KEY to your environment variables',
+        isDemo: true
+      }, { status: 500 })
+    }
+
+    // Initialize PageSpeed API with explicit key
+    const pageSpeedAPI = new PageSpeedAPI(apiKey)
+    console.log('Analyzing URL:', url)
 
     try {
       // Get real analysis data
       const analysisResult = await pageSpeedAPI.getFullAnalysis(url)
+      console.log('Analysis successful for:', url)
       return NextResponse.json(analysisResult)
     } catch (apiError: any) {
-      console.error('PageSpeed API error:', apiError)
+      console.error('PageSpeed API error details:', {
+        message: apiError.message,
+        stack: apiError.stack,
+        url: url
+      })
       
-      // If API fails, return fallback mock data with a warning
-      const fallbackResult = {
-        url,
-        timestamp: new Date().toISOString(),
-        overallScore: 75,
-        isDemo: true, // Flag to indicate this is demo data
-        performance: {
-          score: 78,
-          pageLoadTime: 2.3,
-          firstContentfulPaint: 1.2,
-          largestContentfulPaint: 2.8,
-          mobileScore: 75,
-          desktopScore: 82,
-          issues: [
-            {
-              type: 'warning' as const,
-              title: 'Demo Mode Active',
-              description: 'This is sample data. Configure Google PageSpeed API for real analysis.',
-              impact: 'Real data requires API key configuration',
-              solution: 'Add GOOGLE_PAGESPEED_API_KEY to your environment variables',
-              priority: 'high' as const
-            }
-          ]
-        },
-        seo: {
-          score: 85,
-          title: { exists: true, length: 45 },
-          metaDescription: { exists: false, length: 0, issue: 'Missing meta description' },
-          h1Tags: { count: 1 },
-          brokenLinks: 2,
-          sitemap: true,
-          robotsTxt: false,
-          imagesWithoutAlt: 5,
-          issues: [
-            {
-              type: 'info' as const,
-              title: 'Demo Data',
-              description: 'This is sample SEO data for demonstration.',
-              impact: 'Real SEO analysis requires API configuration',
-              solution: 'Set up Google PageSpeed Insights API key',
-              priority: 'medium' as const
-            }
-          ]
-        },
-        accessibility: {
-          score: 72,
-          missingAltAttributes: 5,
-          colorContrastIssues: 3,
-          missingAriaLabels: 2,
-          buttonsWithoutNames: 1,
-          headingStructureIssues: 1,
-          issues: [
-            {
-              type: 'info' as const,
-              title: 'Demo Data',
-              description: 'This is sample accessibility data for demonstration.',
-              impact: 'Real accessibility analysis requires API configuration',
-              solution: 'Configure Google PageSpeed Insights API for real data',
-              priority: 'medium' as const
-            }
-          ]
-        }
-      }
-
-      return NextResponse.json(fallbackResult)
+      // Return error instead of fallback
+      return NextResponse.json({
+        error: 'PageSpeed API request failed',
+        details: apiError.message,
+        url: url,
+        isDemo: true
+      }, { status: 500 })
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('Analysis error:', error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { 
+        error: 'Internal server error',
+        details: error.message 
+      },
       { status: 500 }
     )
   }
