@@ -11,6 +11,13 @@ export const metadata: Metadata = {
   description: "Analyze any website URL and get clear, actionable insights about performance, SEO, and accessibility. Website health made simple.",
   keywords: ["website analyzer", "SEO audit", "performance test", "accessibility check", "website health"],
   authors: [{ name: "MultiMian" }],
+  icons: {
+    icon: [
+      { url: '/icon.svg', type: 'image/svg+xml' },
+      { url: '/favicon.ico', sizes: 'any' }
+    ],
+    apple: '/icon.svg',
+  },
   openGraph: {
     title: "MianScan - Website Health Made Simple",
     description: "Scan your website in seconds and get actionable insights to improve performance, SEO, and accessibility.",

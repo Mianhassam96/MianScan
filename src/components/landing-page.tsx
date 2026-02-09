@@ -475,6 +475,151 @@ export function LandingPage({ onAnalyze }: LandingPageProps) {
         </div>
       </section>
 
+      {/* About Section */}
+      <section id="about" className="py-24 bg-background relative overflow-hidden">
+        <div className="absolute inset-0 bg-pattern opacity-5"></div>
+        
+        <div className="container mx-auto px-4 relative z-10">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-16"
+          >
+            <motion.div
+              className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-full mb-6 border border-purple-500/20"
+              whileHover={{ scale: 1.05 }}
+            >
+              <Zap className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+              <span className="text-sm font-semibold text-purple-600 dark:text-purple-400">About MianScan</span>
+            </motion.div>
+            
+            <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
+              Website Health Made <span className="text-gradient-hero">Simple</span>
+            </h2>
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+              MianScan is a modern, professional SaaS platform designed to help website owners, 
+              developers, and digital marketers optimize their online presence with ease.
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-2 gap-12 items-center mb-16">
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.2 }}
+            >
+              <h3 className="text-3xl font-bold text-foreground mb-6">Our Mission</h3>
+              <p className="text-lg text-muted-foreground mb-6">
+                We believe that every website deserves to be fast, accessible, and optimized for search engines. 
+                Our mission is to make professional-grade website analysis accessible to everyone, regardless of 
+                technical expertise.
+              </p>
+              <p className="text-lg text-muted-foreground mb-6">
+                MianScan combines powerful Google PageSpeed Insights API with an intuitive interface to deliver 
+                comprehensive website health reports that anyone can understand and act upon.
+              </p>
+              <div className="flex flex-wrap gap-4">
+                <div className="flex items-center gap-2 px-4 py-2 bg-green-500/10 rounded-lg border border-green-500/20">
+                  <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
+                  <span className="text-sm font-medium text-green-600 dark:text-green-400">Real-time Analysis</span>
+                </div>
+                <div className="flex items-center gap-2 px-4 py-2 bg-blue-500/10 rounded-lg border border-blue-500/20">
+                  <CheckCircle className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                  <span className="text-sm font-medium text-blue-600 dark:text-blue-400">Actionable Insights</span>
+                </div>
+                <div className="flex items-center gap-2 px-4 py-2 bg-purple-500/10 rounded-lg border border-purple-500/20">
+                  <CheckCircle className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                  <span className="text-sm font-medium text-purple-600 dark:text-purple-400">User-Friendly</span>
+                </div>
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.4 }}
+              className="grid grid-cols-2 gap-6"
+            >
+              <div className="glass-card p-6 text-center">
+                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center mx-auto mb-4">
+                  <Zap className="h-6 w-6 text-white" />
+                </div>
+                <div className="text-3xl font-bold text-foreground mb-2">10K+</div>
+                <div className="text-sm text-muted-foreground">Websites Analyzed</div>
+              </div>
+              
+              <div className="glass-card p-6 text-center">
+                <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center mx-auto mb-4">
+                  <Users className="h-6 w-6 text-white" />
+                </div>
+                <div className="text-3xl font-bold text-foreground mb-2">5K+</div>
+                <div className="text-sm text-muted-foreground">Happy Users</div>
+              </div>
+              
+              <div className="glass-card p-6 text-center">
+                <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-xl flex items-center justify-center mx-auto mb-4">
+                  <Star className="h-6 w-6 text-white" />
+                </div>
+                <div className="text-3xl font-bold text-foreground mb-2">4.9/5</div>
+                <div className="text-sm text-muted-foreground">User Rating</div>
+              </div>
+              
+              <div className="glass-card p-6 text-center">
+                <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl flex items-center justify-center mx-auto mb-4">
+                  <Award className="h-6 w-6 text-white" />
+                </div>
+                <div className="text-3xl font-bold text-foreground mb-2">99.9%</div>
+                <div className="text-sm text-muted-foreground">Uptime</div>
+              </div>
+            </motion.div>
+          </div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.6 }}
+            className="text-center"
+          >
+            <h3 className="text-3xl font-bold text-foreground mb-6">Why Choose MianScan?</h3>
+            <div className="grid md:grid-cols-3 gap-8">
+              <div className="p-6 rounded-2xl bg-gradient-to-br from-blue-500/5 to-cyan-500/5 border border-blue-500/10">
+                <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <Zap className="h-7 w-7 text-white" />
+                </div>
+                <h4 className="text-xl font-bold text-foreground mb-3">Lightning Fast</h4>
+                <p className="text-muted-foreground">
+                  Get comprehensive website analysis in seconds, powered by Google's infrastructure.
+                </p>
+              </div>
+              
+              <div className="p-6 rounded-2xl bg-gradient-to-br from-purple-500/5 to-pink-500/5 border border-purple-500/10">
+                <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <Shield className="h-7 w-7 text-white" />
+                </div>
+                <h4 className="text-xl font-bold text-foreground mb-3">Secure & Private</h4>
+                <p className="text-muted-foreground">
+                  Your data is never stored. We analyze and deliver results without keeping any records.
+                </p>
+              </div>
+              
+              <div className="p-6 rounded-2xl bg-gradient-to-br from-emerald-500/5 to-teal-500/5 border border-emerald-500/10">
+                <div className="w-14 h-14 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <TrendingUp className="h-7 w-7 text-white" />
+                </div>
+                <h4 className="text-xl font-bold text-foreground mb-3">Actionable Results</h4>
+                <p className="text-muted-foreground">
+                  Get clear, prioritized recommendations that you can implement immediately.
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
       {/* Pricing Section */}
       <Pricing />
 

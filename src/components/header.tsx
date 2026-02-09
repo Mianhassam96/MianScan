@@ -60,6 +60,14 @@ export function Header({ showUpgrade = false, onUpgrade, onLogoClick }: HeaderPr
             <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-blue-600 to-purple-600 group-hover:w-full transition-all duration-300"></span>
           </motion.a>
           <motion.a 
+            href="#about" 
+            className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors relative group"
+            whileHover={{ scale: 1.05 }}
+          >
+            About
+            <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-blue-600 to-purple-600 group-hover:w-full transition-all duration-300"></span>
+          </motion.a>
+          <motion.a 
             href="#pricing" 
             className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors relative group"
             whileHover={{ scale: 1.05 }}
@@ -127,6 +135,14 @@ export function Header({ showUpgrade = false, onUpgrade, onLogoClick }: HeaderPr
                 whileTap={{ scale: 0.95 }}
               >
                 Features
+              </motion.a>
+              <motion.a 
+                href="#about" 
+                className="block text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                onClick={() => setIsMenuOpen(false)}
+                whileTap={{ scale: 0.95 }}
+              >
+                About
               </motion.a>
               <motion.a 
                 href="#pricing" 
