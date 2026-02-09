@@ -87,11 +87,11 @@ export function AnalyzerPage({ url: initialUrl, onBack, onComplete }: AnalyzerPa
         body: JSON.stringify({ url }),
       })
 
-      if (!response.ok) {
-        throw new Error('Analysis failed')
-      }
-
       const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.details || result.error || 'Analysis failed')
+      }
 
       setProgress({
         step: 3,
@@ -112,7 +112,7 @@ export function AnalyzerPage({ url: initialUrl, onBack, onComplete }: AnalyzerPa
         onComplete(url)
       }, 1500)
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Analysis error:', error)
       setProgress({
         step: 3,
@@ -121,10 +121,12 @@ export function AnalyzerPage({ url: initialUrl, onBack, onComplete }: AnalyzerPa
         isComplete: false
       })
       
+      const errorMessage = error.message || 'Unable to analyze the website. Please check the URL and try again.'
+      
       addToast({
         type: 'error',
         title: 'Analysis Failed',
-        description: 'Unable to analyze the website. Please check the URL and try again.',
+        description: errorMessage,
         duration: 5000
       })
       
@@ -180,22 +182,22 @@ export function AnalyzerPage({ url: initialUrl, onBack, onComplete }: AnalyzerPa
               </div>
               
               <form onSubmit={handleSubmit} className="max-w-2xl mx-auto">
-                <div className="flex flex-col sm:flex-row gap-4 p-2 bg-muted/50 rounded-xl mb-6">
+                <div className="flex flex-col sm:flex-row gap-4 p-2 bg-muted/30 rounded-xl mb-6 border border-border">
                   <div className="flex-1 relative">
-                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
+                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5 z-10" />
                     <Input
                       type="url"
                       placeholder="https://example.com"
                       value={url}
                       onChange={(e) => setUrl(e.target.value)}
-                      className="pl-12 h-12 text-lg border-0 bg-background"
+                      className="pl-12 h-14 text-lg border-2 bg-background/95 font-semibold text-foreground placeholder:text-muted-foreground placeholder:font-normal focus:border-primary focus:ring-2 focus:ring-primary/20"
                       required
                     />
                   </div>
                   <Button 
                     type="submit" 
                     size="lg" 
-                    className="h-12 px-8 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-0"
+                    className="h-14 px-8 bg-gradient-to-r from-purple-600 via-pink-600 to-orange-600 hover:from-purple-700 hover:via-pink-700 hover:to-orange-700 text-white border-0 font-bold text-base shadow-lg hover:shadow-xl transition-all duration-300"
                   >
                     Start Analysis
                   </Button>
