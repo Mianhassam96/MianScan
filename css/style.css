@@ -1,0 +1,332 @@
+/* ===========================
+   MianScribe - Custom Styles
+   =========================== */
+
+:root {
+    --primary-color: #4f46e5;
+    --secondary-color: #6366f1;
+    --bg-light: #f8f9fa;
+    --bg-dark: #1a1a2e;
+    --card-light: #ffffff;
+    --card-dark: #16213e;
+    --text-light: #212529;
+    --text-dark: #e4e4e4;
+    --border-light: #dee2e6;
+    --border-dark: #2d3748;
+}
+
+/* Light Theme (Default) */
+body {
+    background-color: var(--bg-light);
+    color: var(--text-light);
+    transition: background-color 0.3s ease, color 0.3s ease;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Dark Theme */
+body.dark-mode {
+    background-color: var(--bg-dark);
+    color: var(--text-dark);
+}
+
+body.dark-mode .card {
+    background-color: var(--card-dark);
+    border-color: var(--border-dark);
+    color: var(--text-dark);
+}
+
+body.dark-mode .navbar {
+    background-color: var(--card-dark) !important;
+    border-bottom: 1px solid var(--border-dark);
+}
+
+body.dark-mode .form-control,
+body.dark-mode .form-select {
+    background-color: #2d3748;
+    border-color: var(--border-dark);
+    color: var(--text-dark);
+}
+
+body.dark-mode .form-control:focus,
+body.dark-mode .form-select:focus {
+    background-color: #2d3748;
+    color: var(--text-dark);
+    border-color: var(--primary-color);
+}
+
+/* Header */
+.navbar {
+    background-color: var(--card-light);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border-bottom: 1px solid var(--border-light);
+}
+
+.navbar-brand {
+    font-weight: 700;
+    font-size: 1.5rem;
+    color: var(--primary-color);
+}
+
+.navbar-brand i {
+    color: var(--secondary-color);
+}
+
+/* Cards */
+.card {
+    border: 1px solid var(--border-light);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    border-radius: 12px;
+    transition: transform 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+}
+
+.card-header {
+    background-color: rgba(79, 70, 229, 0.05);
+    border-bottom: 1px solid var(--border-light);
+    font-weight: 600;
+}
+
+body.dark-mode .card-header {
+    background-color: rgba(99, 102, 241, 0.1);
+    border-bottom-color: var(--border-dark);
+}
+
+/* Text Area */
+#textArea {
+    min-height: 400px;
+    resize: vertical;
+    font-size: 1rem;
+    line-height: 1.6;
+    border: 2px solid var(--border-light);
+    border-radius: 8px;
+    padding: 1rem;
+    transition: border-color 0.3s ease;
+}
+
+#textArea:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(79, 70, 229, 0.15);
+}
+
+/* Auto-resize textarea */
+.auto-resize {
+    overflow-y: hidden;
+}
+
+/* Progress Bar */
+.progress {
+    border-radius: 10px;
+    background-color: #e9ecef;
+}
+
+body.dark-mode .progress {
+    background-color: #2d3748;
+}
+
+.progress-bar {
+    background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+    transition: width 0.3s ease;
+}
+
+.progress-bar.bg-warning {
+    background: linear-gradient(90deg, #ffc107, #ff9800) !important;
+}
+
+.progress-bar.bg-danger {
+    background: linear-gradient(90deg, #dc3545, #c82333) !important;
+}
+
+/* Stats Panel */
+.stats-panel {
+    position: sticky;
+    top: 80px;
+    max-height: calc(100vh - 100px);
+    overflow-y: auto;
+}
+
+.stat-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--border-light);
+}
+
+body.dark-mode .stat-item {
+    border-bottom-color: var(--border-dark);
+}
+
+.stat-item:last-child {
+    border-bottom: none;
+}
+
+.stat-label {
+    font-weight: 500;
+    color: #6c757d;
+}
+
+body.dark-mode .stat-label {
+    color: #a0aec0;
+}
+
+.stat-value {
+    font-weight: 700;
+    color: var(--primary-color);
+    font-size: 1.1rem;
+}
+
+/* Analysis Items */
+.analysis-item {
+    padding: 0.5rem 0;
+    display: flex;
+    align-items: center;
+}
+
+/* Repeated Words List */
+.repeated-words-list {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.word-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.4rem 0;
+    border-bottom: 1px solid var(--border-light);
+}
+
+body.dark-mode .word-item {
+    border-bottom-color: var(--border-dark);
+}
+
+.word-item:last-child {
+    border-bottom: none;
+}
+
+/* Keyword Result */
+.keyword-result {
+    padding: 0.5rem;
+    background-color: rgba(79, 70, 229, 0.05);
+    border-radius: 6px;
+    min-height: 50px;
+}
+
+body.dark-mode .keyword-result {
+    background-color: rgba(99, 102, 241, 0.1);
+}
+
+/* Buttons */
+.btn-group .btn {
+    margin: 0.2rem;
+}
+
+.btn-outline-secondary:hover {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+/* Footer */
+.footer {
+    background-color: var(--card-light);
+    border-top: 1px solid var(--border-light);
+}
+
+body.dark-mode .footer {
+    background-color: var(--card-dark);
+    border-top-color: var(--border-dark);
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-light);
+}
+
+body.dark-mode ::-webkit-scrollbar-track {
+    background: var(--bg-dark);
+}
+
+::-webkit-scrollbar-thumb {
+    background: #cbd5e0;
+    border-radius: 4px;
+}
+
+body.dark-mode ::-webkit-scrollbar-thumb {
+    background: #4a5568;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #a0aec0;
+}
+
+/* Responsive Design */
+@media (max-width: 991px) {
+    .stats-panel {
+        position: relative;
+        top: 0;
+        max-height: none;
+    }
+    
+    #textArea {
+        min-height: 300px;
+    }
+}
+
+@media (max-width: 576px) {
+    .navbar-brand {
+        font-size: 1.2rem;
+    }
+    
+    .btn-group .btn {
+        font-size: 0.85rem;
+        padding: 0.4rem 0.6rem;
+    }
+    
+    .stat-value {
+        font-size: 1rem;
+    }
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.card {
+    animation: fadeIn 0.3s ease;
+}
+
+/* Badge Pulse Animation */
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.6;
+    }
+}
+
+.badge.recording {
+    animation: pulse 1.5s infinite;
+}
+
+/* Highlight Effect */
+.highlight {
+    background-color: rgba(255, 193, 7, 0.3);
+    padding: 0 2px;
+    border-radius: 2px;
+}

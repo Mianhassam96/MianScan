@@ -1,63 +1,394 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Real-time Character Counter</title>
-    <link rel="stylesheet" href="style.css" />
-  </head>
-  <body>
-    <div class="container">
-      <!-- Dark Mode Toggle Button (Positioned on the top right) -->
-      <button id="theme-toggle" class="theme-toggle-btn">Toggle Dark Mode</button>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="MianScribe - Professional Writing Assistant with Real-time Character Counter">
+    <meta name="theme-color" content="#4f46e5">
+    <title>MianScribe - Writing Assistant</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+</head>
+<body>
+    <!-- Header -->
+    <header class="navbar navbar-expand-lg sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-pen-fill"></i> MianScribe
+            </a>
+            <div class="d-flex align-items-center gap-2">
+                <button id="themeToggle" class="btn btn-outline-secondary btn-sm" title="Toggle Theme">
+                    <i class="bi bi-moon-fill"></i>
+                </button>
+                <button id="resetBtn" class="btn btn-outline-danger btn-sm" title="Reset All">
+                    <i class="bi bi-arrow-clockwise"></i>
+                </button>
+            </div>
+        </div>
+    </header>
 
-      <h2>Real-time Character Counter</h2>
+    <main class="container-fluid py-4">
+        <div class="row g-4">
+            <!-- Left Panel - Text Editor -->
+            <div class="col-lg-8">
+                <div class="card editor-card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="bi bi-pencil-square"></i> Text Editor</h5>
+                        <div class="btn-group btn-group-sm">
+                            <button id="uploadBtn" class="btn btn-outline-primary" title="Upload File">
+                                <i class="bi bi-upload"></i>
+                            </button>
+                            <button id="downloadBtn" class="btn btn-outline-success" title="Download">
+                                <i class="bi bi-download"></i>
+                            </button>
+                            <button id="copyBtn" class="btn btn-outline-info" title="Copy to Clipboard">
+                                <i class="bi bi-clipboard"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <textarea id="textArea" class="form-control auto-resize" 
+                                  placeholder="Start typing or paste your text here...&#10;&#10;Keyboard Shortcuts:&#10;Ctrl+U - UPPERCASE&#10;Ctrl+L - lowercase&#10;Ctrl+Shift+C - Capitalize Each Word&#10;Ctrl+Shift+S - Remove Extra Spaces"></textarea>
+                        
+                        <!-- Progress Bar -->
+                        <div class="mt-3">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <small class="text-muted">Character Limit Progress</small>
+                                <small id="progressText" class="text-muted">0 / 1000</small>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div id="progressBar" class="progress-bar" role="progressbar" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Character Limit Input -->
+                        <div class="mt-3">
+                            <label for="charLimit" class="form-label small">Set Character Limit:</label>
+                            <input type="number" id="charLimit" class="form-control form-control-sm" 
+                                   value="1000" min="100" max="100000">
+                        </div>
+                    </div>
+                </div>
 
-      <!-- Set Character Limit -->
-      <div class="limit-container">
-        <label for="char-limit">Set Character Limit:</label>
-        <input
-          type="number"
-          id="char-limit"
-          class="char-limit-input"
-          value="5000"
-          min="1"
-        />
-      </div>
+                <!-- Formatting Tools -->
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h6 class="mb-0"><i class="bi bi-tools"></i> Formatting Tools</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="btn-group flex-wrap" role="group">
+                            <button id="upperBtn" class="btn btn-outline-secondary btn-sm">
+                                <i class="bi bi-type"></i> UPPERCASE
+                            </button>
+                            <button id="lowerBtn" class="btn btn-outline-secondary btn-sm">
+                                <i class="bi bi-type"></i> lowercase
+                            </button>
+                            <button id="capitalizeBtn" class="btn btn-outline-secondary btn-sm">
+                                <i class="bi bi-type"></i> Capitalize Each Word
+                            </button>
+                            <button id="removeSpacesBtn" class="btn btn-outline-secondary btn-sm">
+                                <i class="bi bi-eraser"></i> Remove Extra Spaces
+                            </button>
+                            <button id="removeBreaksBtn" class="btn btn-outline-secondary btn-sm">
+                                <i class="bi bi-text-paragraph"></i> Remove Line Breaks
+                            </button>
+                        </div>
+                    </div>
+                </div>
 
-      <textarea
-        id="textarea"
-        class="textarea"
-        placeholder="Please write your text here..."
-      ></textarea>
+                <!-- Speech to Text -->
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h6 class="mb-0"><i class="bi bi-mic-fill"></i> Speech to Text</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-2 align-items-center">
+                            <div class="col-auto">
+                                <select id="languageSelect" class="form-select form-select-sm">
+                                    <option value="en-US">English (US)</option>
+                                    <option value="en-GB">English (UK)</option>
+                                    <option value="es-ES">Spanish</option>
+                                    <option value="fr-FR">French</option>
+                                    <option value="de-DE">German</option>
+                                    <option value="it-IT">Italian</option>
+                                    <option value="pt-BR">Portuguese</option>
+                                    <option value="zh-CN">Chinese</option>
+                                    <option value="ja-JP">Japanese</option>
+                                    <option value="ar-SA">Arabic</option>
+                                </select>
+                            </div>
+                            <div class="col-auto">
+                                <button id="speechBtn" class="btn btn-primary btn-sm">
+                                    <i class="bi bi-mic"></i> Start Recording
+                                </button>
+                            </div>
+                            <div class="col">
+                                <span id="speechStatus" class="badge bg-secondary">Ready</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-      <!-- Character Counters -->
-      <div class="counter-container">
-        <p>
-          Total Characters: <span class="total-counter" id="total-counter"></span>
-        </p>
-        <p>
-          Total Words: <span class="total-words" id="total-words"></span>
-        </p>
-        <p>
-          Remaining: <span class="remaining-counter" id="remaining-counter"></span>
-        </p>
-      </div>
+            <!-- Right Panel - Stats & Analysis -->
+            <div class="col-lg-4">
+                <div class="stats-panel sticky-panel">
+                    <!-- Basic Stats -->
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h6 class="mb-0"><i class="bi bi-bar-chart-fill"></i> Text Statistics</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="stat-item">
+                                <span class="stat-label">Characters (with spaces):</span>
+                                <span id="charWithSpaces" class="stat-value">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Characters (no spaces):</span>
+                                <span id="charNoSpaces" class="stat-value">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Words:</span>
+                                <span id="wordCount" class="stat-value">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Sentences:</span>
+                                <span id="sentenceCount" class="stat-value">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Paragraphs:</span>
+                                <span id="paragraphCount" class="stat-value">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Reading Time:</span>
+                                <span id="readingTime" class="stat-value">0 min</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Speaking Time:</span>
+                                <span id="speakingTime" class="stat-value">0 min</span>
+                            </div>
+                        </div>
+                    </div>
 
-      <!-- Progress Bar -->
-      <div class="progress-bar-container">
-        <div id="progress-bar" class="progress-bar"></div>
-      </div>
+                    <!-- Text Analysis -->
+                        <div class="btn-group btn-group-sm">
+                            <button id="uploadBtn" class="btn btn-outline-primary" title="Upload File">
+                                <i class="bi bi-upload"></i>
+                            </button>
+                            <button id="downloadBtn" class="btn btn-outline-success" title="Download">
+                                <i class="bi bi-download"></i>
+                            </button>
+                            <button id="copyBtn" class="btn btn-outline-info" title="Copy to Clipboard">
+                                <i class="bi bi-clipboard"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <textarea id="textArea" class="form-control auto-resize" 
+                                  placeholder="Start typing or paste your text here...&#10;&#10;Keyboard Shortcuts:&#10;Ctrl+U - UPPERCASE&#10;Ctrl+L - lowercase&#10;Ctrl+Shift+C - Capitalize Each Word&#10;Ctrl+Shift+S - Remove Extra Spaces"></textarea>
+                        
+                        <!-- Progress Bar -->
+                        <div class="mt-3">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <small class="text-muted">Character Limit Progress</small>
+                                <small id="progressText" class="text-muted">0 / 1000</small>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div id="progressBar" class="progress-bar" role="progressbar" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Character Limit Input -->
+                        <div class="mt-3">
+                            <label for="charLimit" class="form-label small">Set Character Limit:</label>
+                            <input type="number" id="charLimit" class="form-control form-control-sm" 
+                                   value="1000" min="100" max="100000">
+                        </div>
+                    </div>
+                </div>
 
-      <!-- Buttons -->
-      <div class="button-container">
-        <button id="copy-btn" class="copy-btn">Copy Text</button>
-        <button id="reset-btn" class="reset-btn">Reset</button>
-        <button id="voice-btn" class="voice-btn">Speak</button>
-      </div>
-    </div>
+                <!-- Formatting Tools -->
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h6 class="mb-0"><i class="bi bi-tools"></i> Formatting Tools</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="btn-group flex-wrap" role="group">
+                            <button id="upperBtn" class="btn btn-outline-secondary btn-sm">
+                                <i class="bi bi-type"></i> UPPERCASE
+                            </button>
+                            <button id="lowerBtn" class="btn btn-outline-secondary btn-sm">
+                                <i class="bi bi-type"></i> lowercase
+                            </button>
+                            <button id="capitalizeBtn" class="btn btn-outline-secondary btn-sm">
+                                <i class="bi bi-type"></i> Capitalize Each Word
+                            </button>
+                            <button id="removeSpacesBtn" class="btn btn-outline-secondary btn-sm">
+                                <i class="bi bi-eraser"></i> Remove Extra Spaces
+                            </button>
+                            <button id="removeBreaksBtn" class="btn btn-outline-secondary btn-sm">
+                                <i class="bi bi-text-paragraph"></i> Remove Line Breaks
+                            </button>
+                        </div>
+                    </div>
+                </div>
 
-    <script src="index.js"></script>
-  </body>
+                <!-- Speech to Text -->
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h6 class="mb-0"><i class="bi bi-mic-fill"></i> Speech to Text</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-2 align-items-center">
+                            <div class="col-auto">
+                                <select id="languageSelect" class="form-select form-select-sm">
+                                    <option value="en-US">English (US)</option>
+                                    <option value="en-GB">English (UK)</option>
+                                    <option value="es-ES">Spanish</option>
+                                    <option value="fr-FR">French</option>
+                                    <option value="de-DE">German</option>
+                                    <option value="it-IT">Italian</option>
+                                    <option value="pt-BR">Portuguese</option>
+                                    <option value="zh-CN">Chinese</option>
+                                    <option value="ja-JP">Japanese</option>
+                                    <option value="ar-SA">Arabic</option>
+                                </select>
+                            </div>
+                            <div class="col-auto">
+                                <button id="speechBtn" class="btn btn-primary btn-sm">
+                                    <i class="bi bi-mic"></i> Start Recording
+                                </button>
+                            </div>
+                            <div class="col">
+                                <span id="speechStatus" class="badge bg-secondary">Ready</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel - Stats & Analysis -->
+            <div class="col-lg-4">
+                <div class="stats-panel sticky-panel">
+                    <!-- Basic Stats -->
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h6 class="mb-0"><i class="bi bi-bar-chart-fill"></i> Text Statistics</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="stat-item">
+                                <span class="stat-label">Characters (with spaces):</span>
+                                <span id="charWithSpaces" class="stat-value">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Characters (no spaces):</span>
+                                <span id="charNoSpaces" class="stat-value">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Words:</span>
+                                <span id="wordCount" class="stat-value">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Sentences:</span>
+                                <span id="sentenceCount" class="stat-value">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Paragraphs:</span>
+                                <span id="paragraphCount" class="stat-value">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Reading Time:</span>
+                                <span id="readingTime" class="stat-value">0 min</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Speaking Time:</span>
+                                <span id="speakingTime" class="stat-value">0 min</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Text Analysis -->
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h6 class="mb-0"><i class="bi bi-search"></i> Text Analysis</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="analysis-item">
+                                <span class="badge bg-warning" id="longSentences">0</span>
+                                <span class="ms-2">Long Sentences (>20 words)</span>
+                            </div>
+                            <div class="analysis-item">
+                                <span class="badge bg-info" id="extraSpaces">0</span>
+                                <span class="ms-2">Extra Spaces Detected</span>
+                            </div>
+                            <div class="analysis-item">
+                                <span class="badge bg-secondary" id="passiveVoice">0</span>
+                                <span class="ms-2">Passive Voice Instances</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Most Repeated Words -->
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h6 class="mb-0"><i class="bi bi-list-ol"></i> Most Repeated Words</h6>
+                        </div>
+                        <div class="card-body">
+                            <div id="repeatedWords" class="repeated-words-list">
+                                <small class="text-muted">Start typing to see analysis...</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Keyword Density -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="mb-0"><i class="bi bi-percent"></i> Keyword Density</h6>
+                        </div>
+                        <div class="card-body">
+                            <input type="text" id="keywordInput" class="form-control form-control-sm mb-2" 
+                                   placeholder="Enter keyword...">
+                            <div id="keywordDensity" class="keyword-result">
+                                <small class="text-muted">Enter a keyword to check density</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer mt-5 py-3">
+        <div class="container text-center">
+            <p class="mb-0 text-muted">
+                <i class="bi bi-code-slash"></i> Crafted with care by <strong>MultiMian</strong> &copy; 2026
+            </p>
+        </div>
+    </footer>
+
+    <!-- Hidden File Input -->
+    <input type="file" id="fileInput" accept=".txt" style="display: none;">
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JS Modules -->
+    <script src="js/storage.js"></script>
+    <script src="js/counter.js"></script>
+    <script src="js/analyzer.js"></script>
+    <script src="js/formatter.js"></script>
+    <script src="js/speech.js"></script>
+    <script src="js/theme.js"></script>
+    <script src="js/export.js"></script>
+    <script src="js/app.js"></script>
+</body>
 </html>

@@ -1,57 +1,164 @@
-# Real-time Character Counter
+# MianScribe - Writing Assistant & Real-time Character Counter
 
-A feature-rich Real-time Character Counter tool designed to simplify text editing by providing real-time updates on character and word counts, with additional user-friendly features.
+A complete, production-ready, feature-rich writing assistant web application built with HTML, CSS (Bootstrap), and Vanilla JavaScript.
 
 ## Features
 
-- **Real-time Counter**: Tracks the total number of characters and words as you type.
-- **Customizable Character Limit**: Users can set their own character limit to meet specific needs.
-- **Progress Bar**: Visual representation of character usage compared to the set limit.
-- **Dark Mode Toggle**: Switch between light and dark themes for a comfortable user experience.
-- **Speech-to-Text**: Uses the Speech Recognition API to convert spoken words into text.
-- **Copy and Reset**: Easily copy the text to the clipboard or reset the input field.
-- **Persistent Text**: Automatically saves text in local storage and restores it on page reload.
+### Real-time Text Statistics
+- Character count (with spaces)
+- Character count (without spaces)
+- Word count
+- Sentence count
+- Paragraph count
+- Estimated reading time (200 wpm)
+- Estimated speaking time (150 wpm)
+- Live progress bar based on customizable character limit
 
-## Tech Stack
+### Text Analysis
+- Highlight long sentences (>20 words)
+- Detect and show most repeated words (top 5)
+- Keyword density calculator
+- Detect extra spaces
+- Basic passive voice detection (regex-based)
 
-- **HTML**: For the structure of the application.
-- **CSS**: Styled with Bootstrap and custom styles for a modern and responsive design.
-- **JavaScript**: Implements real-time functionality, speech recognition, and local storage features.
+### Text Formatting Tools
+- UPPERCASE conversion
+- lowercase conversion
+- Capitalize Each Word
+- Remove extra spaces
+- Remove line breaks
 
-## How to Use
+### UX Features
+- Dark/Light mode toggle (saved in localStorage)
+- Auto-resizing textarea
+- Sticky stats panel
+- Keyboard shortcuts for formatting
+- Responsive modern UI
+- Professional gradient design
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/Mianhassam96/real-time-character-counter.git
-   ```
-2. Navigate to the project directory:
-   ```bash
-   cd real-time-character-counter
-   ```
-3. Open `index.html` in your browser to start using the tool.
+### Speech to Text
+- Web Speech Recognition API integration
+- Multiple language support (10+ languages)
+- Real-time transcription
+- Append speech to textarea
 
-## Screenshots
+### File Features
+- Upload .txt file into textarea
+- Export text as .txt file
+- Copy to clipboard with visual feedback
+- Reset button to clear all data
 
-### Light Mode:
-[Include a light mode screenshot here]
+### Data Persistence
+- Auto-save text in localStorage
+- Restore on page reload
+- Save theme preference
+- Save character limit
+- Save language preference
 
-### Dark Mode:
-[Include a dark mode screenshot here]
+### PWA Ready
+- Service Worker for offline functionality
+- Web App Manifest
+- Installable on mobile devices
 
-## Future Enhancements
+## Project Structure
 
-- Multi-language support for speech recognition.
-- Export text as a downloadable file.
-- Integration with a word processor API for advanced text formatting.
+```
+/
+├── index.html
+├── manifest.json
+├── service-worker.js
+├── README.md
+├── css/
+│   └── style.css
+└── js/
+    ├── app.js          # Main application initialization
+    ├── counter.js      # Text statistics counter
+    ├── analyzer.js     # Text analysis features
+    ├── formatter.js    # Text formatting tools
+    ├── speech.js       # Speech recognition
+    ├── storage.js      # LocalStorage management
+    ├── theme.js        # Theme management
+    └── export.js       # File import/export
 
-## Contributing
+```
 
-Contributions are welcome! Feel free to fork the repository and submit a pull request with your improvements or feature additions.
+## Installation & Usage
+
+### Option 1: Direct Open
+1. Download all files maintaining the folder structure
+2. Open `index.html` in a modern web browser
+3. Start typing!
+
+### Option 2: Local Server (Recommended for PWA)
+```bash
+# Using Python
+python -m http.server 8000
+
+# Using Node.js (http-server)
+npx http-server
+
+# Using PHP
+php -S localhost:8000
+```
+
+Then open `http://localhost:8000` in your browser.
+
+## Keyboard Shortcuts
+
+- `Ctrl + U` - Convert to UPPERCASE
+- `Ctrl + L` - Convert to lowercase
+- `Ctrl + Shift + C` - Capitalize Each Word
+- `Ctrl + Shift + S` - Remove Extra Spaces
+
+## Browser Compatibility
+
+- Chrome/Edge: Full support (including Speech Recognition)
+- Firefox: Full support (Speech Recognition may require flag)
+- Safari: Full support (Speech Recognition limited)
+- Opera: Full support
+
+## Technologies Used
+
+- HTML5
+- CSS3 (Custom + Bootstrap 5.3)
+- Vanilla JavaScript (ES6+)
+- Bootstrap Icons
+- Web Speech API
+- LocalStorage API
+- Service Worker API
+
+## Features Breakdown
+
+### Modular Architecture
+All JavaScript is separated into logical modules:
+- Clean separation of concerns
+- Easy to maintain and extend
+- Well-commented code
+- No inline JavaScript
+
+### Responsive Design
+- Mobile-first approach
+- Adapts to all screen sizes
+- Touch-friendly interface
+
+### Performance
+- Lightweight (no heavy frameworks)
+- Fast load times
+- Efficient DOM updates
+- Auto-save with debouncing
+
+## Credits
+
+**Crafted with care by MultiMian © 2026**
 
 ## License
 
-This project is licensed under the MIT License. See the LICENSE file for more details.
+Free to use for personal and commercial projects.
+
+## Support
+
+For issues or feature requests, please contact the developer.
 
 ---
 
-
+**MianScribe** - Your professional writing companion! ✍️
