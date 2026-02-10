@@ -55,13 +55,6 @@ Open [http://localhost:3000](http://localhost:3000) to see the application.
 4. Create credentials (API Key)
 5. Copy your API key
 
-### Add API Key
-
-Create a `.env.local` file in the root directory:
-
-```env
-GOOGLE_PAGESPEED_API_KEY=your_api_key_here
-```
 
 **Note**: The app works in demo mode without an API key, showing sample data.
 
@@ -74,14 +67,6 @@ npm run build
 npm start
 ```
 
-### Deploy to Vercel
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Mianhassam96/MianScan)
-
-1. Click the button above or go to [Vercel](https://vercel.com)
-2. Import your repository
-3. Add environment variable: `GOOGLE_PAGESPEED_API_KEY`
-4. Deploy
 
 ## 🎨 Features Showcase
 
@@ -121,13 +106,5 @@ This project is open source and available under the MIT License.
 
 - GitHub: [@Mianhassam96](https://github.com/Mianhassam96)
 
-## 🙏 Acknowledgments
-
-- Google PageSpeed Insights API
-- Next.js Team
-- Vercel
-- Open source community
-
----
 
 **Made with ❤️ by MultiMian**
