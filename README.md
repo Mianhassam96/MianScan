@@ -1,164 +1,153 @@
-# MianScribe - Writing Assistant & Real-time Character Counter
+# MianScribe Premium - Professional Text Editor
 
-A complete, production-ready, feature-rich writing assistant web application built with HTML, CSS (Bootstrap), and Vanilla JavaScript.
+A beautiful, modern text editor with 50+ tools for writers, developers, students, and content creators.
 
-## Features
+## 🚀 Quick Start
 
-### Real-time Text Statistics
-- Character count (with spaces)
-- Character count (without spaces)
-- Word count
-- Sentence count
-- Paragraph count
-- Estimated reading time (200 wpm)
-- Estimated speaking time (150 wpm)
-- Live progress bar based on customizable character limit
+1. Open `index.html` in your browser
+2. Start typing or upload a file
+3. Use 50+ tools from the sidebar
+4. Export in 7 different formats
 
-### Text Analysis
-- Highlight long sentences (>20 words)
-- Detect and show most repeated words (top 5)
-- Keyword density calculator
-- Detect extra spaces
-- Basic passive voice detection (regex-based)
+**No installation. No signup. Completely free.**
 
-### Text Formatting Tools
-- UPPERCASE conversion
-- lowercase conversion
-- Capitalize Each Word
-- Remove extra spaces
-- Remove line breaks
+## ✨ Features
 
-### UX Features
-- Dark/Light mode toggle (saved in localStorage)
-- Auto-resizing textarea
-- Sticky stats panel
-- Keyboard shortcuts for formatting
-- Responsive modern UI
-- Professional gradient design
+### 📝 Text Transformation (15 tools)
+UPPERCASE, lowercase, Title Case, camelCase, snake_case, kebab-case, PascalCase, remove spaces, remove emojis, reverse text, sort lines, remove duplicates, number lines
 
-### Speech to Text
-- Web Speech Recognition API integration
-- Multiple language support (10+ languages)
-- Real-time transcription
-- Append speech to textarea
+### 🔍 Extraction Tools (7 tools)
+Extract emails, URLs, hashtags, mentions, phone numbers, numbers, emojis
 
-### File Features
-- Upload .txt file into textarea
-- Export text as .txt file
-- Copy to clipboard with visual feedback
-- Reset button to clear all data
+### 💻 Developer Tools (12 tools)
+JSON formatter, Base64 encode/decode, URL encode/decode, UUID generator, Lorem ipsum, Password generator, Slug generator
 
-### Data Persistence
-- Auto-save text in localStorage
-- Restore on page reload
-- Save theme preference
-- Save character limit
-- Save language preference
+### 🤖 AI Features (8 tools)
+Paraphraser, Summarizer, Grammar checker, Translator, Tone analyzer, SEO optimizer, Headline generator
 
-### PWA Ready
-- Service Worker for offline functionality
-- Web App Manifest
-- Installable on mobile devices
+### 📊 Real-time Analysis
+- Word count, character count, sentences, paragraphs
+- Reading time & speaking time
+- Readability score (Flesch-Kincaid)
+- Long sentence detection
+- Passive voice detection
 
-## Project Structure
+### 📤 Export & Import
+**Export (7 formats):** TXT, HTML, PDF, DOC, RTF, JSON, Markdown
+**Import (8 formats):** TXT, HTML, RTF, PDF, DOC, DOCX, JSON, Markdown
+
+**Full Support:**
+- ✅ TXT - Plain text files
+- ✅ HTML - Web documents
+- ✅ RTF - Rich Text Format (WordPad files)
+- ✅ PDF - Portable Document Format (text extraction)
+- ✅ DOC/DOCX - Microsoft Word files (basic support)
+- ✅ JSON - Data files
+- ✅ Markdown - Markdown files
+
+### ⚡ Special Features
+- Command Palette (Ctrl+K)
+- Focus Mode (Ctrl+/)
+- Dark Mode
+- Auto-save
+- Document management
+- Text comparison
+
+## ⌨️ Keyboard Shortcuts
+
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl+K` | Command palette |
+| `Ctrl+S` | Save document |
+| `Ctrl+/` | Focus mode |
+| `Esc` | Exit focus mode |
+
+## 🎯 How to Use
+
+### Upload Files
+1. Click 📤 Upload button
+2. Select file (.txt, .html, .rtf, .json, .md)
+3. Content loads automatically
+
+### Download Files
+1. Type your text
+2. Click Download dropdown
+3. Choose format (TXT, HTML, PDF, DOC, RTF, JSON, MD)
+4. File downloads instantly
+
+### Transform Text
+1. Type or paste text
+2. Click Transform tab
+3. Choose transformation
+4. Text updates instantly
+
+### Extract Data
+1. Paste text with emails/URLs/hashtags
+2. Click Extract tab
+3. Choose what to extract
+4. View results in popup
+
+## 🎨 Beautiful UI
+
+- Modern gradient design
+- Smooth animations
+- Glass morphism effects
+- Responsive layout
+- Dark mode support
+- Professional styling
+
+## 📁 Project Structure
 
 ```
-/
-├── index.html
-├── manifest.json
-├── service-worker.js
-├── README.md
+mianscribe/
+├── index.html          # Main application
 ├── css/
-│   └── style.css
-└── js/
-    ├── app.js          # Main application initialization
-    ├── counter.js      # Text statistics counter
-    ├── analyzer.js     # Text analysis features
-    ├── formatter.js    # Text formatting tools
-    ├── speech.js       # Speech recognition
-    ├── storage.js      # LocalStorage management
-    ├── theme.js        # Theme management
-    └── export.js       # File import/export
-
+│   └── premium.css     # Stylish UI
+├── js/premium/
+│   ├── core.js         # Core functions
+│   ├── tools.js        # 50+ tools
+│   ├── ai.js           # AI features
+│   ├── export.js       # Export/import
+│   ├── compare.js      # Text comparison
+│   ├── commands.js     # Command palette
+│   └── app.js          # Main app
+└── README.md           # This file
 ```
 
-## Installation & Usage
+## 🔧 Tech Stack
 
-### Option 1: Direct Open
-1. Download all files maintaining the folder structure
-2. Open `index.html` in a modern web browser
-3. Start typing!
-
-### Option 2: Local Server (Recommended for PWA)
-```bash
-# Using Python
-python -m http.server 8000
-
-# Using Node.js (http-server)
-npx http-server
-
-# Using PHP
-php -S localhost:8000
-```
-
-Then open `http://localhost:8000` in your browser.
-
-## Keyboard Shortcuts
-
-- `Ctrl + U` - Convert to UPPERCASE
-- `Ctrl + L` - Convert to lowercase
-- `Ctrl + Shift + C` - Capitalize Each Word
-- `Ctrl + Shift + S` - Remove Extra Spaces
-
-## Browser Compatibility
-
-- Chrome/Edge: Full support (including Speech Recognition)
-- Firefox: Full support (Speech Recognition may require flag)
-- Safari: Full support (Speech Recognition limited)
-- Opera: Full support
-
-## Technologies Used
-
-- HTML5
-- CSS3 (Custom + Bootstrap 5.3)
-- Vanilla JavaScript (ES6+)
+- HTML5, CSS3, JavaScript (ES6+)
+- Bootstrap 5
 - Bootstrap Icons
-- Web Speech API
-- LocalStorage API
-- Service Worker API
+- jsPDF (for PDF export)
+- LocalStorage (for data persistence)
 
-## Features Breakdown
+## 🌟 Why MianScribe?
 
-### Modular Architecture
-All JavaScript is separated into logical modules:
-- Clean separation of concerns
-- Easy to maintain and extend
-- Well-commented code
-- No inline JavaScript
+- ✅ **50+ Tools** - Most comprehensive text editor
+- ✅ **Beautiful UI** - Modern, stylish design
+- ✅ **Fast** - No loading, instant response
+- ✅ **Private** - Everything stays local
+- ✅ **Free** - No payment, no subscription
+- ✅ **Offline** - Works without internet
+- ✅ **RTF Support** - Import/export WordPad files
 
-### Responsive Design
-- Mobile-first approach
-- Adapts to all screen sizes
-- Touch-friendly interface
+## 🎯 Perfect For
 
-### Performance
-- Lightweight (no heavy frameworks)
-- Fast load times
-- Efficient DOM updates
-- Auto-save with debouncing
+- **Writers** - Draft articles, check readability
+- **Developers** - Format JSON, generate UUIDs
+- **Students** - Write essays, check word count
+- **Content Creators** - SEO optimization, hashtag extraction
+- **Everyone** - Quick text transformations
 
-## Credits
+## 📝 License
 
-**Crafted with care by MultiMian © 2026**
+MIT License - Free for personal and commercial use
 
-## License
+## 👨‍💻 Author
 
-Free to use for personal and commercial projects.
-
-## Support
-
-For issues or feature requests, please contact the developer.
+**MultiMian** © 2026
 
 ---
 
-**MianScribe** - Your professional writing companion! ✍️
+**Open `index.html` and start creating!** 🚀

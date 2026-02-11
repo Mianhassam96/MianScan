@@ -1,22 +1,39 @@
 {
-  "name": "MianScribe - Writing Assistant",
+  "name": "MianScribe Premium - Text Lab",
   "short_name": "MianScribe",
-  "description": "Professional Writing Assistant with Real-time Character Counter and Text Analysis",
-  "start_url": "/",
+  "description": "Professional Text Utility Platform with 50+ Tools, AI Features, and Advanced Analysis",
+  "start_url": "/index-premium.html",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#4f46e5",
-  "orientation": "portrait-primary",
+  "theme_color": "#6366f1",
+  "orientation": "any",
+  "categories": ["productivity", "utilities", "education"],
   "icons": [
     {
       "src": "icon-192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
       "src": "icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "screenshot-wide.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide"
+    },
+    {
+      "src": "screenshot-narrow.png",
+      "sizes": "750x1334",
+      "type": "image/png",
+      "form_factor": "narrow"
     }
   ]
 }
