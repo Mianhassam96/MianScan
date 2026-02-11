@@ -75,6 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const saveBtn = document.getElementById('saveDoc');
     if (saveBtn) {
         saveBtn.addEventListener('click', saveCurrentDoc);
+    }
     
     // Export dropdown
     const exportItems = document.querySelectorAll('[data-format]');
@@ -230,4 +231,188 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/service-worker.js')
         .then(reg => console.log('Service Worker registered'))
         .catch(err => console.log('Service Worker registration failed'));
+}
+
+
+// Render tools function
+function renderTools(category, containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) {
+        console.error(`Container ${containerId} not found`);
+        return;
+    }
+    
+    const tools = ToolsManager.getTools(category);
+    container.innerHTML = tools.map(tool => `
+        <div class="col-md-6 col-lg-4">
+            <div class="tool-card" onclick="executeTool('${tool.id}')">
+                <h6>
+                    <i class="${tool.icon}"></i>
+                    ${tool.name}
+                </h6>
+                <p>${tool.description}</p>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Execute tool function
+function executeTool(toolId) {
+    const editor = document.getElementById('mainEditor');
+    const text = editor.value;
+    
+    if (!text.trim()) {
+        MianScribe.utils.showToast('Please enter some text first', 'warning');
+        return;
+    }
+    
+    const result = ToolsManager.execute(toolId, text);
+    if (result !== null) {
+        editor.value = result;
+        updateStats();
+        MianScribe.utils.showToast('Tool applied successfully!', 'success');
+    }
+}
+
+// Quick transform function
+function quickTransform(type) {
+    const editor = document.getElementById('mainEditor');
+    const text = editor.value;
+    
+    if (!text.trim()) {
+        MianScribe.utils.showToast('Please enter some text first', 'warning');
+        return;
+    }
+    
+    if (MianScribe.transform[type]) {
+        editor.value = MianScribe.transform[type](text);
+        updateStats();
+        MianScribe.utils.showToast('Text transformed!', 'success');
+    }
+}
+
+// Copy all text
+function copyAllText() {
+    const editor = document.getElementById('mainEditor');
+    if (editor.value.trim()) {
+        MianScribe.utils.copyToClipboard(editor.value);
+    } else {
+        MianScribe.utils.showToast('Nothing to copy', 'warning');
+    }
+}
+
+// Clear all text
+function clearAllText() {
+    if (confirm('Are you sure you want to clear all text?')) {
+        const editor = document.getElementById('mainEditor');
+        editor.value = '';
+        updateStats();
+        MianScribe.utils.showToast('Text cleared', 'info');
+    }
+}
+
+// Toggle theme
+function toggleTheme() {
+    document.body.classList.toggle('dark-mode');
+    const isDark = document.body.classList.contains('dark-mode');
+    const icon = document.querySelector('#themeToggle i');
+    if (icon) {
+        icon.className = isDark ? 'bi bi-sun-fill' : 'bi bi-moon-fill';
+    }
+    MianScribe.storage.save('theme', isDark ? 'dark' : 'light');
+}
+
+// Toggle focus mode
+function toggleFocusMode() {
+    document.body.classList.toggle('focus-mode');
+    const isFocus = document.body.classList.contains('focus-mode');
+    MianScribe.utils.showToast(isFocus ? 'Focus mode enabled' : 'Focus mode disabled', 'info');
+}
+
+// Save current document
+function saveCurrentDoc() {
+    const editor = document.getElementById('mainEditor');
+    const title = prompt('Enter document title:', 'Untitled Document');
+    
+    if (title) {
+        const doc = MianScribe.documents.create(title, editor.value);
+        MianScribe.documents.save(doc);
+        loadDocumentsList();
+        MianScribe.utils.showToast('Document saved!', 'success');
+    }
+}
+
+// New document
+function newDocument() {
+    if (confirm('Create a new document? Current text will be saved.')) {
+        const editor = document.getElementById('mainEditor');
+        MianScribe.storage.save('currentText', editor.value);
+        editor.value = '';
+        updateStats();
+        MianScribe.utils.showToast('New document created', 'success');
+    }
+}
+
+// Load documents list
+function loadDocumentsList() {
+    const container = document.getElementById('documentsList');
+    if (!container) return;
+    
+    const docs = MianScribe.documents.getAll();
+    
+    if (docs.length === 0) {
+        container.innerHTML = `
+            <div class="text-center text-muted py-5">
+                <i class="bi bi-folder2-open" style="font-size: 3rem;"></i>
+                <p class="mt-3">No documents yet</p>
+                <p class="small">Click "New Document" to create one</p>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = docs.map(doc => `
+        <div class="card mb-3">
+            <div class="card-body">
+                <h6 class="card-title">${doc.title}</h6>
+                <p class="card-text small text-muted">
+                    ${new Date(doc.updatedAt).toLocaleDateString()}
+                </p>
+                <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-primary" onclick="loadDocument('${doc.id}')">
+                        <i class="bi bi-folder-open"></i> Open
+                    </button>
+                    <button class="btn btn-outline-danger" onclick="deleteDocument('${doc.id}')">
+                        <i class="bi bi-trash"></i> Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Load document
+function loadDocument(id) {
+    const docs = MianScribe.documents.getAll();
+    const doc = docs.find(d => d.id === id);
+    
+    if (doc) {
+        const editor = document.getElementById('mainEditor');
+        editor.value = doc.content;
+        updateStats();
+        MianScribe.utils.showToast(`Loaded: ${doc.title}`, 'success');
+        
+        // Switch to editor tab
+        const editorTab = document.querySelector('[data-bs-target="#editor-tab"]');
+        if (editorTab) editorTab.click();
+    }
+}
+
+// Delete document
+function deleteDocument(id) {
+    if (confirm('Are you sure you want to delete this document?')) {
+        MianScribe.documents.delete(id);
+        loadDocumentsList();
+        MianScribe.utils.showToast('Document deleted', 'info');
+    }
 }

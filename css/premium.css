@@ -986,3 +986,199 @@ body.focus-mode .main-editor {
 .loading {
     animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
+
+
+/* Footer */
+.app-footer {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border-top: 1px solid var(--glass-border);
+    margin-top: 2rem;
+    position: relative;
+    z-index: 100;
+}
+
+.app-footer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--primary), transparent);
+    opacity: 0.5;
+}
+
+.footer-link {
+    color: #64748b;
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.footer-link:hover {
+    color: var(--primary);
+    transform: translateY(-2px);
+}
+
+.footer-link i {
+    font-size: 1.1rem;
+}
+
+body.dark-mode .app-footer {
+    background: rgba(30, 41, 59, 0.95);
+    border-top-color: rgba(99, 102, 241, 0.2);
+}
+
+body.dark-mode .footer-link {
+    color: #94a3b8;
+}
+
+body.dark-mode .footer-link:hover {
+    color: var(--primary-light);
+}
+
+/* Improved tool cards hover effect */
+.tool-card:hover h6 {
+    color: var(--primary);
+}
+
+/* Better form labels */
+.form-label {
+    font-weight: 600;
+    color: var(--dark);
+    margin-bottom: 0.75rem;
+}
+
+body.dark-mode .form-label {
+    color: #f8fafc;
+}
+
+/* Card improvements */
+.card {
+    border-radius: 14px;
+    border: 1px solid var(--glass-border);
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+}
+
+body.dark-mode .card {
+    background: rgba(30, 41, 59, 0.9);
+    border-color: rgba(99, 102, 241, 0.2);
+}
+
+/* Dropdown menu improvements */
+.dropdown-menu {
+    border-radius: 12px;
+    border: 1px solid var(--glass-border);
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    box-shadow: var(--shadow-lg);
+    padding: 0.5rem;
+}
+
+.dropdown-item {
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    transition: all 0.2s ease;
+    font-weight: 500;
+}
+
+.dropdown-item:hover {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1));
+    color: var(--primary);
+    transform: translateX(4px);
+}
+
+body.dark-mode .dropdown-menu {
+    background: rgba(30, 41, 59, 0.95);
+    border-color: rgba(99, 102, 241, 0.2);
+}
+
+/* Analysis items */
+.analysis-item {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 0;
+    transition: all 0.2s ease;
+}
+
+.analysis-item:hover {
+    padding-left: 0.5rem;
+}
+
+.analysis-item .badge {
+    min-width: 40px;
+    text-align: center;
+}
+
+/* Improved modal */
+.modal-backdrop {
+    backdrop-filter: blur(8px);
+}
+
+#commandSearch {
+    padding: 1.25rem 1.5rem;
+    font-size: 1.1rem;
+    border-bottom: 1px solid var(--glass-border) !important;
+}
+
+#commandSearch:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+/* Loading state */
+.loading-spinner {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    border: 2px solid rgba(99, 102, 241, 0.3);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Tooltip improvements */
+[title] {
+    position: relative;
+}
+
+/* Better focus states */
+button:focus-visible,
+.btn:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+/* Smooth transitions for all interactive elements */
+a, button, .btn, .nav-link, .tool-card, .stat-item {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Print styles */
+@media print {
+    .navbar, .sidebar-left, .sidebar-right, .editor-toolbar, .editor-footer, .app-footer {
+        display: none !important;
+    }
+    
+    .main-editor {
+        border: none !important;
+        padding: 0 !important;
+    }
+}

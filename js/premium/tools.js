@@ -236,3 +236,68 @@ function generatePassword(length = 16) {
 function showRegexTester() {
     MianScribe.utils.showToast('Regex tester coming soon!', 'info');
 }
+
+
+function handleAITool(toolId, text) {
+    // AI tools are simulated for demo purposes
+    MianScribe.utils.showToast('AI feature: ' + toolId + ' - Coming soon with API integration!', 'info');
+    
+    // For demo, show what each tool would do
+    const aiDescriptions = {
+        paraphrase: 'This will rewrite your text using AI while maintaining the meaning',
+        summarize: 'This will create a concise summary of your text',
+        expand: 'This will elaborate and expand your text with more details',
+        grammar: 'This will check and fix grammar, spelling, and punctuation',
+        translate: 'This will translate your text to any language',
+        tone: 'This will analyze the emotional tone of your text',
+        seo: 'This will optimize your text for search engines',
+        headline: 'This will generate catchy headlines from your text'
+    };
+    
+    setTimeout(() => {
+        MianScribe.utils.showToast(aiDescriptions[toolId] || 'AI processing...', 'info');
+    }, 500);
+}
+
+// ToolsManager for compatibility with app.js
+const ToolsManager = {
+    getTools(category) {
+        return (TOOLS[category] || []).map(tool => ({
+            id: tool.id,
+            name: tool.name,
+            icon: `bi bi-${tool.icon}`,
+            description: tool.desc,
+            action: tool.action || tool.id
+        }));
+    },
+    
+    execute(toolId, text) {
+        // Find the tool in all categories
+        for (const category in TOOLS) {
+            const tool = TOOLS[category].find(t => t.id === toolId);
+            if (tool) {
+                const action = tool.action || toolId;
+                
+                if (category === 'transform' && MianScribe.transform[action]) {
+                    return MianScribe.transform[action](text);
+                }
+                else if (category === 'extract' && MianScribe.extract[action]) {
+                    const results = MianScribe.extract[action](text);
+                    showExtractResult(toolId, results);
+                    return null;
+                }
+                else if (category === 'dev') {
+                    handleDevTool(toolId, text);
+                    return null;
+                }
+                else if (category === 'ai') {
+                    handleAITool(toolId, text);
+                    return null;
+                }
+            }
+        }
+        
+        MianScribe.utils.showToast('Tool not found', 'warning');
+        return null;
+    }
+};
