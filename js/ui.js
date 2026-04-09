@@ -115,7 +115,7 @@
         <div class="card-head"><i class="bi bi-bar-chart-fill"></i> Key Metrics</div>
         <div class="authority-grid" style="grid-template-columns:repeat(4,1fr)">
           <div class="auth-card"><div class="auth-val" style="color:var(--green)">${d.seo.score}</div><div class="auth-lbl">SEO Score</div></div>
-          <div class="auth-card"><div class="auth-val" style="color:var(--primary2)">${da}</div><div class="auth-lbl">DA</div></div>
+          <div class="auth-card"><div class="auth-val" style="color:var(--primary2)">${da}</div><div class="auth-lbl">DA (est.)</div></div>
           <div class="auth-card"><div class="auth-val" style="color:var(--accent);font-size:1rem">${rank}</div><div class="auth-lbl">Global Rank</div></div>
           <div class="auth-card"><div class="auth-val" style="color:var(--yellow)">${d.links.totalInternal+d.links.totalExternal}</div><div class="auth-lbl">Total Links</div></div>
         </div>
@@ -172,7 +172,7 @@
           <div class="auth-card"><div class="auth-val" style="color:var(--green)">${score}</div><div class="auth-lbl">SEO Score</div><div class="auth-note">On-page analysis</div></div>
           <div class="auth-card"><div class="auth-val" style="color:var(--yellow);font-size:1rem">${d?.rank?'#'+Number(d.rank).toLocaleString():'N/A'}</div><div class="auth-lbl">OPR Rank</div><div class="auth-note">Open PageRank</div></div>
         </div>
-        <div class="auth-note-box"><i class="bi bi-info-circle"></i> DA/PA are estimated. For exact Moz metrics use <a href="https://moz.com/link-explorer" target="_blank" style="color:var(--primary2)">Moz Link Explorer ↗</a></div>
+        <div class="auth-note-box"><i class="bi bi-info-circle"></i> DA/PA are estimated metrics based on on-page signals and Open PageRank. They are <strong>not</strong> official Moz scores. For exact DA/PA use <a href="https://moz.com/link-explorer" target="_blank" style="color:var(--primary2)">Moz Link Explorer ↗</a> or <a href="https://ahrefs.com" target="_blank" style="color:var(--primary2)">Ahrefs ↗</a></div>
       </div>
     </div>`;
   },
