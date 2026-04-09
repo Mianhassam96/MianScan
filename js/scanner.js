@@ -16,17 +16,16 @@ const Scanner = {
         clearTimeout(timer);
         if (!res.ok) continue;
         const raw = await res.text();
-        // allorigins wraps in JSON
-        try { const j = JSON.parse(raw); if (j.contents && j.contents.length > 200) return j.contents; } catch(_){}
+        try { const j = JSON.parse(raw); if (j.contents && j.contents.length > 200) return j.contents; } catch(_) {}
         if (raw.length > 200) return raw;
-      } catch(_) { /* try next */ }
+      } catch(_) {}
     }
     throw new Error('All proxies failed. The site may block external requests.');
   },
 
   parse(html, url) {
     const doc = new DOMParser().parseFromString(html, 'text/html');
-    try { const b = doc.createElement('base'); b.href = url; doc.head.prepend(b); } catch(_){}
+    try { const b = doc.createElement('base'); b.href = url; doc.head.prepend(b); } catch(_) {}
     return doc;
   },
 
@@ -42,45 +41,53 @@ const Scanner = {
     else if (/\bblog\b|article|\bpost\b|category/i.test(body))      type = 'Blog / Media';
     else if (/agency|services|we help|our team/i.test(body))        type = 'Agency / Services';
     else if (/\bdocs\b|documentation|api reference/i.test(body))    type = 'Documentation';
-    return { title, desc, lang, type, sections: structure.tree.length, topic: content.topics[0] || content.keywords[0] || '—' };
+    return { title, desc, lang, type, sections: structure.tree.length, topic: content.topics[0] || content.keywords[0]?.word || '—' };
   },
 
   async scan(url, onProgress) {
     const p = (msg, pct) => onProgress && onProgress(msg, pct);
-    p('Fetching page…', 8);
+
+    p('Fetching page…', 6);
     const html = await this.fetchHTML(url);
-    p('Parsing HTML…', 18);
+    p('Parsing HTML…', 13);
     const doc = this.parse(html, url);
-    p('Extracting colors…', 27);
+
+    p('Extracting colors…', 20);
     const colors = ColorAnalyzer.analyze(doc, html);
-    p('Detecting fonts…', 36);
+    p('Detecting fonts…', 27);
     const fonts = FontAnalyzer.analyze(doc, html);
-    p('Analyzing structure…', 45);
+    p('Analyzing structure…', 33);
     const structure = StructureAnalyzer.analyze(doc);
-    p('Scanning content & CTAs…', 54);
+    p('Scanning content…', 39);
     const content = ContentAnalyzer.analyze(doc);
     const cta = CTAAnalyzer.analyze(doc);
-    p('Checking SEO…', 63);
+    p('Checking SEO…', 45);
     const seo = SEOAnalyzer.analyze(doc);
-    p('Scanning media…', 72);
+    p('Scanning media & links…', 52);
     const media = MediaAnalyzer.analyze(doc, url);
-    p('Analyzing links…', 78);
     const links = LinksAnalyzer.analyze(doc, url);
-    p('Checking images SEO…', 84);
+    p('Checking images SEO…', 58);
     const images = ImagesAnalyzer.analyze(doc, url);
-    p('Finding contacts…', 88);
+    p('Finding contacts…', 64);
     const contacts = ContactAnalyzer.analyze(doc, html);
-    p('Detecting tech stack…', 90);
+    p('Detecting tech stack…', 70);
     const tech = TechAnalyzer.analyze(doc, html);
-    p('Performance check…', 96);
+    p('Performance check…', 75);
     const performance = PerformanceAnalyzer.analyze(doc, html);
-    p('Fetching domain info…', 98);
+    p('Checking indexing…', 80);
+    const indexing = await IndexingAnalyzer.analyze(doc, html, url);
+    p('Fetching domain authority…', 86);
     const domain = await DomainAnalyzer.analyze(url);
+    p('Fetching ranking data…', 92);
+    const ranking = await RankingAnalyzer.analyze(url);
     p('Done!', 100);
+
     this.currentData = {
       url, scannedAt: new Date().toISOString(),
       overview: this._overview(doc, url, structure, content),
-      colors, fonts, structure, content, cta, seo, media, links, images, contacts, tech, performance, domain
+      colors, fonts, structure, content, cta, seo,
+      media, links, images, contacts, tech, performance,
+      indexing, domain, ranking
     };
     return this.currentData;
   }

@@ -38,14 +38,16 @@ const Compare = {
         </div>
       </div>
 
-      ${this.section('📊 SEO Score', this.seoBlock(a,b))}
-      ${this.section('🔑 Top Keywords', this.keywordsBlock(a,b))}
-      ${this.section('🎯 Primary CTAs', this.ctaBlock(a,b))}
-      ${this.section('🛠️ Tech Stack', this.techBlock(a,b))}
-      ${this.section('🎨 Colors', this.colorsBlock(a,b))}
-      ${this.section('🔤 Fonts', this.fontsBlock(a,b))}
-      ${this.section('⚡ Performance', this.perfBlock(a,b))}
-      ${this.section('📧 Contacts', this.contactsBlock(a,b))}
+      ${this.section('📊 SEO Score',      this.seoBlock(a,b))}
+      ${this.section('🏆 DA / Authority', this.daBlock(a,b))}
+      ${this.section('🌍 Ranking',        this.rankBlock(a,b))}
+      ${this.section('🔑 Top Keywords',   this.keywordsBlock(a,b))}
+      ${this.section('🎯 Primary CTAs',   this.ctaBlock(a,b))}
+      ${this.section('🛠️ Tech Stack',     this.techBlock(a,b))}
+      ${this.section('🎨 Colors',         this.colorsBlock(a,b))}
+      ${this.section('🔤 Fonts',          this.fontsBlock(a,b))}
+      ${this.section('⚡ Performance',    this.perfBlock(a,b))}
+      ${this.section('📧 Contacts',       this.contactsBlock(a,b))}
     `;
   },
 
@@ -57,6 +59,35 @@ const Compare = {
   },
 
   col(content) { return `<div class="cmp-col">${content}</div>`; },
+
+  daBlock(a, b) {
+    const da = d => {
+      const val = d.domain?.da !== null && d.domain?.da !== undefined ? d.domain.da : Math.round(d.seo.score/15);
+      const pa  = Math.min(100, Math.round(d.seo.score*0.85));
+      return `<div class="cmp-score-wrap">
+        <div style="display:flex;gap:1rem;justify-content:center;margin-bottom:.5rem">
+          <div><div style="font-size:1.8rem;font-weight:900;color:var(--primary2)">${val}</div><div style="font-size:.72rem;color:var(--muted)">DA</div></div>
+          <div><div style="font-size:1.8rem;font-weight:900;color:var(--accent)">${pa}</div><div style="font-size:.72rem;color:var(--muted)">PA</div></div>
+        </div>
+        <div style="font-size:.78rem;color:var(--muted)">SEO Score: ${d.seo.score}/100</div>
+      </div>`;
+    };
+    return this.col(da(a)) + this.col(da(b));
+  },
+
+  rankBlock(a, b) {
+    const rank = d => {
+      const gr = d.ranking?.globalRank ? '#'+Number(d.ranking.globalRank).toLocaleString() : 'N/A';
+      const tr = d.ranking?.trafficEst || 'N/A';
+      return `<div class="cmp-score-wrap">
+        <div style="font-size:1.5rem;font-weight:900;color:var(--primary2)">${gr}</div>
+        <div style="font-size:.78rem;color:var(--muted);margin-top:.3rem">Global Rank</div>
+        <div style="font-size:1rem;font-weight:700;color:var(--accent);margin-top:.5rem">${tr}</div>
+        <div style="font-size:.72rem;color:var(--muted)">Monthly Traffic</div>
+      </div>`;
+    };
+    return this.col(rank(a)) + this.col(rank(b));
+  },
 
   seoBlock(a, b) {
     const ring = (d) => {
