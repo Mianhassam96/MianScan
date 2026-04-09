@@ -30,6 +30,35 @@ const SEOAnalyzer = {
     if (noAlt===0 && imgs.length>0)                score += 10;
     else if (noAlt<3)                              score += 5;
     if (metaKw)                                    score += 5;
-    return { score: Math.min(score,100), title, metaDesc, metaKw, canonical, ogTitle, ogImage, twCard, viewport, h1s, h2s, imagesTotal: imgs.length, withAlt, noAlt };
+
+    // Detailed warnings for SEO tab
+    const warnings = [];
+    if (!title)                                    warnings.push({type:'error', msg:'Missing meta title'});
+    else if (title.length < 30)                    warnings.push({type:'warn',  msg:`Title too short (${title.length} chars, min 30)`});
+    else if (title.length > 60)                    warnings.push({type:'warn',  msg:`Title too long (${title.length} chars, max 60)`});
+    else                                           warnings.push({type:'ok',    msg:`Title length good (${title.length} chars)`});
+
+    if (!metaDesc)                                 warnings.push({type:'error', msg:'Missing meta description'});
+    else if (metaDesc.length < 100)                warnings.push({type:'warn',  msg:`Description too short (${metaDesc.length} chars, min 100)`});
+    else if (metaDesc.length > 160)                warnings.push({type:'warn',  msg:`Description too long (${metaDesc.length} chars, max 160)`});
+    else                                           warnings.push({type:'ok',    msg:`Description length good (${metaDesc.length} chars)`});
+
+    if (h1s.length === 0)                          warnings.push({type:'error', msg:'No H1 tag found'});
+    else if (h1s.length > 1)                       warnings.push({type:'warn',  msg:`Multiple H1 tags found (${h1s.length}) — should be 1`});
+    else                                           warnings.push({type:'ok',    msg:'Single H1 tag — correct'});
+
+    if (noAlt > 0)                                 warnings.push({type:'warn',  msg:`${noAlt} image(s) missing alt text`});
+    else if (imgs.length > 0)                      warnings.push({type:'ok',    msg:'All images have alt text'});
+
+    if (!canonical)                                warnings.push({type:'warn',  msg:'No canonical URL set'});
+    else                                           warnings.push({type:'ok',    msg:'Canonical URL present'});
+
+    if (!ogTitle)                                  warnings.push({type:'warn',  msg:'Missing OG title (social sharing)'});
+    else                                           warnings.push({type:'ok',    msg:'OG title present'});
+
+    if (!viewport)                                 warnings.push({type:'error', msg:'Missing viewport meta (not mobile-friendly)'});
+    else                                           warnings.push({type:'ok',    msg:'Viewport meta present'});
+
+    return { score: Math.min(score,100), title, metaDesc, metaKw, canonical, ogTitle, ogImage, twCard, viewport, h1s, h2s, imagesTotal: imgs.length, withAlt, noAlt, warnings };
   }
 };

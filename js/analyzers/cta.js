@@ -16,7 +16,7 @@ const CTAAnalyzer = {
     return {
       primary:   [...new Set(primary)].slice(0,3),
       secondary: [...new Set(secondary)].slice(0,3),
-      all:       [...new Set(els.map(b=>b.text))].slice(0,14)
+      all:       [...new Set(els.map(b=>b.text))].slice(0,20)
     };
   }
 };

@@ -26,6 +26,11 @@ const StructureAnalyzer = {
     const tree = Object.entries(counts)
       .filter(([,v]) => v > 0)
       .map(([label, count]) => ({ label, count, icon: iconMap[label]||'dot' }));
-    return { counts, tree, totalElements: doc.querySelectorAll('*').length };
+
+    // Components detected list (for the components panel)
+    const componentKeys = ['Header','Navbar','Hero','Features','Pricing','Testimonials','CTA','Footer','Forms'];
+    const components = componentKeys.map(k => ({ name: k, found: counts[k] > 0 }));
+
+    return { counts, tree, components, totalElements: doc.querySelectorAll('*').length };
   }
 };

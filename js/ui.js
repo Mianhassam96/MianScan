@@ -5,7 +5,14 @@ const UI = {
     setTimeout(() => t.classList.remove('show'), 2400);
   },
 
-  e(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); },
+  e(s) {
+    return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  },
+
+  copyBtn(val, label='Copy') {
+    const safe = val.replace(/'/g,"\\'").replace(/"/g,'&quot;');
+    return `<button class="copy-btn" onclick="UI.copy('${safe}')" title="Copy"><i class="bi bi-clipboard"></i> ${label}</button>`;
+  },
 
   renderBanner(data) {
     const o = data.overview;
@@ -17,6 +24,9 @@ const UI = {
         <span class="sb-tag"><i class="bi bi-translate"></i>${this.e(o.lang)}</span>
         <span class="sb-tag"><i class="bi bi-layout-split"></i>${o.sections} sections</span>
         <span class="sb-tag"><i class="bi bi-lightbulb-fill"></i>${this.e(o.topic)}</span>
+        <button class="sb-tag sb-screenshot" onclick="Screenshot.capture('${this.e(data.url)}')" style="cursor:pointer;border:none;background:rgba(100,112,255,.18)">
+          <i class="bi bi-camera-fill"></i> Preview
+        </button>
       </div>`;
   },
 
@@ -59,19 +69,22 @@ const UI = {
       `<div class="fu">${(map[tab]||map.overview)()}</div>`;
   },
 
-  /* helpers */
-  irow(lbl, val) { return `<div class="irow"><span class="ilbl">${lbl}</span><span class="ival">${val}</span></div>`; },
+  /* ── helpers ── */
+  irow(lbl, val) {
+    return `<div class="irow"><span class="ilbl">${lbl}</span><span class="ival">${val}</span></div>`;
+  },
   crow(lbl, pass) {
     return `<div class="crow"><span class="clbl">${lbl}</span>
       <span class="${pass?'pass':'fail'}"><i class="bi bi-${pass?'check-circle-fill':'x-circle-fill'}"></i>${pass?'Pass':'Fail'}</span>
     </div>`;
   },
   empty(msg) { return `<div class="empty"><i class="bi bi-inbox"></i><p>${msg}</p></div>`; },
-  miss(v) { return v ? this.e(v) : '<em style="color:var(--red);font-style:normal">Missing</em>'; },
-  none(v) { return v ? this.e(v) : '<em style="color:var(--muted);font-style:normal">None</em>'; },
+  miss(v)    { return v ? this.e(v) : '<em style="color:var(--red);font-style:normal">Missing</em>'; },
+  none(v)    { return v ? this.e(v) : '<em style="color:var(--muted);font-style:normal">None</em>'; },
 
   /* ── Overview ── */
   tOverview(d) {
+    const comps = d.structure.components || [];
     return `<div class="g2">
       <div class="card">
         <div class="card-head"><i class="bi bi-info-circle-fill"></i> Site Summary</div>
@@ -95,6 +108,16 @@ const UI = {
         ${this.crow('Tech Detected',    d.tech.detected.length>0)}
         ${this.crow('Contact Info',     d.contacts.emails.length>0||Object.keys(d.contacts.social).length>0)}
       </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><i class="bi bi-puzzle-fill"></i> Detected Components</div>
+      <div class="comp-grid">
+        ${comps.map(c=>`
+          <div class="comp-item ${c.found?'comp-found':'comp-missing'}">
+            <i class="bi bi-${c.found?'check-circle-fill':'x-circle'}"></i>
+            ${c.name}
+          </div>`).join('')}
+      </div>
     </div>`;
   },
 
@@ -106,7 +129,7 @@ const UI = {
       <div class="card-head"><i class="bi bi-palette-fill"></i> Color Palette <span class="badge-cnt">${c.total}</span></div>
       <div class="color-grid">
         ${c.colors.map(hex=>`
-          <div class="color-item" onclick="UI.copy('${hex}')" title="Click to copy">
+          <div class="color-item" title="Click to copy ${hex}" onclick="UI.copy('${hex}')">
             <div class="swatch" style="background:${hex}"></div>
             <span class="chex">${hex}</span>
             <span class="crgb">${ColorAnalyzer.toRgb(hex)}</span>
@@ -116,9 +139,14 @@ const UI = {
     <div class="card">
       <div class="card-head"><i class="bi bi-code-slash"></i> CSS Variables</div>
       <pre>:root {\n${c.colors.map((h,i)=>`  --color-${i+1}: ${h};`).join('\n')}\n}</pre>
-      <button class="exp-btn" style="margin-top:.875rem" onclick="UI.copyCSSVars(${JSON.stringify(c.colors)})">
-        <i class="bi bi-clipboard"></i> Copy CSS Variables
-      </button>
+      <div style="display:flex;gap:.5rem;margin-top:.875rem;flex-wrap:wrap">
+        <button class="exp-btn" onclick="UI.copyCSSVars(${JSON.stringify(c.colors)})">
+          <i class="bi bi-clipboard"></i> Copy CSS Variables
+        </button>
+        <button class="exp-btn" onclick="Exporter.downloadCSS(${JSON.stringify(c.colors)})">
+          <i class="bi bi-download"></i> Download .css File
+        </button>
+      </div>
     </div>`;
   },
 
@@ -133,9 +161,10 @@ const UI = {
             <div class="font-name" style="font-family:'${this.e(font.name)}',sans-serif">${this.e(font.name)}</div>
             <div class="font-meta">Weight: ${this.e(font.weights)}${font.google?` &nbsp;·&nbsp; <a href="${font.link}" target="_blank">Google Font ↗</a>`:''}</div>
           </div>
-          <button class="exp-btn" onclick="UI.copy('@import url(\\'https://fonts.googleapis.com/css2?family=${encodeURIComponent(font.name)}:wght@400;700&display=swap\\');')">
-            <i class="bi bi-clipboard"></i> Copy
-          </button>
+          <div style="display:flex;gap:.4rem;flex-wrap:wrap">
+            ${this.copyBtn(`@import url('https://fonts.googleapis.com/css2?family=${encodeURIComponent(font.name)}:wght@400;700&display=swap');`, 'Import')}
+            ${this.copyBtn(font.name, 'Name')}
+          </div>
         </div>`).join('')}
     </div>`;
   },
@@ -156,6 +185,15 @@ const UI = {
         ${Object.entries(s.counts).map(([k,v])=>`
           <div class="prow"><span class="plbl">${k}</span><span class="pval">${v}</span></div>`).join('')}
       </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><i class="bi bi-puzzle-fill"></i> Detected Components</div>
+      <div class="comp-grid">
+        ${(s.components||[]).map(c=>`
+          <div class="comp-item ${c.found?'comp-found':'comp-missing'}">
+            <i class="bi bi-${c.found?'check-circle-fill':'x-circle'}"></i>${c.name}
+          </div>`).join('')}
+      </div>
     </div>`;
   },
 
@@ -164,19 +202,35 @@ const UI = {
     return `<div class="g2">
       <div class="card">
         <div class="card-head"><i class="bi bi-card-heading"></i> Headings</div>
-        ${c.headings.length ? c.headings.map(h=>`<div class="litem"><i class="bi bi-chevron-right"></i>${this.e(h)}</div>`).join('') : this.empty('No headings found')}
+        ${c.headings.length ? c.headings.map(h=>`
+          <div class="litem">
+            <i class="bi bi-chevron-right"></i>
+            <span style="flex:1">${this.e(h)}</span>
+            ${this.copyBtn(h)}
+          </div>`).join('') : this.empty('No headings found')}
       </div>
       <div class="card">
         <div class="card-head"><i class="bi bi-lightbulb-fill"></i> Topics</div>
-        ${c.topics.length ? c.topics.map(t=>`<div class="litem"><i class="bi bi-dot"></i>${this.e(t)}</div>`).join('') : this.empty('No topics extracted')}
+        ${c.topics.length ? c.topics.map(t=>`
+          <div class="litem">
+            <i class="bi bi-dot"></i>
+            <span style="flex:1">${this.e(t)}</span>
+            ${this.copyBtn(t)}
+          </div>`).join('') : this.empty('No topics extracted')}
       </div>
       <div class="card">
         <div class="card-head"><i class="bi bi-tags-fill"></i> Keywords</div>
-        <div class="tags">${c.keywords.map(k=>`<span class="tag">${this.e(k)}</span>`).join('')||this.empty('None')}</div>
+        <div class="tags">
+          ${c.keywords.map(k=>`<span class="tag" onclick="UI.copy('${k}')" style="cursor:pointer" title="Click to copy">${this.e(k)}</span>`).join('')||this.empty('None')}
+        </div>
+        ${c.keywords.length ? `<button class="exp-btn" style="margin-top:.875rem" onclick="UI.copy('${c.keywords.join(', ')}')"><i class="bi bi-clipboard"></i> Copy All Keywords</button>` : ''}
       </div>
       <div class="card">
         <div class="card-head"><i class="bi bi-hash"></i> Meta Keywords</div>
-        ${c.tags.length ? `<div class="tags">${c.tags.map(t=>`<span class="tag">#${this.e(t)}</span>`).join('')}</div>` : this.empty('No meta keywords')}
+        ${c.tags.length ? `
+          <div class="tags">${c.tags.map(t=>`<span class="tag" onclick="UI.copy('${t}')" style="cursor:pointer">#${this.e(t)}</span>`).join('')}</div>
+          <button class="exp-btn" style="margin-top:.875rem" onclick="UI.copy('${c.tags.join(', ')}')"><i class="bi bi-clipboard"></i> Copy All</button>
+        ` : this.empty('No meta keywords')}
       </div>
     </div>`;
   },
@@ -186,14 +240,26 @@ const UI = {
     const blk = (lbl, items, cls) => !items.length ? '' : `
       <div class="card">
         <div class="card-head"><i class="bi bi-cursor-fill"></i> ${lbl}</div>
-        ${items.map(t=>`<div class="cta-row"><span class="cta-badge ${cls}">${lbl.split(' ')[0]}</span>${this.e(t)}</div>`).join('')}
+        ${items.map(t=>`
+          <div class="cta-row">
+            <span class="cta-badge ${cls}">${lbl.split(' ')[0]}</span>
+            <span style="flex:1">${this.e(t)}</span>
+            ${this.copyBtn(t)}
+          </div>`).join('')}
       </div>`;
     return `
       ${blk('Primary CTA', cta.primary, '')}
       ${blk('Secondary CTA', cta.secondary, 'sec')}
       <div class="card">
-        <div class="card-head"><i class="bi bi-list-ul"></i> All Buttons &amp; Links</div>
-        <div class="tags">${cta.all.map(t=>`<span class="tag">${this.e(t)}</span>`).join('')||'<span style="color:var(--muted);font-size:.85rem">None found</span>'}</div>
+        <div class="card-head"><i class="bi bi-list-ul"></i> All Buttons &amp; Links Found</div>
+        <div style="margin-bottom:.875rem">
+          ${cta.all.map(t=>`
+            <div class="cta-row">
+              <span style="flex:1">${this.e(t)}</span>
+              ${this.copyBtn(t)}
+            </div>`).join('')||'<span style="color:var(--muted);font-size:.85rem">None found</span>'}
+        </div>
+        ${cta.all.length ? `<button class="exp-btn" onclick="UI.copy('${cta.all.join('\\n')}')"><i class="bi bi-clipboard"></i> Copy All Buttons</button>` : ''}
       </div>`;
   },
 
@@ -201,6 +267,8 @@ const UI = {
   tSEO(seo) {
     const cls = seo.score>=70?'sg':seo.score>=50?'so':'sb';
     const grade = seo.score>=70?'Good':seo.score>=50?'Needs Work':'Poor';
+    const warnIcon = t => t==='ok'?'check-circle-fill':t==='warn'?'exclamation-triangle-fill':'x-circle-fill';
+    const warnCls  = t => t==='ok'?'a11y-ok':'a11y-warn';
     return `
     <div class="g2" style="align-items:start">
       <div class="card">
@@ -224,11 +292,18 @@ const UI = {
       </div>
     </div>
     <div class="card">
+      <div class="card-head"><i class="bi bi-exclamation-triangle-fill"></i> SEO Warnings &amp; Checks</div>
+      ${(seo.warnings||[]).map(w=>`
+        <div class="a11y-row ${warnCls(w.type)}">
+          <i class="bi bi-${warnIcon(w.type)}"></i>${w.msg}
+        </div>`).join('')}
+    </div>
+    <div class="card">
       <div class="card-head"><i class="bi bi-type-h1"></i> Heading Tags</div>
       ${seo.h1s.length
-        ? seo.h1s.map(h=>`<div class="cta-row"><span class="cta-badge">H1</span>${this.e(h)}</div>`).join('')
+        ? seo.h1s.map(h=>`<div class="cta-row"><span class="cta-badge">H1</span><span style="flex:1">${this.e(h)}</span>${this.copyBtn(h)}</div>`).join('')
         : '<div class="a11y-row a11y-warn"><i class="bi bi-exclamation-triangle-fill"></i> No H1 tag found</div>'}
-      ${seo.h2s.map(h=>`<div class="cta-row"><span class="cta-badge sec">H2</span>${this.e(h)}</div>`).join('')}
+      ${seo.h2s.map(h=>`<div class="cta-row"><span class="cta-badge sec">H2</span><span style="flex:1">${this.e(h)}</span>${this.copyBtn(h)}</div>`).join('')}
     </div>`;
   },
 
@@ -243,14 +318,22 @@ const UI = {
           ${media.images.map(img=>`
             <div class="media-card" title="${this.e(img.alt||img.src)}">
               <img src="${this.e(img.src)}" alt="${this.e(img.alt)}" loading="lazy" onerror="this.src='${ph}'">
-              <div class="media-lbl">${this.e(img.alt||img.src.split('/').pop()||'image')}</div>
+              <div class="media-lbl-row">
+                <span class="media-lbl">${this.e(img.alt||img.src.split('/').pop()||'image')}</span>
+                <button class="copy-btn-sm" onclick="UI.copy('${img.src.replace(/'/g,"\\'")}')"><i class="bi bi-clipboard"></i></button>
+              </div>
             </div>`).join('')}
         </div>` : this.empty('No images found')}
     </div>
     ${media.videos.length ? `
     <div class="card">
       <div class="card-head"><i class="bi bi-play-circle-fill"></i> Videos <span class="badge-cnt">${media.totalVideos}</span></div>
-      ${media.videos.map(v=>`<div class="litem"><i class="bi bi-play-fill"></i><a href="${this.e(v.src)}" target="_blank">${this.e(v.src)}</a></div>`).join('')}
+      ${media.videos.map(v=>`
+        <div class="litem">
+          <i class="bi bi-play-fill"></i>
+          <a href="${this.e(v.src)}" target="_blank" style="flex:1">${this.e(v.src)}</a>
+          ${this.copyBtn(v.src)}
+        </div>`).join('')}
     </div>` : ''}`;
   },
 
@@ -260,16 +343,32 @@ const UI = {
     return `<div class="g2">
       <div class="card">
         <div class="card-head"><i class="bi bi-envelope-fill"></i> Emails</div>
-        ${c.emails.length ? c.emails.map(e=>`<div class="litem"><i class="bi bi-envelope-fill"></i><a href="mailto:${e}">${e}</a></div>`).join('') : this.empty('No emails found')}
+        ${c.emails.length ? c.emails.map(e=>`
+          <div class="litem">
+            <i class="bi bi-envelope-fill"></i>
+            <a href="mailto:${e}" style="flex:1">${e}</a>
+            ${this.copyBtn(e)}
+          </div>`).join('') : this.empty('No emails found')}
+        ${c.emails.length > 1 ? `<button class="exp-btn" style="margin-top:.75rem" onclick="UI.copy('${c.emails.join('\\n')}')"><i class="bi bi-clipboard"></i> Copy All Emails</button>` : ''}
       </div>
       <div class="card">
         <div class="card-head"><i class="bi bi-telephone-fill"></i> Phone Numbers</div>
-        ${c.phones.length ? c.phones.map(p=>`<div class="litem"><i class="bi bi-telephone-fill"></i><a href="tel:${p}">${p}</a></div>`).join('') : this.empty('No phone numbers found')}
+        ${c.phones.length ? c.phones.map(p=>`
+          <div class="litem">
+            <i class="bi bi-telephone-fill"></i>
+            <a href="tel:${p}" style="flex:1">${p}</a>
+            ${this.copyBtn(p)}
+          </div>`).join('') : this.empty('No phone numbers found')}
       </div>
       <div class="card" style="grid-column:1/-1">
         <div class="card-head"><i class="bi bi-share-fill"></i> Social Media</div>
         ${Object.entries(c.social).length
-          ? Object.entries(c.social).map(([k,url])=>`<div class="litem"><i class="bi bi-${si[k]||'link-45deg'}"></i><a href="${this.e(url)}" target="_blank">${this.e(url)}</a></div>`).join('')
+          ? Object.entries(c.social).map(([k,url])=>`
+              <div class="litem">
+                <i class="bi bi-${si[k]||'link-45deg'}"></i>
+                <a href="${this.e(url)}" target="_blank" style="flex:1">${this.e(url)}</a>
+                ${this.copyBtn(url)}
+              </div>`).join('')
           : this.empty('No social links found')}
       </div>
     </div>`;
@@ -282,14 +381,24 @@ const UI = {
       <div class="card-head"><i class="bi bi-cpu-fill"></i> Detected Technologies <span class="badge-cnt">${tech.detected.length}</span></div>
       <div class="tech-wrap">
         ${tech.detected.length
-          ? tech.detected.map(t=>`<span class="tech-chip"><span class="tdot"></span>${this.e(t)}</span>`).join('')
+          ? tech.detected.map(t=>`
+              <span class="tech-chip">
+                <span class="tdot"></span>${this.e(t)}
+                <button class="copy-btn-sm" onclick="UI.copy('${t}')" title="Copy"><i class="bi bi-clipboard"></i></button>
+              </span>`).join('')
           : this.empty('No technologies detected')}
       </div>
+      ${tech.detected.length ? `<button class="exp-btn" style="margin-top:.875rem" onclick="UI.copy('${tech.detected.join(', ')}')"><i class="bi bi-clipboard"></i> Copy All Tech</button>` : ''}
     </div>
     <div class="card">
       <div class="card-head"><i class="bi bi-file-code-fill"></i> Script Sources <span class="badge-cnt">${tech.scriptsCount}</span></div>
       ${tech.scriptSrcs.length
-        ? tech.scriptSrcs.map(s=>`<div class="litem" style="font-size:.78rem"><i class="bi bi-code-slash"></i><span style="word-break:break-all">${this.e(s)}</span></div>`).join('')
+        ? tech.scriptSrcs.map(s=>`
+            <div class="litem" style="font-size:.78rem">
+              <i class="bi bi-code-slash"></i>
+              <span style="word-break:break-all;flex:1">${this.e(s)}</span>
+              ${this.copyBtn(s)}
+            </div>`).join('')
         : this.empty('No external scripts')}
     </div>`;
   },
@@ -316,9 +425,12 @@ const UI = {
     </div>`;
   },
 
-  copy(val) { navigator.clipboard.writeText(val).then(()=>this.toast('Copied: '+val)); },
+  /* ── Clipboard ── */
+  copy(val) {
+    navigator.clipboard.writeText(val).then(() => this.toast('Copied!'));
+  },
   copyCSSVars(colors) {
     const css = `:root {\n${colors.map((c,i)=>`  --color-${i+1}: ${c};`).join('\n')}\n}`;
-    navigator.clipboard.writeText(css).then(()=>this.toast('CSS variables copied!'));
+    navigator.clipboard.writeText(css).then(() => this.toast('CSS variables copied!'));
   }
 };

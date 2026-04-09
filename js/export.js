@@ -1,4 +1,14 @@
 const Exporter = {
+  downloadCSS(colors) {
+    const hostname = Scanner.currentData ? new URL(Scanner.currentData.url).hostname : 'site';
+    const css = `/* MianScan Color Export — ${hostname} */\n:root {\n${colors.map((c,i)=>`  --color-${i+1}: ${c};`).join('\n')}\n}\n`;
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([css], {type:'text/css'}));
+    a.download = `colors-${hostname}.css`;
+    a.click(); URL.revokeObjectURL(a.href);
+    UI.toast('CSS file downloaded!');
+  },
+
   toJSON(data) {
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));
