@@ -3,17 +3,24 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<meta name="description" content="MianScan — Full Website Analyzer. SEO, colors, fonts, tech stack, contacts, links and more."/>
+<meta name="description" content="MianScan — Analyze any website instantly. SEO, colors, fonts, tech stack, contacts, links and more."/>
 <title>MianScan — Website Analyzer</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"/>
 <link rel="stylesheet" href="css/style.css"/>
+<link rel="stylesheet" href="css/landing.css"/>
 </head>
 <body>
 
-<!-- NAV -->
+<!-- ═══ NAV ═══ -->
 <nav class="topnav">
   <div class="wrap nav-row">
     <a class="logo" href="#"><i class="bi bi-radar"></i> MianScan</a>
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#how-it-works">How It Works</a>
+      <a href="#compare-highlight">Compare</a>
+      <a href="#scanner-app">Try Now</a>
+    </div>
     <div class="nav-right">
       <button class="icon-btn" id="compareToggle" title="Compare Mode"><i class="bi bi-arrow-left-right"></i></button>
       <button class="icon-btn" id="themeBtn" title="Toggle theme"><i class="bi bi-moon-stars-fill"></i></button>
@@ -21,111 +28,433 @@
   </div>
 </nav>
 
-<!-- HERO / SINGLE SCAN -->
-<section class="hero" id="heroSection">
-  <div class="wrap hero-inner">
-    <span class="pill"><span class="pill-dot"></span>v1.4 — 12 Powerful Features</span>
-    <h1>Analyze Any Website<br><span class="grad">Instantly</span></h1>
-    <p class="hero-sub">SEO · Colors · Fonts · Links · Tech Stack · Contacts — all in one scan</p>
-    <div class="scan-box">
-      <div class="url-row" id="urlRow">
-        <i class="bi bi-globe2 url-icon"></i>
-        <input id="urlInput" type="url" placeholder="https://stripe.com" autocomplete="off" spellcheck="false"/>
-        <button id="scanBtn" class="scan-btn"><i class="bi bi-radar"></i><span>Analyze</span></button>
-      </div>
-      <div class="try-row">
-        <span class="try-label">Try:</span>
-        <button class="try-btn" data-url="https://stripe.com">stripe.com</button>
-        <button class="try-btn" data-url="https://vercel.com">vercel.com</button>
-        <button class="try-btn" data-url="https://github.com">github.com</button>
-        <button class="try-btn" data-url="https://linear.app">linear.app</button>
-      </div>
-    </div>
-    <div id="progressBox" class="progress-box hidden">
-      <div class="prog-track"><div id="progBar" class="prog-fill"></div></div>
-      <div id="progLabel" class="prog-label">Initializing…</div>
-    </div>
-  </div>
-</section>
-
-<!-- COMPARE MODE -->
-<section class="compare-hero hidden" id="compareSection">
-  <div class="wrap">
-    <div class="compare-header">
-      <h2><i class="bi bi-arrow-left-right"></i> Compare Two Websites</h2>
-      <p class="hero-sub">Scan two sites and see them side by side</p>
-    </div>
-    <div class="compare-inputs">
-      <div class="compare-input-wrap">
-        <label class="compare-label">Site A</label>
-        <div class="url-row">
+<!-- ═══ HERO ═══ -->
+<section class="lp-hero" id="top">
+  <div class="lp-hero-bg"></div>
+  <div class="wrap lp-hero-inner">
+    <div class="lp-hero-text">
+      <div class="lp-badge"><span class="pill-dot"></span> Free · Fast · No Signup</div>
+      <h1 class="lp-h1">Analyze Any Website<br><span class="grad">in Seconds</span></h1>
+      <p class="lp-sub">SEO score, tech stack, CTAs, colors, fonts, images, contacts — all in one powerful scan. Built for developers, SEO experts, and freelancers.</p>
+      <div class="lp-scan-box">
+        <div class="url-row" id="urlRow">
           <i class="bi bi-globe2 url-icon"></i>
-          <input id="urlA" type="url" placeholder="https://site-a.com" autocomplete="off" spellcheck="false"/>
+          <input id="urlInput" type="url" placeholder="https://stripe.com" autocomplete="off" spellcheck="false"/>
+          <button id="scanBtn" class="scan-btn"><i class="bi bi-radar"></i><span>Analyze</span></button>
+        </div>
+        <div class="try-row">
+          <span class="try-label">Try:</span>
+          <button class="try-btn" data-url="https://stripe.com">stripe.com</button>
+          <button class="try-btn" data-url="https://vercel.com">vercel.com</button>
+          <button class="try-btn" data-url="https://github.com">github.com</button>
+          <button class="try-btn" data-url="https://linear.app">linear.app</button>
         </div>
       </div>
-      <div class="compare-vs">VS</div>
-      <div class="compare-input-wrap">
-        <label class="compare-label">Site B</label>
-        <div class="url-row">
-          <i class="bi bi-globe2 url-icon"></i>
-          <input id="urlB" type="url" placeholder="https://site-b.com" autocomplete="off" spellcheck="false"/>
+      <div id="progressBox" class="progress-box hidden">
+        <div class="prog-track"><div id="progBar" class="prog-fill"></div></div>
+        <div id="progLabel" class="prog-label">Initializing…</div>
+      </div>
+      <div class="lp-trust">
+        <span><i class="bi bi-check-circle-fill"></i> 100% Free</span>
+        <span><i class="bi bi-check-circle-fill"></i> No signup required</span>
+        <span><i class="bi bi-check-circle-fill"></i> Works on any website</span>
+        <span><i class="bi bi-check-circle-fill"></i> Instant results</span>
+      </div>
+    </div>
+    <div class="lp-hero-visual">
+      <div class="lp-dashboard-mock">
+        <div class="mock-topbar">
+          <span class="mock-dot red"></span><span class="mock-dot yellow"></span><span class="mock-dot green"></span>
+          <span class="mock-url">mianscan.io — stripe.com</span>
+        </div>
+        <div class="mock-stats">
+          <div class="mock-stat"><span class="mock-stat-val" style="color:#22c55e">92</span><span class="mock-stat-lbl">SEO Score</span></div>
+          <div class="mock-stat"><span class="mock-stat-val" style="color:#6470ff">18</span><span class="mock-stat-lbl">Colors</span></div>
+          <div class="mock-stat"><span class="mock-stat-val" style="color:#00d4ff">4</span><span class="mock-stat-lbl">Fonts</span></div>
+          <div class="mock-stat"><span class="mock-stat-val" style="color:#a855f7">React</span><span class="mock-stat-lbl">Tech</span></div>
+        </div>
+        <div class="mock-colors">
+          <div class="mock-swatch" style="background:#635bff"></div>
+          <div class="mock-swatch" style="background:#0a2540"></div>
+          <div class="mock-swatch" style="background:#00d4ff"></div>
+          <div class="mock-swatch" style="background:#80e9ff"></div>
+          <div class="mock-swatch" style="background:#7a73ff"></div>
+          <div class="mock-swatch" style="background:#f6f9fc"></div>
+        </div>
+        <div class="mock-tags">
+          <span class="mock-tag">React</span>
+          <span class="mock-tag">Next.js</span>
+          <span class="mock-tag">Tailwind</span>
+          <span class="mock-tag">Cloudflare</span>
+          <span class="mock-tag">Stripe</span>
+        </div>
+        <div class="mock-cta-row">
+          <span class="mock-cta-badge">Primary CTA</span>
+          <span class="mock-cta-text">Start now →</span>
+        </div>
+        <div class="mock-cta-row" style="margin-top:.4rem">
+          <span class="mock-cta-badge" style="background:rgba(255,255,255,.08);color:#8892a4">Secondary</span>
+          <span class="mock-cta-text" style="opacity:.6">Contact sales</span>
         </div>
       </div>
     </div>
-    <div style="text-align:center;margin-top:1.25rem">
-      <button id="compareBtn" class="scan-btn"><i class="bi bi-arrow-left-right"></i><span>Compare Sites</span></button>
-    </div>
-    <div id="compareProgress" class="progress-box hidden" style="max-width:500px;margin:1.25rem auto 0">
-      <div class="prog-track"><div id="compareBar" class="prog-fill"></div></div>
-      <div id="compareLabel" class="prog-label">Scanning…</div>
-    </div>
   </div>
 </section>
 
-<!-- SINGLE RESULTS -->
-<main id="results" class="hidden">
+<!-- ═══ FEATURES ═══ -->
+<section class="lp-section" id="features">
   <div class="wrap">
-    <div id="siteBanner" class="site-banner"></div>
-    <div id="statsRow" class="stats-row"></div>
-    <div class="tabs-bar">
-      <div class="tabs" id="tabs">
-        <button class="tab active" data-tab="overview"><i class="bi bi-grid-3x3-gap-fill"></i> Overview</button>
-        <button class="tab" data-tab="seo"><i class="bi bi-graph-up-arrow"></i> SEO</button>
-        <button class="tab" data-tab="keywords"><i class="bi bi-tags-fill"></i> Keywords</button>
-        <button class="tab" data-tab="links"><i class="bi bi-link-45deg"></i> Links</button>
-        <button class="tab" data-tab="images"><i class="bi bi-image-fill"></i> Images SEO</button>
-        <button class="tab" data-tab="contacts"><i class="bi bi-person-lines-fill"></i> Contacts</button>
-        <button class="tab" data-tab="cta"><i class="bi bi-cursor-fill"></i> CTAs</button>
-        <button class="tab" data-tab="tech"><i class="bi bi-cpu-fill"></i> Tech Stack</button>
-        <button class="tab" data-tab="colors"><i class="bi bi-palette-fill"></i> Colors</button>
-        <button class="tab" data-tab="fonts"><i class="bi bi-type"></i> Fonts</button>
-        <button class="tab" data-tab="performance"><i class="bi bi-speedometer2"></i> Performance</button>
+    <div class="lp-section-head">
+      <span class="lp-section-pill">Features</span>
+      <h2>Everything You Need to Understand Any Website</h2>
+      <p>12 powerful analyzers. One scan. Instant insights.</p>
+    </div>
+    <div class="features-grid">
+      <div class="feat-card">
+        <div class="feat-icon" style="background:rgba(34,197,94,.12);color:#22c55e"><i class="bi bi-graph-up-arrow"></i></div>
+        <h3>Real-Time SEO Score</h3>
+        <p>Title, description, H1–H3 tags, alt text, canonical, OG tags — scored and checked instantly.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon" style="background:rgba(100,112,255,.12);color:#8b96ff"><i class="bi bi-tags-fill"></i></div>
+        <h3>Keywords &amp; Topics</h3>
+        <p>Extract top keywords with density scores, content topics, and meta keywords from any page.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon" style="background:rgba(0,212,255,.12);color:#00d4ff"><i class="bi bi-cursor-fill"></i></div>
+        <h3>CTA Analyzer</h3>
+        <p>Detect primary and secondary CTAs, all button text, and conversion-focused links.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon" style="background:rgba(245,158,11,.12);color:#f59e0b"><i class="bi bi-image-fill"></i></div>
+        <h3>Image SEO Check</h3>
+        <p>Find missing alt text, lazy loading status, modern format usage, and image count.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon" style="background:rgba(168,85,247,.12);color:#a855f7"><i class="bi bi-cpu-fill"></i></div>
+        <h3>Tech Stack Detector</h3>
+        <p>Identify frameworks, CMS, analytics, CDN, and 28+ technologies used on any site.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon" style="background:rgba(236,72,153,.12);color:#ec4899"><i class="bi bi-palette-fill"></i></div>
+        <h3>Color Palette</h3>
+        <p>Extract all colors with HEX and RGB values. Export as CSS variables or download a .css file.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon" style="background:rgba(34,197,94,.12);color:#22c55e"><i class="bi bi-type"></i></div>
+        <h3>Font Detector</h3>
+        <p>Detect heading, body, and button fonts with weights. Get Google Fonts import links instantly.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon" style="background:rgba(100,112,255,.12);color:#6470ff"><i class="bi bi-link-45deg"></i></div>
+        <h3>Links Analyzer</h3>
+        <p>See all internal and external links with anchor text. Perfect for SEO audits.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon" style="background:rgba(0,212,255,.12);color:#00d4ff"><i class="bi bi-person-lines-fill"></i></div>
+        <h3>Contact Extractor</h3>
+        <p>Find emails, phone numbers, WhatsApp links, and all social media profiles in one click.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon" style="background:rgba(245,158,11,.12);color:#f59e0b"><i class="bi bi-speedometer2"></i></div>
+        <h3>Performance Stats</h3>
+        <p>Page size, script count, stylesheet count, iframes, and accessibility warnings.</p>
+      </div>
+      <div class="feat-card feat-card-highlight">
+        <div class="feat-icon" style="background:rgba(168,85,247,.15);color:#a855f7"><i class="bi bi-arrow-left-right"></i></div>
+        <h3>Compare Mode <span class="feat-new">New</span></h3>
+        <p>Scan two websites side by side. Compare SEO, keywords, CTAs, tech stack, colors, and performance.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon" style="background:rgba(236,72,153,.12);color:#ec4899"><i class="bi bi-download"></i></div>
+        <h3>Export Reports</h3>
+        <p>Download full reports as JSON, PDF, or CSS. Copy any data point with one click.</p>
       </div>
     </div>
-    <div id="tabContent" class="tab-content"></div>
-    <div class="export-row">
-      <span class="export-lbl"><i class="bi bi-download"></i> Export:</span>
-      <button class="exp-btn" id="btnJSON"><i class="bi bi-filetype-json"></i> JSON</button>
-      <button class="exp-btn" id="btnPDF"><i class="bi bi-file-pdf"></i> PDF</button>
-      <button class="exp-btn" id="btnCSS"><i class="bi bi-filetype-css"></i> Color CSS</button>
-      <button class="exp-btn" id="btnCopy"><i class="bi bi-clipboard-check"></i> Copy Report</button>
-    </div>
-  </div>
-</main>
-
-<!-- COMPARE RESULTS -->
-<section id="compareResults" class="hidden">
-  <div class="wrap">
-    <div id="compareOutput"></div>
   </div>
 </section>
 
-<!-- FOOTER -->
-<footer class="foot">
-  <div class="wrap foot-row">
-    <span class="foot-brand"><i class="bi bi-radar"></i> MianScan <span class="foot-ver">v1.4</span></span>
-    <span>Built by <a href="https://multimian.com/" target="_blank">MultiMian</a></span>
-    <a href="https://multimian.com/" target="_blank"><i class="bi bi-globe2"></i> multimian.com</a>
+<!-- ═══ HOW IT WORKS ═══ -->
+<section class="lp-section lp-section-alt" id="how-it-works">
+  <div class="wrap">
+    <div class="lp-section-head">
+      <span class="lp-section-pill">How It Works</span>
+      <h2>Three Steps to Full Website Intelligence</h2>
+      <p>No installation. No signup. Just paste and scan.</p>
+    </div>
+    <div class="steps-grid">
+      <div class="step-card">
+        <div class="step-num">01</div>
+        <div class="step-icon"><i class="bi bi-globe2"></i></div>
+        <h3>Paste Any URL</h3>
+        <p>Enter the website URL you want to analyze. Works on any public website — competitor sites, client projects, or your own.</p>
+      </div>
+      <div class="step-arrow"><i class="bi bi-arrow-right"></i></div>
+      <div class="step-card">
+        <div class="step-num">02</div>
+        <div class="step-icon"><i class="bi bi-radar"></i></div>
+        <h3>Scan &amp; Analyze</h3>
+        <p>MianScan fetches the page and runs 12 analyzers in parallel — SEO, tech, colors, fonts, links, images, and contacts.</p>
+      </div>
+      <div class="step-arrow"><i class="bi bi-arrow-right"></i></div>
+      <div class="step-card">
+        <div class="step-num">03</div>
+        <div class="step-icon"><i class="bi bi-download"></i></div>
+        <h3>Export &amp; Compare</h3>
+        <p>Get a full report with copy buttons on every data point. Export as JSON, PDF, or CSS. Compare with another site.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ COMPARE HIGHLIGHT ═══ -->
+<section class="lp-section" id="compare-highlight">
+  <div class="wrap">
+    <div class="lp-section-head">
+      <span class="lp-section-pill">Compare Mode</span>
+      <h2>Compare Two Websites Side by Side</h2>
+      <p>The most powerful feature for SEO experts, agencies, and freelancers.</p>
+    </div>
+    <div class="compare-mock-wrap">
+      <div class="compare-mock">
+        <div class="compare-mock-header">
+          <div class="compare-mock-site"><i class="bi bi-globe2"></i> stripe.com</div>
+          <div class="compare-mock-vs">VS</div>
+          <div class="compare-mock-site"><i class="bi bi-globe2"></i> paddle.com</div>
+        </div>
+        <div class="compare-mock-body">
+          <div class="compare-mock-col">
+            <div class="cmp-mock-row"><span class="cmp-mock-lbl">SEO Score</span><span class="cmp-mock-val good-val">92/100</span></div>
+            <div class="cmp-mock-row"><span class="cmp-mock-lbl">Tech Stack</span><span><span class="mock-tag">React</span><span class="mock-tag">Next.js</span></span></div>
+            <div class="cmp-mock-row"><span class="cmp-mock-lbl">Primary CTA</span><span class="cmp-mock-cta">Start now →</span></div>
+            <div class="cmp-mock-row"><span class="cmp-mock-lbl">Colors</span>
+              <span style="display:flex;gap:.3rem">
+                <span style="width:18px;height:18px;border-radius:4px;background:#635bff;display:inline-block"></span>
+                <span style="width:18px;height:18px;border-radius:4px;background:#0a2540;display:inline-block"></span>
+                <span style="width:18px;height:18px;border-radius:4px;background:#00d4ff;display:inline-block"></span>
+              </span>
+            </div>
+            <div class="cmp-mock-row"><span class="cmp-mock-lbl">Fonts</span><span style="font-weight:700">Sohne, Inter</span></div>
+          </div>
+          <div class="compare-mock-divider"></div>
+          <div class="compare-mock-col">
+            <div class="cmp-mock-row"><span class="cmp-mock-lbl">SEO Score</span><span class="cmp-mock-val ok-val">74/100</span></div>
+            <div class="cmp-mock-row"><span class="cmp-mock-lbl">Tech Stack</span><span><span class="mock-tag">Vue.js</span><span class="mock-tag">Nuxt</span></span></div>
+            <div class="cmp-mock-row"><span class="cmp-mock-lbl">Primary CTA</span><span class="cmp-mock-cta">Get started free</span></div>
+            <div class="cmp-mock-row"><span class="cmp-mock-lbl">Colors</span>
+              <span style="display:flex;gap:.3rem">
+                <span style="width:18px;height:18px;border-radius:4px;background:#ee6c4d;display:inline-block"></span>
+                <span style="width:18px;height:18px;border-radius:4px;background:#293241;display:inline-block"></span>
+                <span style="width:18px;height:18px;border-radius:4px;background:#3d5a80;display:inline-block"></span>
+              </span>
+            </div>
+            <div class="cmp-mock-row"><span class="cmp-mock-lbl">Fonts</span><span style="font-weight:700">Geist, DM Sans</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="compare-mock-cta">
+        <a href="#scanner-app" class="lp-btn-primary" onclick="document.getElementById('compareToggle').click();return false;">
+          <i class="bi bi-arrow-left-right"></i> Try Compare Mode
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ WHO IT'S FOR ═══ -->
+<section class="lp-section lp-section-alt" id="who">
+  <div class="wrap">
+    <div class="lp-section-head">
+      <span class="lp-section-pill">Who It's For</span>
+      <h2>Built for Everyone Who Works with Websites</h2>
+    </div>
+    <div class="who-grid">
+      <div class="who-card">
+        <div class="who-icon"><i class="bi bi-code-slash"></i></div>
+        <h3>Developers</h3>
+        <p>Quickly check tech stack, scripts, performance, and accessibility before starting a project.</p>
+      </div>
+      <div class="who-card">
+        <div class="who-icon"><i class="bi bi-graph-up-arrow"></i></div>
+        <h3>SEO Experts</h3>
+        <p>Audit any site's SEO score, keywords, H-tags, alt text, and links in seconds.</p>
+      </div>
+      <div class="who-card">
+        <div class="who-icon"><i class="bi bi-palette-fill"></i></div>
+        <h3>Designers</h3>
+        <p>Extract color palettes, fonts, and CTAs for inspiration or redesign projects.</p>
+      </div>
+      <div class="who-card">
+        <div class="who-icon"><i class="bi bi-briefcase-fill"></i></div>
+        <h3>Freelancers</h3>
+        <p>Gather client site data, find contact info, and generate reports for proposals.</p>
+      </div>
+      <div class="who-card">
+        <div class="who-icon"><i class="bi bi-megaphone-fill"></i></div>
+        <h3>Marketers</h3>
+        <p>Analyze competitor CTAs, keywords, and content topics to sharpen your strategy.</p>
+      </div>
+      <div class="who-card">
+        <div class="who-icon"><i class="bi bi-building"></i></div>
+        <h3>Agencies</h3>
+        <p>Compare client sites vs competitors. Generate professional reports in one click.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ TESTIMONIALS ═══ -->
+<section class="lp-section" id="testimonials">
+  <div class="wrap">
+    <div class="lp-section-head">
+      <span class="lp-section-pill">Testimonials</span>
+      <h2>Trusted by Developers &amp; SEO Professionals</h2>
+    </div>
+    <div class="testi-grid">
+      <div class="testi-card">
+        <div class="testi-stars">★★★★★</div>
+        <p>"MianScan saved me hours on client audits. I paste the URL and get everything I need — SEO, tech stack, contacts — instantly."</p>
+        <div class="testi-author"><div class="testi-avatar">AK</div><div><strong>Ahmad K.</strong><span>Freelance Developer</span></div></div>
+      </div>
+      <div class="testi-card">
+        <div class="testi-stars">★★★★★</div>
+        <p>"The compare mode is a game changer. I use it to benchmark client sites against competitors before every SEO proposal."</p>
+        <div class="testi-author"><div class="testi-avatar">SR</div><div><strong>Sara R.</strong><span>SEO Specialist</span></div></div>
+      </div>
+      <div class="testi-card">
+        <div class="testi-stars">★★★★★</div>
+        <p>"Color palette and font extractor alone makes this worth it. I use MianScan on every redesign project for inspiration."</p>
+        <div class="testi-author"><div class="testi-avatar">MH</div><div><strong>Maria H.</strong><span>UI/UX Designer</span></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ FINAL CTA ═══ -->
+<section class="lp-cta-section">
+  <div class="wrap lp-cta-inner">
+    <h2>Start Scanning Now — It's Free</h2>
+    <p>No signup. No limits. Just paste a URL and get instant website intelligence.</p>
+    <a href="#scanner-app" class="lp-btn-primary lp-btn-lg">
+      <i class="bi bi-radar"></i> Analyze a Website
+    </a>
+    <div class="lp-trust" style="justify-content:center;margin-top:1.25rem">
+      <span><i class="bi bi-check-circle-fill"></i> Free forever</span>
+      <span><i class="bi bi-check-circle-fill"></i> No account needed</span>
+      <span><i class="bi bi-check-circle-fill"></i> 12 analyzers</span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ SCANNER APP ═══ -->
+<div id="scanner-app">
+
+  <!-- COMPARE MODE -->
+  <section class="compare-hero hidden" id="compareSection">
+    <div class="wrap">
+      <div class="compare-header">
+        <h2><i class="bi bi-arrow-left-right"></i> Compare Two Websites</h2>
+        <p class="hero-sub">Scan two sites and see them side by side</p>
+      </div>
+      <div class="compare-inputs">
+        <div class="compare-input-wrap">
+          <label class="compare-label">Site A</label>
+          <div class="url-row">
+            <i class="bi bi-globe2 url-icon"></i>
+            <input id="urlA" type="url" placeholder="https://site-a.com" autocomplete="off" spellcheck="false"/>
+          </div>
+        </div>
+        <div class="compare-vs">VS</div>
+        <div class="compare-input-wrap">
+          <label class="compare-label">Site B</label>
+          <div class="url-row">
+            <i class="bi bi-globe2 url-icon"></i>
+            <input id="urlB" type="url" placeholder="https://site-b.com" autocomplete="off" spellcheck="false"/>
+          </div>
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:1.25rem">
+        <button id="compareBtn" class="scan-btn"><i class="bi bi-arrow-left-right"></i><span>Compare Sites</span></button>
+      </div>
+      <div id="compareProgress" class="progress-box hidden" style="max-width:500px;margin:1.25rem auto 0">
+        <div class="prog-track"><div id="compareBar" class="prog-fill"></div></div>
+        <div id="compareLabel" class="prog-label">Scanning…</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SINGLE RESULTS -->
+  <main id="results" class="hidden">
+    <div class="wrap">
+      <div id="siteBanner" class="site-banner"></div>
+      <div id="statsRow" class="stats-row"></div>
+      <div class="tabs-bar">
+        <div class="tabs" id="tabs">
+          <button class="tab active" data-tab="overview"><i class="bi bi-grid-3x3-gap-fill"></i> Overview</button>
+          <button class="tab" data-tab="seo"><i class="bi bi-graph-up-arrow"></i> SEO</button>
+          <button class="tab" data-tab="keywords"><i class="bi bi-tags-fill"></i> Keywords</button>
+          <button class="tab" data-tab="links"><i class="bi bi-link-45deg"></i> Links</button>
+          <button class="tab" data-tab="images"><i class="bi bi-image-fill"></i> Images SEO</button>
+          <button class="tab" data-tab="contacts"><i class="bi bi-person-lines-fill"></i> Contacts</button>
+          <button class="tab" data-tab="cta"><i class="bi bi-cursor-fill"></i> CTAs</button>
+          <button class="tab" data-tab="tech"><i class="bi bi-cpu-fill"></i> Tech Stack</button>
+          <button class="tab" data-tab="colors"><i class="bi bi-palette-fill"></i> Colors</button>
+          <button class="tab" data-tab="fonts"><i class="bi bi-type"></i> Fonts</button>
+          <button class="tab" data-tab="performance"><i class="bi bi-speedometer2"></i> Performance</button>
+        </div>
+      </div>
+      <div id="tabContent" class="tab-content"></div>
+      <div class="export-row">
+        <span class="export-lbl"><i class="bi bi-download"></i> Export:</span>
+        <button class="exp-btn" id="btnJSON"><i class="bi bi-filetype-json"></i> JSON</button>
+        <button class="exp-btn" id="btnPDF"><i class="bi bi-file-pdf"></i> PDF</button>
+        <button class="exp-btn" id="btnCSS"><i class="bi bi-filetype-css"></i> Color CSS</button>
+        <button class="exp-btn" id="btnCopy"><i class="bi bi-clipboard-check"></i> Copy Report</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- COMPARE RESULTS -->
+  <section id="compareResults" class="hidden">
+    <div class="wrap"><div id="compareOutput"></div></div>
+  </section>
+
+</div>
+
+<!-- ═══ FOOTER ═══ -->
+<footer class="lp-footer">
+  <div class="wrap lp-footer-inner">
+    <div class="lp-footer-brand">
+      <span class="logo"><i class="bi bi-radar"></i> MianScan</span>
+      <span class="foot-ver">v1.4</span>
+      <p>Full website intelligence scanner. Free, fast, and powerful.</p>
+    </div>
+    <div class="lp-footer-links">
+      <div class="lp-footer-col">
+        <strong>Features</strong>
+        <a href="#features">SEO Analysis</a>
+        <a href="#features">Tech Stack</a>
+        <a href="#features">Color Palette</a>
+        <a href="#features">Compare Mode</a>
+      </div>
+      <div class="lp-footer-col">
+        <strong>Resources</strong>
+        <a href="#how-it-works">How It Works</a>
+        <a href="#scanner-app">Try Now</a>
+        <a href="https://github.com/Mianhassam96/MianScan" target="_blank">GitHub</a>
+      </div>
+      <div class="lp-footer-col">
+        <strong>Built by</strong>
+        <a href="https://multimian.com/" target="_blank">MultiMian</a>
+        <a href="https://multimian.com/" target="_blank"><i class="bi bi-globe2"></i> multimian.com</a>
+      </div>
+    </div>
+  </div>
+  <div class="lp-footer-bottom">
+    <div class="wrap">
+      <span>© 2025 MianScan — Built by <a href="https://multimian.com/" target="_blank">MultiMian</a></span>
+      <span>Free · Open Source · No Signup</span>
+    </div>
   </div>
 </footer>
 
