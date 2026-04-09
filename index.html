@@ -1,138 +1,121 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="MianScan — Full Website Analyzer. Get complete website intelligence in seconds.">
-    <meta name="theme-color" content="#6366f1">
-    <title>MianScan — Website Analyzer</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="css/style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="MianScan — Full Website Analyzer. Colors, fonts, SEO, tech stack, contacts and more." />
+  <title>MianScan — Website Analyzer</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" />
+  <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
 
-    <!-- Navbar -->
-    <nav class="navbar sticky-top">
-        <div class="container">
-            <a class="navbar-brand" href="#">
-                <i class="bi bi-radar"></i> MianScan
-            </a>
-            <button class="btn-icon" id="themeToggle" title="Toggle Theme">
-                <i class="bi bi-moon-fill"></i>
-            </button>
+  <!-- NAV -->
+  <nav class="nav">
+    <div class="container nav-inner">
+      <a class="brand" href="#"><i class="bi bi-radar"></i> MianScan</a>
+      <button id="themeBtn" class="icon-btn" title="Toggle theme"><i class="bi bi-moon-fill"></i></button>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="container hero-inner">
+      <span class="badge-pill">v1.1 — Simple &amp; Powerful</span>
+      <h1>Website Intelligence Scanner</h1>
+      <p class="sub">Paste any URL. Get colors, fonts, SEO, tech stack, contacts &amp; more — instantly.</p>
+
+      <div class="input-wrap">
+        <div class="url-box" id="urlBox">
+          <i class="bi bi-globe2"></i>
+          <input id="urlInput" type="url" placeholder="https://example.com" autocomplete="off" spellcheck="false" />
+          <button id="scanBtn"><i class="bi bi-radar"></i> Analyze</button>
         </div>
-    </nav>
-
-    <!-- Hero -->
-    <section class="hero">
-        <div class="container text-center">
-            <div class="hero-badge">v1.1 — Simple & Powerful</div>
-            <h1 class="hero-title">Website Intelligence Scanner</h1>
-            <p class="hero-sub">Paste any URL. Get colors, fonts, SEO, tech stack, contacts & more — instantly.</p>
-
-            <div class="scanner-box">
-                <div class="scanner-input-group">
-                    <i class="bi bi-globe2"></i>
-                    <input type="url" id="urlInput" placeholder="https://example.com" autocomplete="off" spellcheck="false">
-                    <button id="scanBtn"><i class="bi bi-radar me-2"></i>Analyze</button>
-                </div>
-                <div class="examples">
-                    <span>Try:</span>
-                    <button class="ex-btn" data-url="https://stripe.com">stripe.com</button>
-                    <button class="ex-btn" data-url="https://vercel.com">vercel.com</button>
-                    <button class="ex-btn" data-url="https://github.com">github.com</button>
-                    <button class="ex-btn" data-url="https://tailwindcss.com">tailwindcss.com</button>
-                </div>
-            </div>
-
-            <!-- Progress -->
-            <div id="scanProgress" class="progress-wrap d-none">
-                <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
-                <div class="progress-label" id="progressLabel">Initializing...</div>
-            </div>
+        <div class="examples">
+          <span>Try:</span>
+          <button class="ex" data-url="https://stripe.com">stripe.com</button>
+          <button class="ex" data-url="https://vercel.com">vercel.com</button>
+          <button class="ex" data-url="https://github.com">github.com</button>
+          <button class="ex" data-url="https://tailwindcss.com">tailwindcss.com</button>
         </div>
-    </section>
+      </div>
 
-    <!-- Results -->
-    <main id="results" class="d-none">
-        <div class="container">
+      <div id="progressWrap" class="progress-wrap hidden">
+        <div class="progress-track"><div id="progressBar" class="progress-bar"></div></div>
+        <div id="progressLabel" class="progress-label">Initializing...</div>
+      </div>
+    </div>
+  </section>
 
-            <!-- Overview Banner -->
-            <div class="overview-banner" id="overviewBanner"></div>
+  <!-- RESULTS -->
+  <main id="results" class="hidden">
+    <div class="container">
 
-            <!-- Summary Cards -->
-            <div class="summary-grid" id="summaryGrid"></div>
+      <!-- Overview banner -->
+      <div id="overviewBanner" class="overview-banner"></div>
 
-            <!-- Tabs -->
-            <div class="tabs-wrap">
-                <div class="tabs" id="tabs">
-                    <button class="tab active" data-tab="overview"><i class="bi bi-grid-3x3-gap"></i><span>Overview</span></button>
-                    <button class="tab" data-tab="colors"><i class="bi bi-palette"></i><span>Colors</span></button>
-                    <button class="tab" data-tab="fonts"><i class="bi bi-type"></i><span>Fonts</span></button>
-                    <button class="tab" data-tab="structure"><i class="bi bi-diagram-3"></i><span>Structure</span></button>
-                    <button class="tab" data-tab="content"><i class="bi bi-file-text"></i><span>Content</span></button>
-                    <button class="tab" data-tab="cta"><i class="bi bi-cursor"></i><span>CTAs</span></button>
-                    <button class="tab" data-tab="seo"><i class="bi bi-graph-up"></i><span>SEO</span></button>
-                    <button class="tab" data-tab="media"><i class="bi bi-images"></i><span>Media</span></button>
-                    <button class="tab" data-tab="contacts"><i class="bi bi-person-lines-fill"></i><span>Contacts</span></button>
-                    <button class="tab" data-tab="tech"><i class="bi bi-cpu"></i><span>Tech Stack</span></button>
-                    <button class="tab" data-tab="performance"><i class="bi bi-speedometer2"></i><span>Performance</span></button>
-                </div>
-            </div>
+      <!-- Summary cards -->
+      <div id="summaryGrid" class="summary-grid"></div>
 
-            <!-- Tab Content -->
-            <div id="tabContent"></div>
-
-            <!-- Export -->
-            <div class="export-row">
-                <span class="export-label"><i class="bi bi-download"></i> Export:</span>
-                <button class="export-btn" id="exportJSON"><i class="bi bi-filetype-json"></i> JSON</button>
-                <button class="export-btn" id="exportPDF"><i class="bi bi-file-pdf"></i> PDF</button>
-                <button class="export-btn" id="copyReport"><i class="bi bi-clipboard"></i> Copy</button>
-            </div>
-
+      <!-- Tabs -->
+      <div class="tabs-scroll">
+        <div class="tabs" id="tabs">
+          <button class="tab active" data-tab="overview"><i class="bi bi-grid-3x3-gap"></i> Overview</button>
+          <button class="tab" data-tab="colors"><i class="bi bi-palette"></i> Colors</button>
+          <button class="tab" data-tab="fonts"><i class="bi bi-type"></i> Fonts</button>
+          <button class="tab" data-tab="structure"><i class="bi bi-diagram-3"></i> Structure</button>
+          <button class="tab" data-tab="content"><i class="bi bi-file-text"></i> Content</button>
+          <button class="tab" data-tab="cta"><i class="bi bi-cursor"></i> CTAs</button>
+          <button class="tab" data-tab="seo"><i class="bi bi-graph-up"></i> SEO</button>
+          <button class="tab" data-tab="media"><i class="bi bi-images"></i> Media</button>
+          <button class="tab" data-tab="contacts"><i class="bi bi-person-lines-fill"></i> Contacts</button>
+          <button class="tab" data-tab="tech"><i class="bi bi-cpu"></i> Tech Stack</button>
+          <button class="tab" data-tab="performance"><i class="bi bi-speedometer2"></i> Performance</button>
         </div>
-    </main>
+      </div>
 
-    <!-- Footer -->
-    <footer class="site-footer">
-        <div class="container">
-            <div class="footer-inner">
-                <div class="footer-brand">
-                    <i class="bi bi-radar"></i> MianScan
-                    <span class="footer-version">v1.1</span>
-                </div>
-                <div class="footer-center">
-                    Built by <a href="https://multimian.com/" target="_blank" rel="noopener">MultiMian</a>
-                </div>
-                <div class="footer-right">
-                    <a href="https://multimian.com/" target="_blank" rel="noopener">
-                        <i class="bi bi-globe2"></i> multimian.com
-                    </a>
-                </div>
-            </div>
-        </div>
-    </footer>
+      <!-- Tab content -->
+      <div id="tabContent"></div>
 
-    <!-- Toast -->
-    <div class="toast-msg" id="toast"></div>
+      <!-- Export -->
+      <div class="export-bar">
+        <span class="export-label"><i class="bi bi-download"></i> Export:</span>
+        <button class="export-btn" id="btnJSON"><i class="bi bi-filetype-json"></i> JSON</button>
+        <button class="export-btn" id="btnPDF"><i class="bi bi-file-pdf"></i> PDF</button>
+        <button class="export-btn" id="btnCopy"><i class="bi bi-clipboard"></i> Copy</button>
+      </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="js/scanner.js"></script>
-    <script src="js/analyzers/colors.js"></script>
-    <script src="js/analyzers/fonts.js"></script>
-    <script src="js/analyzers/structure.js"></script>
-    <script src="js/analyzers/content.js"></script>
-    <script src="js/analyzers/cta.js"></script>
-    <script src="js/analyzers/seo.js"></script>
-    <script src="js/analyzers/media.js"></script>
-    <script src="js/analyzers/contacts.js"></script>
-    <script src="js/analyzers/tech.js"></script>
-    <script src="js/analyzers/performance.js"></script>
-    <script src="js/ui.js"></script>
-    <script src="js/export.js"></script>
-    <script src="js/app.js"></script>
+    </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container footer-inner">
+      <span class="footer-brand"><i class="bi bi-radar"></i> MianScan <span class="ver">v1.1</span></span>
+      <span>Built by <a href="https://multimian.com/" target="_blank" rel="noopener">MultiMian</a></span>
+      <a href="https://multimian.com/" target="_blank" rel="noopener"><i class="bi bi-globe2"></i> multimian.com</a>
+    </div>
+  </footer>
+
+  <!-- Toast -->
+  <div id="toast" class="toast"></div>
+
+  <!-- Scripts — order matters -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="js/analyzers/colors.js"></script>
+  <script src="js/analyzers/fonts.js"></script>
+  <script src="js/analyzers/structure.js"></script>
+  <script src="js/analyzers/content.js"></script>
+  <script src="js/analyzers/cta.js"></script>
+  <script src="js/analyzers/seo.js"></script>
+  <script src="js/analyzers/media.js"></script>
+  <script src="js/analyzers/contacts.js"></script>
+  <script src="js/analyzers/tech.js"></script>
+  <script src="js/analyzers/performance.js"></script>
+  <script src="js/scanner.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/export.js"></script>
+  <script src="js/app.js"></script>
+
 </body>
 </html>
