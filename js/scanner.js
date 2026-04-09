@@ -64,7 +64,11 @@ const Scanner = {
     const seo = SEOAnalyzer.analyze(doc);
     p('Scanning media…', 72);
     const media = MediaAnalyzer.analyze(doc, url);
-    p('Finding contacts…', 81);
+    p('Analyzing links…', 78);
+    const links = LinksAnalyzer.analyze(doc, url);
+    p('Checking images SEO…', 84);
+    const images = ImagesAnalyzer.analyze(doc, url);
+    p('Finding contacts…', 88);
     const contacts = ContactAnalyzer.analyze(doc, html);
     p('Detecting tech stack…', 90);
     const tech = TechAnalyzer.analyze(doc, html);
@@ -74,7 +78,7 @@ const Scanner = {
     this.currentData = {
       url, scannedAt: new Date().toISOString(),
       overview: this._overview(doc, url, structure, content),
-      colors, fonts, structure, content, cta, seo, media, contacts, tech, performance
+      colors, fonts, structure, content, cta, seo, media, links, images, contacts, tech, performance
     };
     return this.currentData;
   }

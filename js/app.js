@@ -1,22 +1,58 @@
 document.addEventListener('DOMContentLoaded', () => {
-  const urlInput = document.getElementById('urlInput');
-  const scanBtn  = document.getElementById('scanBtn');
-  const progBox  = document.getElementById('progressBox');
-  const progBar  = document.getElementById('progBar');
-  const progLbl  = document.getElementById('progLabel');
-  const results  = document.getElementById('results');
-  const html     = document.documentElement;
+  const urlInput    = document.getElementById('urlInput');
+  const scanBtn     = document.getElementById('scanBtn');
+  const progBox     = document.getElementById('progressBox');
+  const progBar     = document.getElementById('progBar');
+  const progLbl     = document.getElementById('progLabel');
+  const results     = document.getElementById('results');
+  const heroSection = document.getElementById('heroSection');
+  const cmpSection  = document.getElementById('compareSection');
+  const cmpResults  = document.getElementById('compareResults');
+  const html        = document.documentElement;
 
   /* ── Theme ── */
   const saved = localStorage.getItem('ms_theme') || 'dark';
   html.setAttribute('data-theme', saved);
-  document.querySelector('#themeBtn i').className = saved === 'light' ? 'bi bi-sun-fill' : 'bi bi-moon-stars-fill';
+  document.querySelector('#themeBtn i').className = saved==='light'?'bi bi-sun-fill':'bi bi-moon-stars-fill';
 
   document.getElementById('themeBtn').addEventListener('click', () => {
-    const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    const next = html.getAttribute('data-theme')==='dark'?'light':'dark';
     html.setAttribute('data-theme', next);
     localStorage.setItem('ms_theme', next);
-    document.querySelector('#themeBtn i').className = next === 'light' ? 'bi bi-sun-fill' : 'bi bi-moon-stars-fill';
+    document.querySelector('#themeBtn i').className = next==='light'?'bi bi-sun-fill':'bi bi-moon-stars-fill';
+  });
+
+  /* ── Compare toggle ── */
+  let compareMode = false;
+  document.getElementById('compareToggle').addEventListener('click', () => {
+    compareMode = !compareMode;
+    heroSection.classList.toggle('hidden', compareMode);
+    cmpSection.classList.toggle('hidden', !compareMode);
+    results.classList.add('hidden');
+    cmpResults.classList.add('hidden');
+    document.getElementById('compareToggle').style.color = compareMode ? 'var(--primary2)' : '';
+  });
+
+  /* ── Compare scan ── */
+  document.getElementById('compareBtn').addEventListener('click', async () => {
+    let urlA = document.getElementById('urlA').value.trim();
+    let urlB = document.getElementById('urlB').value.trim();
+    if (!urlA || !urlB) { UI.toast('Enter both URLs'); return; }
+    if (!urlA.startsWith('http')) urlA = 'https://' + urlA;
+    if (!urlB.startsWith('http')) urlB = 'https://' + urlB;
+    document.getElementById('compareBtn').disabled = true;
+    document.getElementById('compareBtn').innerHTML = '<i class="bi bi-radar spin"></i><span>Comparing…</span>';
+    cmpResults.classList.add('hidden');
+    try {
+      await Compare.run(urlA, urlB);
+      cmpResults.classList.remove('hidden');
+      cmpResults.scrollIntoView({ behavior:'smooth', block:'start' });
+    } catch(e) {
+      UI.toast('Compare failed: ' + e.message);
+    } finally {
+      document.getElementById('compareBtn').disabled = false;
+      document.getElementById('compareBtn').innerHTML = '<i class="bi bi-arrow-left-right"></i><span>Compare Sites</span>';
+    }
   });
 
   /* ── Try buttons ── */
@@ -24,9 +60,9 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.addEventListener('click', () => { urlInput.value = btn.dataset.url; run(); })
   );
 
-  /* ── Scan ── */
+  /* ── Single scan ── */
   scanBtn.addEventListener('click', run);
-  urlInput.addEventListener('keydown', e => { if (e.key === 'Enter') run(); });
+  urlInput.addEventListener('keydown', e => { if (e.key==='Enter') run(); });
 
   /* ── Tabs ── */
   document.getElementById('tabs').addEventListener('click', e => {
@@ -70,9 +106,9 @@ document.addEventListener('DOMContentLoaded', () => {
       document.querySelector('[data-tab="overview"]').classList.add('active');
       UI.renderTab('overview', data);
 
-      results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      results.scrollIntoView({ behavior:'smooth', block:'start' });
 
-    } catch (err) {
+    } catch(err) {
       UI.toast('Scan failed: ' + err.message);
       console.error(err);
     } finally {
