@@ -1,33 +1,34 @@
 document.addEventListener('DOMContentLoaded', () => {
   const urlInput = document.getElementById('urlInput');
   const scanBtn  = document.getElementById('scanBtn');
-  const progWrap = document.getElementById('progressWrap');
-  const progBar  = document.getElementById('progressBar');
-  const progLbl  = document.getElementById('progressLabel');
+  const progBox  = document.getElementById('progressBox');
+  const progBar  = document.getElementById('progBar');
+  const progLbl  = document.getElementById('progLabel');
   const results  = document.getElementById('results');
+  const html     = document.documentElement;
 
-  // ── Theme ──
-  if (localStorage.getItem('ms_theme') === 'light') {
-    document.body.classList.add('light');
-    document.querySelector('#themeBtn i').className = 'bi bi-sun-fill';
-  }
+  /* ── Theme ── */
+  const saved = localStorage.getItem('ms_theme') || 'dark';
+  html.setAttribute('data-theme', saved);
+  document.querySelector('#themeBtn i').className = saved === 'light' ? 'bi bi-sun-fill' : 'bi bi-moon-stars-fill';
+
   document.getElementById('themeBtn').addEventListener('click', () => {
-    document.body.classList.toggle('light');
-    const light = document.body.classList.contains('light');
-    localStorage.setItem('ms_theme', light ? 'light' : 'dark');
-    document.querySelector('#themeBtn i').className = light ? 'bi bi-sun-fill' : 'bi bi-moon-fill';
+    const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    html.setAttribute('data-theme', next);
+    localStorage.setItem('ms_theme', next);
+    document.querySelector('#themeBtn i').className = next === 'light' ? 'bi bi-sun-fill' : 'bi bi-moon-stars-fill';
   });
 
-  // ── Example buttons ──
-  document.querySelectorAll('.ex').forEach(btn =>
+  /* ── Try buttons ── */
+  document.querySelectorAll('.try-btn').forEach(btn =>
     btn.addEventListener('click', () => { urlInput.value = btn.dataset.url; run(); })
   );
 
-  // ── Scan triggers ──
+  /* ── Scan ── */
   scanBtn.addEventListener('click', run);
   urlInput.addEventListener('keydown', e => { if (e.key === 'Enter') run(); });
 
-  // ── Tab switching ──
+  /* ── Tabs ── */
   document.getElementById('tabs').addEventListener('click', e => {
     const btn = e.target.closest('.tab');
     if (!btn || !Scanner.currentData) return;
@@ -36,12 +37,11 @@ document.addEventListener('DOMContentLoaded', () => {
     UI.renderTab(btn.dataset.tab, Scanner.currentData);
   });
 
-  // ── Export ──
+  /* ── Export ── */
   document.getElementById('btnJSON').addEventListener('click', () => Scanner.currentData && Exporter.toJSON(Scanner.currentData));
   document.getElementById('btnPDF').addEventListener('click',  () => Scanner.currentData && Exporter.toPDF(Scanner.currentData));
   document.getElementById('btnCopy').addEventListener('click', () => Scanner.currentData && Exporter.copyReport(Scanner.currentData));
 
-  // ── Main scan function ──
   async function run() {
     let url = urlInput.value.trim();
     if (!url) { UI.toast('Enter a URL first'); return; }
@@ -50,8 +50,8 @@ document.addEventListener('DOMContentLoaded', () => {
     urlInput.value = url;
 
     scanBtn.disabled = true;
-    scanBtn.innerHTML = '<i class="bi bi-radar spin"></i> Scanning...';
-    progWrap.classList.remove('hidden');
+    scanBtn.innerHTML = '<i class="bi bi-radar spin"></i><span>Scanning…</span>';
+    progBox.classList.remove('hidden');
     results.classList.add('hidden');
     progBar.style.width = '0%';
 
@@ -62,7 +62,8 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       results.classList.remove('hidden');
-      UI.renderOverview(data);
+      UI.renderBanner(data);
+      UI.renderStats(data);
 
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
       document.querySelector('[data-tab="overview"]').classList.add('active');
@@ -75,8 +76,8 @@ document.addEventListener('DOMContentLoaded', () => {
       console.error(err);
     } finally {
       scanBtn.disabled = false;
-      scanBtn.innerHTML = '<i class="bi bi-radar"></i> Analyze';
-      setTimeout(() => progWrap.classList.add('hidden'), 900);
+      scanBtn.innerHTML = '<i class="bi bi-radar"></i><span>Analyze</span>';
+      setTimeout(() => progBox.classList.add('hidden'), 1000);
     }
   }
 });
