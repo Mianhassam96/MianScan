@@ -549,3 +549,161 @@ pre{color:var(--muted);font-size:.8rem;overflow-x:auto;line-height:1.8;backgroun
 @media (min-width: 641px) {
   .tab-scroll-btn { display: none }
 }
+
+/* ===== STICKY TAB BAR ===== */
+.results-section .tab-nav-wrap {
+  position: sticky;
+  top: 56px;
+  z-index: 90;
+  background: var(--bg);
+  padding: .5rem 0;
+}
+
+/* ===== SMOOTH SLIDING UNDERLINE FOR ACTIVE TAB ===== */
+.tabs-bar {
+  position: relative;
+}
+.tab {
+  position: relative;
+  transition: color .2s, background .2s;
+}
+.tab::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--primary);
+  border-radius: 2px 2px 0 0;
+  transform: scaleX(0);
+  transition: transform .22s cubic-bezier(.4,0,.2,1);
+}
+.tab.active::after {
+  transform: scaleX(1);
+}
+
+/* ===== TAB HOVER BACKGROUND FILL ANIMATION ===== */
+.tab:not(.active):hover {
+  background: rgba(100,116,255,.08);
+  color: var(--primary2);
+  border-radius: var(--radius-s) var(--radius-s) 0 0;
+}
+
+/* ===== OG PREVIEW CARDS ===== */
+.og-previews {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+  margin-top: .75rem;
+}
+.og-preview-wrap {}
+.og-preview-label {
+  font-size: .72rem;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  margin-bottom: .4rem;
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+}
+.og-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-s);
+  overflow: hidden;
+  background: var(--bg3);
+  font-size: .82rem;
+}
+.og-img-wrap {
+  width: 100%;
+  max-height: 140px;
+  overflow: hidden;
+  background: var(--bg4);
+}
+.og-img-wrap img {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+}
+.og-img-placeholder {
+  width: 100%;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg4);
+  color: var(--muted);
+  font-size: 1.5rem;
+}
+.og-card-body {
+  padding: .6rem .75rem;
+}
+.og-card-site {
+  font-size: .7rem;
+  color: var(--muted);
+  margin-bottom: .2rem;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+.og-card-title {
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: .2rem;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.og-card-desc {
+  color: var(--muted);
+  font-size: .78rem;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.og-card-large .og-img-wrap {
+  max-height: 180px;
+}
+.og-card-large .og-img-wrap img {
+  height: 180px;
+}
+/* Google snippet style */
+.og-card-google {
+  background: var(--bg2);
+  border-color: var(--border);
+  padding: .75rem;
+}
+.og-google-title {
+  color: #8ab4f8;
+  font-size: .95rem;
+  font-weight: 600;
+  margin-bottom: .15rem;
+}
+.og-google-url {
+  color: #bdc1c6;
+  font-size: .72rem;
+  margin-bottom: .3rem;
+  word-break: break-all;
+}
+.og-google-desc {
+  color: var(--muted);
+  font-size: .82rem;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ===== BETTER MOBILE TABS — text only on very small screens ===== */
+@media (max-width: 420px) {
+  .tab i { display: none }
+  .tab { padding: .55rem .6rem; font-size: .75rem }
+  .tab-group-label { display: none }
+  .tab-group { padding-top: 0 }
+}

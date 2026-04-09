@@ -62,6 +62,47 @@ const Exporter = {
     UI.toast('PDF exported!');
   },
 
+  toCSV(data) {
+    const hostname = data.url ? new URL(data.url).hostname : 'site';
+    const rows = [['Type', 'Value', 'Count', 'Density']];
+
+    // Keywords
+    (data.content?.keywords || []).forEach(k => {
+      rows.push(['keyword', k.word, k.count, k.density + '%']);
+    });
+
+    // Bigrams
+    (data.content?.bigrams || []).forEach(b => {
+      rows.push(['bigram', b.phrase, b.count, '']);
+    });
+
+    // Emails
+    (data.contacts?.emails || []).forEach(e => {
+      rows.push(['email', e, '', '']);
+    });
+
+    // Phones
+    (data.contacts?.phones || []).forEach(p => {
+      rows.push(['phone', p, '', '']);
+    });
+
+    // Social
+    const social = data.contacts?.social || {};
+    Object.entries(social).forEach(([platform, urls]) => {
+      (Array.isArray(urls) ? urls : [urls]).forEach(url => {
+        rows.push([`social_${platform.toLowerCase()}`, url, '', '']);
+      });
+    });
+
+    const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+    a.download = `mianscan-${hostname}-keywords.csv`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    UI.toast('CSV exported!');
+  },
+
   copyReport(data) {
     const lines = [
       `MianScan Report — ${data.url}`,

@@ -87,6 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
   /* ── Export ── */
   document.getElementById('btnJSON').addEventListener('click', () => Scanner.currentData && Exporter.toJSON(Scanner.currentData));
   document.getElementById('btnPDF').addEventListener('click',  () => Scanner.currentData && Exporter.toPDF(Scanner.currentData));
+  document.getElementById('btnCSV').addEventListener('click',  () => Scanner.currentData && Exporter.toCSV(Scanner.currentData));
   document.getElementById('btnCSS').addEventListener('click',  () => Scanner.currentData && Exporter.downloadCSS(Scanner.currentData.colors.colors));
   document.getElementById('btnCopy').addEventListener('click', () => Scanner.currentData && Exporter.copyReport(Scanner.currentData));
 

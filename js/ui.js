@@ -194,33 +194,77 @@
   /* ── 4. Ranking ── */
   tRanking(r, d) {
     const globalRank = r?.globalRank ? '#'+Number(r.globalRank).toLocaleString() : null;
-    const traffic = r?.trafficEst || null;
+    const pageRank   = r?.pageRank != null ? r.pageRank+'/10' : null;
+    const hasData    = !!r?.source;
+    const manualLinks = `
+      <div style="margin-top:1rem;display:flex;gap:.5rem;flex-wrap:wrap">
+        <a href="https://www.similarweb.com/website/${r?.hostname||''}" target="_blank" class="exp-btn"><i class="bi bi-box-arrow-up-right"></i> SimilarWeb</a>
+        <a href="https://ahrefs.com/website-authority-checker/?target=${r?.hostname||''}" target="_blank" class="exp-btn"><i class="bi bi-box-arrow-up-right"></i> Ahrefs</a>
+        <a href="https://moz.com/domain-analysis?site=${r?.hostname||''}" target="_blank" class="exp-btn"><i class="bi bi-box-arrow-up-right"></i> Moz</a>
+      </div>`;
     return `<div class="g2">
       <div class="card">
         <div class="card-head"><i class="bi bi-trophy-fill"></i> Website Ranking</div>
         <div class="authority-grid" style="grid-template-columns:repeat(2,1fr)">
           <div class="auth-card"><div class="auth-val" style="color:var(--primary2);font-size:1.3rem">${globalRank||'N/A'}</div><div class="auth-lbl">Global Rank</div><div class="auth-note">${r?.source||'Not available'}</div></div>
-          <div class="auth-card"><div class="auth-val" style="color:var(--accent);font-size:1.3rem">${r?.countryRank?'#'+Number(r.countryRank).toLocaleString():'N/A'}</div><div class="auth-lbl">Country Rank</div><div class="auth-note">${r?.source||'Not available'}</div></div>
-          <div class="auth-card"><div class="auth-val" style="color:var(--green);font-size:1.3rem">${traffic||'N/A'}</div><div class="auth-lbl">Monthly Traffic</div><div class="auth-note">Estimated</div></div>
-          <div class="auth-card"><div class="auth-val" style="color:var(--yellow);font-size:1.1rem">${r?.category||'N/A'}</div><div class="auth-lbl">Category</div><div class="auth-note">Site category</div></div>
+          <div class="auth-card"><div class="auth-val" style="color:var(--accent);font-size:1.3rem">${pageRank||'N/A'}</div><div class="auth-lbl">PageRank Score</div><div class="auth-note">Open PageRank (0–10)</div></div>
         </div>
+        ${!hasData?`<div class="a11y-row a11y-warn" style="margin-top:.75rem"><i class="bi bi-exclamation-triangle-fill"></i> ${r?.error||'Ranking data not available for this domain'}</div>`:''}
+        ${manualLinks}
       </div>
       <div class="card">
         <div class="card-head"><i class="bi bi-info-circle-fill"></i> About Ranking Data</div>
-        <div class="auth-note-box" style="margin-bottom:.75rem"><i class="bi bi-info-circle"></i> Ranking data is fetched from Open PageRank and SimilarWeb public APIs. Results may vary.</div>
+        <div class="auth-note-box" style="margin-bottom:.75rem"><i class="bi bi-info-circle"></i> Ranking data is fetched from Open PageRank API. If unavailable, check manually using the links provided.</div>
         ${this.irow('Data Source', r?.source||'Not available')}
         ${this.irow('Domain', this.e(r?.hostname||d?.hostname||'—'))}
-        ${this.irow('PageRank Score', d?.da !== null && d?.da !== undefined ? d.da+'/10' : 'N/A')}
-        <div style="margin-top:1rem">
-          <a href="https://www.similarweb.com/website/${r?.hostname||''}" target="_blank" class="exp-btn"><i class="bi bi-box-arrow-up-right"></i> View on SimilarWeb</a>
-        </div>
+        ${this.irow('PageRank Score', pageRank||'N/A')}
+        ${this.irow('Global Rank', globalRank||'N/A')}
       </div>
     </div>`;
   },
 
   /* ── 5. Keywords & Tags ── */
   tKeywords(content) {
-    return `<div class="g2">
+    const r = content.readability || { score: 0, grade: 'N/A', label: 'N/A' };
+    const scoreColor = r.score >= 70 ? 'var(--green)' : r.score >= 50 ? 'var(--yellow)' : 'var(--red)';
+    const bigrams  = content.bigrams  || [];
+    const trigrams = content.trigrams || [];
+
+    const readabilityCard = `
+    <div class="card" style="margin-bottom:1.25rem">
+      <div class="card-head"><i class="bi bi-book-fill"></i> Readability</div>
+      <div style="display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap">
+        <div class="score-ring" style="color:${scoreColor};border-color:${scoreColor};flex-shrink:0">${r.score}</div>
+        <div>
+          <div style="font-size:1.1rem;font-weight:700;color:${scoreColor}">${r.label}</div>
+          <div style="color:var(--muted);font-size:.85rem">Flesch-Kincaid Reading Ease (0–100)</div>
+          <div style="margin-top:.5rem;display:flex;gap:1rem;flex-wrap:wrap">
+            ${this.irow('Words', (content.wordCount||0).toLocaleString())}
+            ${this.irow('Paragraphs', content.paragraphCount||0)}
+          </div>
+        </div>
+      </div>
+    </div>`;
+
+    const bigramsCard = bigrams.length ? `
+    <div class="card" style="margin-bottom:1.25rem">
+      <div class="card-head"><i class="bi bi-chat-quote-fill"></i> Top Two-Word Phrases</div>
+      <div class="kw-table">
+        <div class="kw-header"><span>Phrase</span><span>Count</span></div>
+        ${bigrams.map(b=>`<div class="kw-row">
+          <span class="kw-word" onclick="UI.copy('${b.phrase.replace(/'/g,"\\'")}') " title="Click to copy">${this.e(b.phrase)}</span>
+          <span class="kw-count">${b.count}</span>
+        </div>`).join('')}
+      </div>
+    </div>` : '';
+
+    const trigramsCard = trigrams.length ? `
+    <div class="card" style="margin-bottom:1.25rem">
+      <div class="card-head"><i class="bi bi-chat-dots-fill"></i> Top Three-Word Phrases</div>
+      ${trigrams.map(t=>`<div class="litem"><i class="bi bi-dot"></i><span style="flex:1">${this.e(t.phrase)}</span><span class="kw-count">${t.count}</span>${this.copyBtn(t.phrase)}</div>`).join('')}
+    </div>` : '';
+
+    return readabilityCard + bigramsCard + trigramsCard + `<div class="g2">
       <div class="card">
         <div class="card-head"><i class="bi bi-bar-chart-fill"></i> Keyword Density <span class="badge-cnt">${content.keywords.length}</span></div>
         <div class="kw-table">
@@ -392,7 +436,60 @@
 
   /* ── 13. Meta Tags ── */
   tMetaTags(seo) {
-    return `<div class="g2">
+    const ogImg   = seo.ogImage   || '';
+    const ogTitle = seo.ogTitle   || seo.title || 'No title';
+    const ogDesc  = seo.ogDesc    || seo.metaDesc || 'No description';
+    const twCard  = (seo.twitterTags||[]).find(t=>t.name==='twitter:card')?.content || 'summary';
+    const twTitle = (seo.twitterTags||[]).find(t=>t.name==='twitter:title')?.content || ogTitle;
+    const twDesc  = (seo.twitterTags||[]).find(t=>t.name==='twitter:description')?.content || ogDesc;
+    const twImg   = (seo.twitterTags||[]).find(t=>t.name==='twitter:image')?.content || ogImg;
+    const siteName= (seo.ogTags||[]).find(t=>t.property==='og:site_name')?.content || '';
+
+    const previewSection = `
+    <div class="card" style="margin-bottom:1.25rem">
+      <div class="card-head"><i class="bi bi-eye-fill"></i> Social Preview Cards</div>
+      <div class="og-previews">
+
+        <!-- Twitter/X Card -->
+        <div class="og-preview-wrap">
+          <div class="og-preview-label"><i class="bi bi-twitter-x"></i> Twitter / X</div>
+          <div class="og-card og-card-twitter ${twCard==='summary_large_image'?'og-card-large':''}">
+            ${twImg?`<div class="og-img-wrap"><img src="${this.e(twImg)}" alt="OG Image" onerror="this.parentElement.style.display='none'"></div>`:'<div class="og-img-placeholder"><i class="bi bi-image"></i></div>'}
+            <div class="og-card-body">
+              <div class="og-card-site">${this.e(siteName||'twitter.com')}</div>
+              <div class="og-card-title">${this.e(twTitle)}</div>
+              <div class="og-card-desc">${this.e(twDesc)}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Facebook / LinkedIn Card -->
+        <div class="og-preview-wrap">
+          <div class="og-preview-label"><i class="bi bi-facebook"></i> Facebook / LinkedIn</div>
+          <div class="og-card og-card-fb">
+            ${ogImg?`<div class="og-img-wrap"><img src="${this.e(ogImg)}" alt="OG Image" onerror="this.parentElement.style.display='none'"></div>`:'<div class="og-img-placeholder"><i class="bi bi-image"></i></div>'}
+            <div class="og-card-body">
+              <div class="og-card-site">${this.e(siteName||'').toUpperCase()}</div>
+              <div class="og-card-title">${this.e(ogTitle)}</div>
+              <div class="og-card-desc">${this.e(ogDesc)}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Google Search Snippet -->
+        <div class="og-preview-wrap">
+          <div class="og-preview-label"><i class="bi bi-google"></i> Google Search Snippet</div>
+          <div class="og-card og-card-google">
+            <div class="og-google-title">${this.e(seo.title||'No title')}</div>
+            <div class="og-google-url">${this.e(seo.canonical||'https://example.com')}</div>
+            <div class="og-google-desc">${this.e(seo.metaDesc||'No meta description found.')}</div>
+          </div>
+        </div>
+
+      </div>
+    </div>`;
+
+    return previewSection + `<div class="g2">
       <div class="card">
         <div class="card-head"><i class="bi bi-tags-fill"></i> Core Meta Tags</div>
         ${this.irow('Title',       this.miss(seo.title)+(seo.title?` <small style="color:var(--muted)">(${seo.title.length} chars)</small>`:''))}

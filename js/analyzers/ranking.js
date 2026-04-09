@@ -4,14 +4,12 @@ const RankingAnalyzer = {
     const result = {
       hostname,
       globalRank: null,
-      countryRank: null,
-      category: null,
-      trafficEst: null,
+      pageRank: null,
       source: null,
       error: null
     };
 
-    // Try Open PageRank for rank data
+    // Open PageRank API (CORS-friendly, no key required for basic use)
     try {
       const res = await fetch(
         `https://openpagerank.com/api/v1.0/getPageRank?domains[]=${hostname}`,
@@ -20,40 +18,20 @@ const RankingAnalyzer = {
       if (res.ok) {
         const data = await res.json();
         const entry = data?.response?.[0];
-        if (entry) {
+        if (entry && (entry.rank || entry.page_rank_integer != null)) {
           result.globalRank = entry.rank || null;
           result.pageRank   = entry.page_rank_integer ?? null;
           result.source     = 'Open PageRank';
         }
       }
-    } catch(_) {}
+    } catch (_) {
+      result.error = 'Open PageRank request failed';
+    }
 
-    // Try Similarweb-style via a free proxy (no key needed)
-    try {
-      const res = await fetch(
-        `https://api.codetabs.com/v1/proxy?quest=https://data.similarweb.com/api/v1/data?domain=${hostname}`,
-        { signal: AbortSignal.timeout(6000) }
-      );
-      if (res.ok) {
-        const data = await res.json();
-        if (data?.GlobalRank?.Rank) result.globalRank = data.GlobalRank.Rank;
-        if (data?.CountryRank?.CountryCode) result.countryRank = data.CountryRank.Rank;
-        if (data?.Category) result.category = data.Category;
-        if (data?.EstimatedMonthlyVisits) {
-          const visits = Object.values(data.EstimatedMonthlyVisits).pop();
-          result.trafficEst = visits ? this._formatNum(visits) : null;
-        }
-        result.source = 'SimilarWeb';
-      }
-    } catch(_) {}
+    if (!result.source) {
+      result.error = 'Ranking data not available — APIs may be blocked or domain not indexed';
+    }
 
     return result;
-  },
-
-  _formatNum(n) {
-    if (n >= 1e9) return (n/1e9).toFixed(1) + 'B';
-    if (n >= 1e6) return (n/1e6).toFixed(1) + 'M';
-    if (n >= 1e3) return (n/1e3).toFixed(1) + 'K';
-    return String(n);
   }
 };
