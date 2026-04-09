@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="MianScan - Full Website Analyzer. Get complete website intelligence reports.">
+    <meta name="description" content="MianScan — Full Website Analyzer. Get complete website intelligence in seconds.">
     <meta name="theme-color" content="#6366f1">
     <title>MianScan — Website Analyzer</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -13,104 +13,110 @@
 <body>
 
     <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg sticky-top">
-        <div class="container-fluid px-4">
+    <nav class="navbar sticky-top">
+        <div class="container">
             <a class="navbar-brand" href="#">
-                <i class="bi bi-radar me-2"></i>MianScan
+                <i class="bi bi-radar"></i> MianScan
             </a>
-            <div class="d-flex align-items-center gap-2">
-                <button class="btn btn-sm btn-icon" id="historyBtn" title="Scan History">
-                    <i class="bi bi-clock-history"></i>
-                </button>
-                <button class="btn btn-sm btn-icon" id="themeToggle" title="Toggle Theme">
-                    <i class="bi bi-moon-fill"></i>
-                </button>
-            </div>
+            <button class="btn-icon" id="themeToggle" title="Toggle Theme">
+                <i class="bi bi-moon-fill"></i>
+            </button>
         </div>
     </nav>
 
-    <!-- Hero / Scanner Input -->
-    <section class="scanner-hero">
-        <div class="container">
-            <div class="text-center mb-4">
-                <h1 class="hero-title">Website Intelligence Scanner</h1>
-                <p class="hero-sub">Enter any URL to get a complete website analysis report</p>
-            </div>
-            <div class="scanner-input-wrap">
-                <div class="input-group scanner-input-group">
-                    <span class="input-group-text"><i class="bi bi-globe2"></i></span>
-                    <input type="url" id="urlInput" class="form-control" placeholder="https://example.com" autocomplete="off">
-                    <button class="btn btn-scan" id="scanBtn">
-                        <i class="bi bi-radar me-2"></i>Analyze
-                    </button>
+    <!-- Hero -->
+    <section class="hero">
+        <div class="container text-center">
+            <div class="hero-badge">v1.1 — Simple & Powerful</div>
+            <h1 class="hero-title">Website Intelligence Scanner</h1>
+            <p class="hero-sub">Paste any URL. Get colors, fonts, SEO, tech stack, contacts & more — instantly.</p>
+
+            <div class="scanner-box">
+                <div class="scanner-input-group">
+                    <i class="bi bi-globe2"></i>
+                    <input type="url" id="urlInput" placeholder="https://example.com" autocomplete="off" spellcheck="false">
+                    <button id="scanBtn"><i class="bi bi-radar me-2"></i>Analyze</button>
                 </div>
-                <div class="scanner-examples mt-2">
-                    <span class="text-muted small me-2">Try:</span>
-                    <button class="example-btn" data-url="https://stripe.com">stripe.com</button>
-                    <button class="example-btn" data-url="https://vercel.com">vercel.com</button>
-                    <button class="example-btn" data-url="https://github.com">github.com</button>
+                <div class="examples">
+                    <span>Try:</span>
+                    <button class="ex-btn" data-url="https://stripe.com">stripe.com</button>
+                    <button class="ex-btn" data-url="https://vercel.com">vercel.com</button>
+                    <button class="ex-btn" data-url="https://github.com">github.com</button>
+                    <button class="ex-btn" data-url="https://tailwindcss.com">tailwindcss.com</button>
                 </div>
             </div>
 
-            <!-- Progress Bar -->
-            <div id="scanProgress" class="scan-progress d-none">
-                <div class="progress-wrap">
-                    <div class="progress-bar-custom" id="progressBar"></div>
-                </div>
-                <div id="progressLabel" class="progress-label">Initializing...</div>
+            <!-- Progress -->
+            <div id="scanProgress" class="progress-wrap d-none">
+                <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+                <div class="progress-label" id="progressLabel">Initializing...</div>
             </div>
         </div>
     </section>
 
-    <!-- Results Area -->
-    <section class="results-section d-none" id="resultsSection">
-        <div class="container-fluid px-4">
+    <!-- Results -->
+    <main id="results" class="d-none">
+        <div class="container">
 
-            <!-- Overview Cards -->
-            <div class="overview-cards mb-4" id="overviewCards"></div>
+            <!-- Overview Banner -->
+            <div class="overview-banner" id="overviewBanner"></div>
+
+            <!-- Summary Cards -->
+            <div class="summary-grid" id="summaryGrid"></div>
 
             <!-- Tabs -->
-            <ul class="nav nav-tabs result-tabs mb-4" id="resultTabs">
-                <li class="nav-item"><button class="nav-link active" data-tab="overview"><i class="bi bi-grid-3x3-gap me-1"></i>Overview</button></li>
-                <li class="nav-item"><button class="nav-link" data-tab="colors"><i class="bi bi-palette me-1"></i>Colors</button></li>
-                <li class="nav-item"><button class="nav-link" data-tab="fonts"><i class="bi bi-type me-1"></i>Fonts</button></li>
-                <li class="nav-item"><button class="nav-link" data-tab="structure"><i class="bi bi-diagram-3 me-1"></i>Structure</button></li>
-                <li class="nav-item"><button class="nav-link" data-tab="content"><i class="bi bi-file-text me-1"></i>Content</button></li>
-                <li class="nav-item"><button class="nav-link" data-tab="seo"><i class="bi bi-graph-up me-1"></i>SEO</button></li>
-                <li class="nav-item"><button class="nav-link" data-tab="media"><i class="bi bi-images me-1"></i>Media</button></li>
-                <li class="nav-item"><button class="nav-link" data-tab="contacts"><i class="bi bi-person-lines-fill me-1"></i>Contacts</button></li>
-                <li class="nav-item"><button class="nav-link" data-tab="tech"><i class="bi bi-cpu me-1"></i>Tech Stack</button></li>
-                <li class="nav-item"><button class="nav-link" data-tab="performance"><i class="bi bi-speedometer2 me-1"></i>Performance</button></li>
-            </ul>
+            <div class="tabs-wrap">
+                <div class="tabs" id="tabs">
+                    <button class="tab active" data-tab="overview"><i class="bi bi-grid-3x3-gap"></i><span>Overview</span></button>
+                    <button class="tab" data-tab="colors"><i class="bi bi-palette"></i><span>Colors</span></button>
+                    <button class="tab" data-tab="fonts"><i class="bi bi-type"></i><span>Fonts</span></button>
+                    <button class="tab" data-tab="structure"><i class="bi bi-diagram-3"></i><span>Structure</span></button>
+                    <button class="tab" data-tab="content"><i class="bi bi-file-text"></i><span>Content</span></button>
+                    <button class="tab" data-tab="cta"><i class="bi bi-cursor"></i><span>CTAs</span></button>
+                    <button class="tab" data-tab="seo"><i class="bi bi-graph-up"></i><span>SEO</span></button>
+                    <button class="tab" data-tab="media"><i class="bi bi-images"></i><span>Media</span></button>
+                    <button class="tab" data-tab="contacts"><i class="bi bi-person-lines-fill"></i><span>Contacts</span></button>
+                    <button class="tab" data-tab="tech"><i class="bi bi-cpu"></i><span>Tech Stack</span></button>
+                    <button class="tab" data-tab="performance"><i class="bi bi-speedometer2"></i><span>Performance</span></button>
+                </div>
+            </div>
 
             <!-- Tab Content -->
             <div id="tabContent"></div>
 
-            <!-- Export Bar -->
-            <div class="export-bar mt-4">
-                <span class="text-muted small me-3"><i class="bi bi-download me-1"></i>Export Report:</span>
-                <button class="btn btn-sm btn-export" id="exportJSON"><i class="bi bi-filetype-json me-1"></i>JSON</button>
-                <button class="btn btn-sm btn-export" id="exportPDF"><i class="bi bi-file-pdf me-1"></i>PDF</button>
-                <button class="btn btn-sm btn-export" id="copyReport"><i class="bi bi-clipboard me-1"></i>Copy</button>
+            <!-- Export -->
+            <div class="export-row">
+                <span class="export-label"><i class="bi bi-download"></i> Export:</span>
+                <button class="export-btn" id="exportJSON"><i class="bi bi-filetype-json"></i> JSON</button>
+                <button class="export-btn" id="exportPDF"><i class="bi bi-file-pdf"></i> PDF</button>
+                <button class="export-btn" id="copyReport"><i class="bi bi-clipboard"></i> Copy</button>
             </div>
-        </div>
-    </section>
 
-    <!-- History Panel (offcanvas) -->
-    <div class="offcanvas offcanvas-end" id="historyPanel" tabindex="-1">
-        <div class="offcanvas-header">
-            <h5 class="offcanvas-title"><i class="bi bi-clock-history me-2"></i>Scan History</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
         </div>
-        <div class="offcanvas-body" id="historyList"></div>
-    </div>
+    </main>
 
     <!-- Footer -->
-    <footer class="app-footer">
-        <div class="container text-center">
-            <span>MianScan v1.0 — Made with <i class="bi bi-heart-fill text-danger"></i> by <strong>Mian Hassan</strong></span>
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-inner">
+                <div class="footer-brand">
+                    <i class="bi bi-radar"></i> MianScan
+                    <span class="footer-version">v1.1</span>
+                </div>
+                <div class="footer-center">
+                    Built by <a href="https://multimian.com/" target="_blank" rel="noopener">MultiMian</a>
+                </div>
+                <div class="footer-right">
+                    <a href="https://multimian.com/" target="_blank" rel="noopener">
+                        <i class="bi bi-globe2"></i> multimian.com
+                    </a>
+                </div>
+            </div>
         </div>
     </footer>
+
+    <!-- Toast -->
+    <div class="toast-msg" id="toast"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -119,6 +125,7 @@
     <script src="js/analyzers/fonts.js"></script>
     <script src="js/analyzers/structure.js"></script>
     <script src="js/analyzers/content.js"></script>
+    <script src="js/analyzers/cta.js"></script>
     <script src="js/analyzers/seo.js"></script>
     <script src="js/analyzers/media.js"></script>
     <script src="js/analyzers/contacts.js"></script>
@@ -126,7 +133,6 @@
     <script src="js/analyzers/performance.js"></script>
     <script src="js/ui.js"></script>
     <script src="js/export.js"></script>
-    <script src="js/history.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>

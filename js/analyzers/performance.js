@@ -1,39 +1,36 @@
 const PerformanceAnalyzer = {
     analyze(doc, html) {
-        const htmlSize = new Blob([html]).size;
-        const scripts = doc.querySelectorAll('script');
-        const styles = doc.querySelectorAll('link[rel="stylesheet"], style');
-        const images = doc.querySelectorAll('img');
-        const iframes = doc.querySelectorAll('iframe');
-
-        // Inline scripts size
-        const inlineScriptSize = [...doc.querySelectorAll('script:not([src])')].reduce((acc, s) => acc + (s.textContent?.length || 0), 0);
+        const htmlSizeKB  = (new Blob([html]).size / 1024).toFixed(1);
+        const scripts     = doc.querySelectorAll('script');
+        const styles      = doc.querySelectorAll('link[rel="stylesheet"], style');
+        const images      = doc.querySelectorAll('img');
+        const iframes     = doc.querySelectorAll('iframe');
+        const inlineKB    = ([...doc.querySelectorAll('script:not([src])')].reduce((a,s) => a + (s.textContent?.length||0), 0) / 1024).toFixed(1);
 
         // Accessibility checks
-        const imgsNoAlt = [...images].filter(img => !img.getAttribute('alt')).length;
-        const h1Count = doc.querySelectorAll('h1').length;
-        const linksNoText = [...doc.querySelectorAll('a')].filter(a => !a.textContent.trim() && !a.getAttribute('aria-label')).length;
-        const inputsNoLabel = [...doc.querySelectorAll('input:not([type="hidden"])')].filter(input => {
-            const id = input.id;
-            return !id || !doc.querySelector(`label[for="${id}"]`);
+        const noAlt       = [...images].filter(i => !i.getAttribute('alt')).length;
+        const h1Count     = doc.querySelectorAll('h1').length;
+        const noLabelInputs = [...doc.querySelectorAll('input:not([type="hidden"])')].filter(inp => {
+            return !inp.id || !doc.querySelector(`label[for="${inp.id}"]`);
         }).length;
+        const emptyLinks  = [...doc.querySelectorAll('a')].filter(a => !a.textContent.trim() && !a.getAttribute('aria-label')).length;
 
-        const a11yWarnings = [];
-        if (imgsNoAlt > 0) a11yWarnings.push({ type: 'warn', msg: `Missing alt text on ${imgsNoAlt} image(s)` });
-        if (h1Count === 0) a11yWarnings.push({ type: 'warn', msg: 'No H1 tag found' });
-        if (h1Count > 1) a11yWarnings.push({ type: 'warn', msg: `Multiple H1 tags found (${h1Count})` });
-        if (linksNoText > 0) a11yWarnings.push({ type: 'warn', msg: `${linksNoText} link(s) with no text` });
-        if (inputsNoLabel > 0) a11yWarnings.push({ type: 'warn', msg: `${inputsNoLabel} input(s) missing labels` });
-        if (a11yWarnings.length === 0) a11yWarnings.push({ type: 'ok', msg: 'No major accessibility issues found' });
+        const a11y = [];
+        if (noAlt > 0)          a11y.push({ ok:false, msg:`Missing alt text on ${noAlt} image(s)` });
+        if (h1Count === 0)      a11y.push({ ok:false, msg:'No H1 tag found on page' });
+        if (h1Count > 1)        a11y.push({ ok:false, msg:`Multiple H1 tags (${h1Count}) — should be 1` });
+        if (noLabelInputs > 0)  a11y.push({ ok:false, msg:`${noLabelInputs} input(s) missing labels` });
+        if (emptyLinks > 0)     a11y.push({ ok:false, msg:`${emptyLinks} link(s) with no text` });
+        if (a11y.length === 0)  a11y.push({ ok:true,  msg:'No major accessibility issues found ✓' });
 
         return {
-            htmlSizeKB: (htmlSize / 1024).toFixed(1),
+            htmlSizeKB,
             scriptsCount: scripts.length,
-            stylesCount: styles.length,
-            imagesCount: images.length,
+            stylesCount:  styles.length,
+            imagesCount:  images.length,
             iframesCount: iframes.length,
-            inlineScriptSizeKB: (inlineScriptSize / 1024).toFixed(1),
-            a11yWarnings
+            inlineKB,
+            a11y
         };
     }
 };
