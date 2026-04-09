@@ -1,143 +1,97 @@
-/**
- * app.js - Main Application Module
- * Initializes and coordinates all modules
- */
-
-// Auto-resize textarea
-function autoResize(textarea) {
-    textarea.style.height = 'auto';
-    textarea.style.height = textarea.scrollHeight + 'px';
-}
-
-// Initialize application
 document.addEventListener('DOMContentLoaded', () => {
-    const textarea = document.getElementById('textArea');
-    const charLimitInput = document.getElementById('charLimit');
-    const keywordInput = document.getElementById('keywordInput');
+    const urlInput = document.getElementById('urlInput');
+    const scanBtn = document.getElementById('scanBtn');
+    const progressWrap = document.getElementById('scanProgress');
+    const progressBar = document.getElementById('progressBar');
+    const progressLabel = document.getElementById('progressLabel');
+    const resultsSection = document.getElementById('resultsSection');
 
-    // Load saved data
-    textarea.value = StorageManager.loadText();
-    charLimitInput.value = StorageManager.loadCharLimit();
+    // Theme
+    const savedTheme = localStorage.getItem('mianscan_theme');
+    if (savedTheme === 'light') document.body.classList.add('light-mode');
 
-    // Initialize modules
-    ThemeManager.init();
-    SpeechManager.init();
-
-    // Initial stats update
-    TextCounter.updateStats(textarea.value);
-    TextAnalyzer.updateAnalysis(textarea.value);
-    autoResize(textarea);
-
-    // Text area input event
-    textarea.addEventListener('input', () => {
-        const text = textarea.value;
-        TextCounter.updateStats(text);
-        TextAnalyzer.updateAnalysis(text);
-        StorageManager.saveText(text);
-        autoResize(textarea);
-    });
-
-    // Character limit change
-    charLimitInput.addEventListener('input', () => {
-        const limit = parseInt(charLimitInput.value, 10);
-        StorageManager.saveCharLimit(limit);
-        TextCounter.updateProgressBar(textarea.value.length);
-    });
-
-    // Keyword density
-    keywordInput.addEventListener('input', () => {
-        const keyword = keywordInput.value;
-        const result = TextAnalyzer.calculateKeywordDensity(textarea.value, keyword);
-        const resultDiv = document.getElementById('keywordDensity');
-
-        if (keyword.trim() === '') {
-            resultDiv.innerHTML = '<small class="text-muted">Enter a keyword to check density</small>';
-        } else {
-            resultDiv.innerHTML = `
-                <strong>"${keyword}"</strong> appears <strong>${result.count}</strong> times
-                <br>Density: <strong>${result.density}%</strong>
-            `;
-        }
-    });
-
-    // Formatting buttons
-    document.getElementById('upperBtn').addEventListener('click', () => {
-        TextFormatter.applyFormatting(TextFormatter.toUpperCase);
-    });
-
-    document.getElementById('lowerBtn').addEventListener('click', () => {
-        TextFormatter.applyFormatting(TextFormatter.toLowerCase);
-    });
-
-    document.getElementById('capitalizeBtn').addEventListener('click', () => {
-        TextFormatter.applyFormatting(TextFormatter.capitalizeWords);
-    });
-
-    document.getElementById('removeSpacesBtn').addEventListener('click', () => {
-        TextFormatter.applyFormatting(TextFormatter.removeExtraSpaces);
-    });
-
-    document.getElementById('removeBreaksBtn').addEventListener('click', () => {
-        TextFormatter.applyFormatting(TextFormatter.removeLineBreaks);
-    });
-
-    // File operations
-    document.getElementById('uploadBtn').addEventListener('click', () => {
-        FileManager.uploadFile();
-    });
-
-    document.getElementById('downloadBtn').addEventListener('click', () => {
-        FileManager.downloadFile();
-    });
-
-    document.getElementById('copyBtn').addEventListener('click', () => {
-        FileManager.copyToClipboard();
-    });
-
-    document.getElementById('resetBtn').addEventListener('click', () => {
-        FileManager.reset();
-    });
-
-    // Theme toggle
     document.getElementById('themeToggle').addEventListener('click', () => {
-        ThemeManager.toggle();
+        document.body.classList.toggle('light-mode');
+        const isLight = document.body.classList.contains('light-mode');
+        localStorage.setItem('mianscan_theme', isLight ? 'light' : 'dark');
+        document.querySelector('#themeToggle i').className = isLight ? 'bi bi-sun-fill' : 'bi bi-moon-fill';
     });
 
-    // Speech recognition
-    document.getElementById('speechBtn').addEventListener('click', () => {
-        SpeechManager.toggle();
+    // Example buttons
+    document.querySelectorAll('.example-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            urlInput.value = btn.dataset.url;
+            startScan();
+        });
     });
 
-    document.getElementById('languageSelect').addEventListener('change', (e) => {
-        SpeechManager.changeLanguage(e.target.value);
+    // Scan button
+    scanBtn.addEventListener('click', startScan);
+    urlInput.addEventListener('keydown', e => { if (e.key === 'Enter') startScan(); });
+
+    // History
+    document.getElementById('historyBtn').addEventListener('click', () => {
+        History.render();
+        new bootstrap.Offcanvas(document.getElementById('historyPanel')).show();
     });
 
-    // Keyboard shortcuts
-    textarea.addEventListener('keydown', (e) => {
-        // Ctrl+U - UPPERCASE
-        if (e.ctrlKey && e.key === 'u') {
-            e.preventDefault();
-            TextFormatter.applyFormatting(TextFormatter.toUpperCase);
-        }
-        // Ctrl+L - lowercase
-        else if (e.ctrlKey && e.key === 'l') {
-            e.preventDefault();
-            TextFormatter.applyFormatting(TextFormatter.toLowerCase);
-        }
-        // Ctrl+Shift+C - Capitalize
-        else if (e.ctrlKey && e.shiftKey && e.key === 'C') {
-            e.preventDefault();
-            TextFormatter.applyFormatting(TextFormatter.capitalizeWords);
-        }
-        // Ctrl+Shift+S - Remove Spaces
-        else if (e.ctrlKey && e.shiftKey && e.key === 'S') {
-            e.preventDefault();
-            TextFormatter.applyFormatting(TextFormatter.removeExtraSpaces);
-        }
+    // Tabs
+    document.getElementById('resultTabs').addEventListener('click', e => {
+        const btn = e.target.closest('[data-tab]');
+        if (!btn || !Scanner.currentData) return;
+        document.querySelectorAll('.result-tabs .nav-link').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        UI.renderTab(btn.dataset.tab, Scanner.currentData);
     });
 
-    // Auto-save every 5 seconds
-    setInterval(() => {
-        StorageManager.saveText(textarea.value);
-    }, 5000);
+    // Export
+    document.getElementById('exportJSON').addEventListener('click', () => Scanner.currentData && Exporter.toJSON(Scanner.currentData));
+    document.getElementById('exportPDF').addEventListener('click', () => Scanner.currentData && Exporter.toPDF(Scanner.currentData));
+    document.getElementById('copyReport').addEventListener('click', () => Scanner.currentData && Exporter.copyReport(Scanner.currentData));
+
+    async function startScan() {
+        let url = urlInput.value.trim();
+        if (!url) { UI.toast('Please enter a URL'); return; }
+        if (!url.startsWith('http')) url = 'https://' + url;
+
+        try {
+            new URL(url);
+        } catch {
+            UI.toast('Invalid URL'); return;
+        }
+
+        urlInput.value = url;
+        scanBtn.disabled = true;
+        scanBtn.innerHTML = '<i class="bi bi-radar me-2 spinning"></i>Scanning...';
+        progressWrap.classList.remove('d-none');
+        resultsSection.classList.add('d-none');
+
+        try {
+            const data = await Scanner.scan(url, (label, pct) => {
+                progressBar.style.width = pct + '%';
+                progressLabel.textContent = label;
+            });
+
+            History.save(url);
+
+            // Show results
+            resultsSection.classList.remove('d-none');
+            UI.renderOverview(data);
+
+            // Reset to overview tab
+            document.querySelectorAll('.result-tabs .nav-link').forEach(b => b.classList.remove('active'));
+            document.querySelector('[data-tab="overview"]').classList.add('active');
+            UI.renderTab('overview', data);
+
+            resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+        } catch (err) {
+            UI.toast('Scan failed: ' + err.message);
+            console.error(err);
+        } finally {
+            scanBtn.disabled = false;
+            scanBtn.innerHTML = '<i class="bi bi-radar me-2"></i>Analyze';
+            setTimeout(() => progressWrap.classList.add('d-none'), 1000);
+        }
+    }
 });
