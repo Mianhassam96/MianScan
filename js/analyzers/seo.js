@@ -12,6 +12,25 @@ const SEOAnalyzer = {
     const viewport  = g('meta[name="viewport"]','content');
     const h1s = [...doc.querySelectorAll('h1')].map(h=>h.textContent.trim());
     const h2s = [...doc.querySelectorAll('h2')].map(h=>h.textContent.trim()).slice(0,6);
+    const h3s = [...doc.querySelectorAll('h3')].map(h=>h.textContent.trim()).slice(0,6);
+
+    // All meta tags
+    const allMeta = [...doc.querySelectorAll('meta')].map(m => ({
+      name:     m.getAttribute('name') || m.getAttribute('property') || m.getAttribute('http-equiv') || '',
+      content:  m.getAttribute('content') || '',
+    })).filter(m => m.name && m.content).slice(0, 30);
+
+    // All OG tags
+    const ogTags = [...doc.querySelectorAll('meta[property^="og:"]')].map(m => ({
+      property: m.getAttribute('property'),
+      content:  m.getAttribute('content')
+    }));
+
+    // Twitter tags
+    const twitterTags = [...doc.querySelectorAll('meta[name^="twitter:"]')].map(m => ({
+      name:    m.getAttribute('name'),
+      content: m.getAttribute('content')
+    }));
     const imgs = doc.querySelectorAll('img');
     const withAlt = [...imgs].filter(i=>i.getAttribute('alt')).length;
     const noAlt = imgs.length - withAlt;
@@ -59,6 +78,6 @@ const SEOAnalyzer = {
     if (!viewport)                                 warnings.push({type:'error', msg:'Missing viewport meta (not mobile-friendly)'});
     else                                           warnings.push({type:'ok',    msg:'Viewport meta present'});
 
-    return { score: Math.min(score,100), title, metaDesc, metaKw, canonical, ogTitle, ogImage, twCard, viewport, h1s, h2s, imagesTotal: imgs.length, withAlt, noAlt, warnings };
+    return { score: Math.min(score,100), title, metaDesc, metaKw, canonical, ogTitle, ogImage, twCard, viewport, h1s, h2s, h3s, imagesTotal: imgs.length, withAlt, noAlt, warnings, allMeta, ogTags, twitterTags };
   }
 };

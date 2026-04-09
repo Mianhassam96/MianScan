@@ -74,11 +74,13 @@ const Scanner = {
     const tech = TechAnalyzer.analyze(doc, html);
     p('Performance check…', 96);
     const performance = PerformanceAnalyzer.analyze(doc, html);
+    p('Fetching domain info…', 98);
+    const domain = await DomainAnalyzer.analyze(url);
     p('Done!', 100);
     this.currentData = {
       url, scannedAt: new Date().toISOString(),
       overview: this._overview(doc, url, structure, content),
-      colors, fonts, structure, content, cta, seo, media, links, images, contacts, tech, performance
+      colors, fonts, structure, content, cta, seo, media, links, images, contacts, tech, performance, domain
     };
     return this.currentData;
   }

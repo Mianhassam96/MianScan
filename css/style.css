@@ -368,3 +368,53 @@ pre{color:var(--muted);font-size:.8rem;overflow-x:auto;line-height:1.8;backgroun
   .compare-inputs{flex-direction:column}
   .kw-header,.kw-row{grid-template-columns:1fr 50px 90px}
 }
+
+/* ===== AUTHORITY CARDS ===== */
+.authority-grid {
+  display: grid; grid-template-columns: repeat(2,1fr); gap: .875rem; margin-bottom: 1rem;
+}
+.auth-card {
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: var(--radius-s); padding: 1.1rem; text-align: center;
+  transition: border-color .2s;
+}
+.auth-card:hover { border-color: var(--border-h) }
+.auth-val { font-size: 2rem; font-weight: 900; line-height: 1; margin-bottom: .3rem }
+.auth-lbl { font-size: .78rem; font-weight: 700; color: var(--text); text-transform: uppercase; letter-spacing: .05em }
+.auth-note { font-size: .68rem; color: var(--muted); margin-top: .2rem }
+.auth-note-box {
+  background: rgba(100,112,255,.07); border: 1px solid rgba(100,112,255,.18);
+  border-radius: var(--radius-s); padding: .75rem 1rem;
+  font-size: .8rem; color: var(--muted);
+  display: flex; align-items: flex-start; gap: .5rem;
+}
+.auth-note-box i { color: var(--primary2); flex-shrink: 0; margin-top: .1rem }
+
+/* ===== META TABLE ===== */
+.meta-table {
+  width: 100%; border-collapse: collapse; font-size: .82rem;
+}
+.meta-table th {
+  text-align: left; padding: .5rem .75rem;
+  color: var(--muted); font-size: .72rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .05em;
+  border-bottom: 1px solid var(--border);
+}
+.meta-table td {
+  padding: .5rem .75rem; border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+.meta-table tr:last-child td { border-bottom: none }
+.meta-table tr:hover td { background: var(--bg3) }
+.meta-table code {
+  background: var(--bg3); border-radius: 4px;
+  padding: .1rem .4rem; font-size: .75rem; color: var(--primary2);
+}
+
+/* ===== SOCIAL PLATFORM LABEL ===== */
+.social-platform {
+  background: var(--bg4); border: 1px solid var(--border);
+  border-radius: 6px; padding: .1rem .5rem;
+  font-size: .72rem; font-weight: 700; color: var(--muted);
+  white-space: nowrap; flex-shrink: 0;
+}

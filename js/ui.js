@@ -52,6 +52,7 @@ const UI = {
   renderTab(tab, data) {
     const map = {
       overview:    () => this.tOverview(data),
+      domain:      () => this.tDomain(data.domain, data.seo, data.overview),
       seo:         () => this.tSEO(data.seo),
       keywords:    () => this.tKeywords(data.content),
       links:       () => this.tLinks(data.links),
@@ -118,6 +119,58 @@ const UI = {
     </div>`;
   },
 
+  /* ── Domain ── */
+  tDomain(d, seo, overview) {
+    const score = seo.score;
+    // Estimate PA from on-page SEO score (0-100 → 0-100 scale)
+    const paEst = Math.min(100, Math.round(score * 0.85 + (seo.h1s.length===1?5:0) + (seo.canonical?5:0)));
+    // DA from Open PageRank (0-10 scale) or estimate
+    const daDisplay = d.da !== null ? `${d.da}/10 <small style="color:var(--muted)">(Open PageRank)</small>` : `~${Math.round(score/15)}/10 <small style="color:var(--muted)">(estimated)</small>`;
+    const paDisplay = `${paEst}/100 <small style="color:var(--muted)">(estimated from on-page signals)</small>`;
+    const rankDisplay = d.rank ? `#${Number(d.rank).toLocaleString()}` : '<em style="color:var(--muted)">Not available</em>';
+
+    return `
+    <div class="g2">
+      <div class="card">
+        <div class="card-head"><i class="bi bi-globe-americas"></i> Domain Info</div>
+        ${this.irow('Domain',    `<strong>${this.e(d.hostname)}</strong>`)}
+        ${this.irow('Site Type', overview.type)}
+        ${this.irow('Language',  overview.lang)}
+        ${this.irow('Created',   d.age ? d.age : '<em style="color:var(--muted)">Unknown</em>')}
+        ${this.irow('Registrar', d.registrar || '<em style="color:var(--muted)">Unknown</em>')}
+      </div>
+      <div class="card">
+        <div class="card-head"><i class="bi bi-bar-chart-fill"></i> Authority Metrics</div>
+        <div class="authority-grid">
+          <div class="auth-card">
+            <div class="auth-val" style="color:var(--primary2)">${d.da !== null ? d.da : '~'+Math.round(score/15)}</div>
+            <div class="auth-lbl">Domain Authority</div>
+            <div class="auth-note">${d.da !== null ? 'Open PageRank (0–10)' : 'Estimated'}</div>
+          </div>
+          <div class="auth-card">
+            <div class="auth-val" style="color:var(--accent)">${paEst}</div>
+            <div class="auth-lbl">Page Authority</div>
+            <div class="auth-note">Estimated (0–100)</div>
+          </div>
+          <div class="auth-card">
+            <div class="auth-val" style="color:var(--green)">${score}</div>
+            <div class="auth-lbl">SEO Score</div>
+            <div class="auth-note">On-page analysis</div>
+          </div>
+          <div class="auth-card">
+            <div class="auth-val" style="color:var(--yellow);font-size:1rem">${d.rank ? '#'+Number(d.rank).toLocaleString() : 'N/A'}</div>
+            <div class="auth-lbl">Global Rank</div>
+            <div class="auth-note">Open PageRank</div>
+          </div>
+        </div>
+        <div class="auth-note-box">
+          <i class="bi bi-info-circle"></i>
+          DA/PA are estimated metrics. For exact Moz DA/PA, use <a href="https://moz.com/link-explorer" target="_blank" style="color:var(--primary2)">Moz Link Explorer</a>.
+        </div>
+      </div>
+    </div>`;
+  },
+
   /* ── SEO ── */
   tSEO(seo) {
     const cls = seo.score>=70?'sg':seo.score>=50?'so':'sb';
@@ -133,28 +186,58 @@ const UI = {
         </div>
       </div>
       <div class="card">
-        <div class="card-head"><i class="bi bi-list-check"></i> Meta Tags</div>
-        ${this.irow('Title',       this.miss(seo.title))}
-        ${this.irow('Description', this.miss(seo.metaDesc))}
-        ${this.irow('Keywords',    this.none(seo.metaKw))}
-        ${this.irow('Canonical',   this.none(seo.canonical))}
-        ${this.irow('OG Title',    this.none(seo.ogTitle))}
-        ${this.irow('OG Image',    seo.ogImage?`<a href="${this.e(seo.ogImage)}" target="_blank" style="color:var(--primary2)">View ↗</a>`:this.none(''))}
-        ${this.irow('Twitter Card',this.none(seo.twCard))}
-        ${this.irow('Viewport',    this.miss(seo.viewport))}
+        <div class="card-head"><i class="bi bi-exclamation-triangle-fill"></i> SEO Checks</div>
+        ${(seo.warnings||[]).map(w=>this.warnRow(w)).join('')}
       </div>
     </div>
     <div class="g2">
       <div class="card">
-        <div class="card-head"><i class="bi bi-exclamation-triangle-fill"></i> SEO Checks &amp; Warnings</div>
-        ${(seo.warnings||[]).map(w=>this.warnRow(w)).join('')}
+        <div class="card-head"><i class="bi bi-tags-fill"></i> Core Meta Tags</div>
+        ${this.irow('Title',       this.miss(seo.title) + (seo.title ? ` <small style="color:var(--muted)">(${seo.title.length} chars)</small>` : ''))}
+        ${this.irow('Description', this.miss(seo.metaDesc) + (seo.metaDesc ? ` <small style="color:var(--muted)">(${seo.metaDesc.length} chars)</small>` : ''))}
+        ${this.irow('Keywords',    this.none(seo.metaKw))}
+        ${this.irow('Canonical',   this.none(seo.canonical))}
+        ${this.irow('Viewport',    this.miss(seo.viewport))}
+        ${this.irow('Robots',      this.none(seo.allMeta?.find(m=>m.name==='robots')?.content))}
+        ${this.irow('Author',      this.none(seo.allMeta?.find(m=>m.name==='author')?.content))}
       </div>
       <div class="card">
         <div class="card-head"><i class="bi bi-type-h1"></i> Heading Tags</div>
         ${seo.h1s.length
           ? seo.h1s.map(h=>`<div class="cta-row"><span class="cta-badge">H1</span><span style="flex:1">${this.e(h)}</span>${this.copyBtn(h)}</div>`).join('')
           : '<div class="a11y-row a11y-warn"><i class="bi bi-exclamation-triangle-fill"></i> No H1 tag found</div>'}
-        ${seo.h2s.map(h=>`<div class="cta-row"><span class="cta-badge sec">H2</span><span style="flex:1">${this.e(h)}</span>${this.copyBtn(h)}</div>`).join('')}
+        ${(seo.h2s||[]).map(h=>`<div class="cta-row"><span class="cta-badge sec">H2</span><span style="flex:1">${this.e(h)}</span>${this.copyBtn(h)}</div>`).join('')}
+        ${(seo.h3s||[]).map(h=>`<div class="cta-row"><span class="cta-badge" style="background:var(--bg4);color:var(--muted)">H3</span><span style="flex:1">${this.e(h)}</span>${this.copyBtn(h)}</div>`).join('')}
+      </div>
+    </div>
+    <div class="g2">
+      <div class="card">
+        <div class="card-head"><i class="bi bi-share-fill"></i> Open Graph Tags</div>
+        ${(seo.ogTags||[]).length
+          ? (seo.ogTags||[]).map(t=>`${this.irow(this.e(t.property), this.e(t.content))}`).join('')
+          : this.empty('No OG tags found')}
+      </div>
+      <div class="card">
+        <div class="card-head"><i class="bi bi-twitter-x"></i> Twitter / X Tags</div>
+        ${(seo.twitterTags||[]).length
+          ? (seo.twitterTags||[]).map(t=>`${this.irow(this.e(t.name), this.e(t.content))}`).join('')
+          : this.empty('No Twitter tags found')}
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><i class="bi bi-code-square"></i> All Meta Tags <span class="badge-cnt">${(seo.allMeta||[]).length}</span></div>
+      <div style="overflow-x:auto">
+        <table class="meta-table">
+          <thead><tr><th>Name / Property</th><th>Content</th><th></th></tr></thead>
+          <tbody>
+            ${(seo.allMeta||[]).map(m=>`
+              <tr>
+                <td><code>${this.e(m.name)}</code></td>
+                <td style="word-break:break-word;max-width:400px">${this.e(m.content)}</td>
+                <td>${this.copyBtn(m.content)}</td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
       </div>
     </div>`;
   },
@@ -283,27 +366,51 @@ const UI = {
 
   /* ── Contacts ── */
   tContacts(c) {
-    const si = {Twitter:'twitter-x',Facebook:'facebook',LinkedIn:'linkedin',Instagram:'instagram',YouTube:'youtube',GitHub:'github',WhatsApp:'whatsapp'};
-    return `<div class="g2">
+    const si = {Twitter:'twitter-x',Facebook:'facebook',LinkedIn:'linkedin',Instagram:'instagram',YouTube:'youtube',GitHub:'github',TikTok:'tiktok',Pinterest:'pinterest',Telegram:'telegram'};
+    return `
+    <div class="g2">
       <div class="card">
-        <div class="card-head"><i class="bi bi-envelope-fill"></i> Emails</div>
+        <div class="card-head"><i class="bi bi-envelope-fill"></i> Email Addresses <span class="badge-cnt">${c.emails.length}</span></div>
         ${c.emails.length
           ? c.emails.map(e=>`<div class="litem"><i class="bi bi-envelope-fill"></i><a href="mailto:${e}" style="flex:1">${e}</a>${this.copyBtn(e)}</div>`).join('')
           : this.empty('No emails found')}
-        ${c.emails.length>1?`<button class="exp-btn" style="margin-top:.75rem" onclick="UI.copy('${c.emails.join('\\n')}')"><i class="bi bi-clipboard"></i> Copy All</button>`:''}
+        ${c.emails.length>1?`<button class="exp-btn" style="margin-top:.75rem" onclick="UI.copy('${c.emails.join('\\n')}')"><i class="bi bi-clipboard"></i> Copy All Emails</button>`:''}
       </div>
       <div class="card">
-        <div class="card-head"><i class="bi bi-telephone-fill"></i> Phone Numbers</div>
+        <div class="card-head"><i class="bi bi-telephone-fill"></i> Phone Numbers <span class="badge-cnt">${c.phones.length}</span></div>
         ${c.phones.length
           ? c.phones.map(p=>`<div class="litem"><i class="bi bi-telephone-fill"></i><a href="tel:${p}" style="flex:1">${p}</a>${this.copyBtn(p)}</div>`).join('')
           : this.empty('No phone numbers found')}
       </div>
-      <div class="card" style="grid-column:1/-1">
-        <div class="card-head"><i class="bi bi-share-fill"></i> Social Media</div>
-        ${Object.entries(c.social).length
-          ? Object.entries(c.social).map(([k,url])=>`<div class="litem"><i class="bi bi-${si[k]||'link-45deg'}"></i><a href="${this.e(url)}" target="_blank" style="flex:1">${this.e(url)}</a>${this.copyBtn(url)}</div>`).join('')
-          : this.empty('No social links found')}
-      </div>
+      ${c.whatsapp && c.whatsapp.length ? `
+      <div class="card">
+        <div class="card-head"><i class="bi bi-whatsapp"></i> WhatsApp Links <span class="badge-cnt">${c.whatsapp.length}</span></div>
+        ${c.whatsapp.map(w=>`<div class="litem"><i class="bi bi-whatsapp"></i><a href="${this.e(w)}" target="_blank" style="flex:1">${this.e(w)}</a>${this.copyBtn(w)}</div>`).join('')}
+      </div>` : ''}
+      ${c.addresses && c.addresses.length ? `
+      <div class="card">
+        <div class="card-head"><i class="bi bi-geo-alt-fill"></i> Addresses</div>
+        ${c.addresses.map(a=>`<div class="litem"><i class="bi bi-geo-alt-fill"></i><span style="flex:1">${this.e(a)}</span>${this.copyBtn(a)}</div>`).join('')}
+      </div>` : ''}
+      ${c.contactPage ? `
+      <div class="card">
+        <div class="card-head"><i class="bi bi-link-45deg"></i> Contact Page</div>
+        <div class="litem"><i class="bi bi-link-45deg"></i><a href="${this.e(c.contactPage)}" target="_blank" style="flex:1">${this.e(c.contactPage)}</a>${this.copyBtn(c.contactPage)}</div>
+      </div>` : ''}
+    </div>
+    <div class="card">
+      <div class="card-head"><i class="bi bi-share-fill"></i> Social Media Profiles</div>
+      ${Object.entries(c.social).length
+        ? Object.entries(c.social).map(([k,urls])=>
+            (Array.isArray(urls)?urls:[urls]).map(url=>`
+              <div class="litem">
+                <i class="bi bi-${si[k]||'link-45deg'}"></i>
+                <span class="social-platform">${k}</span>
+                <a href="${this.e(url)}" target="_blank" style="flex:1;word-break:break-all">${this.e(url)}</a>
+                ${this.copyBtn(url)}
+              </div>`).join('')
+          ).join('')
+        : this.empty('No social links found')}
     </div>`;
   },
 
