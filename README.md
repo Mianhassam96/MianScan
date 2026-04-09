@@ -148,6 +148,4 @@ MIT License - Free for personal and commercial use
 
 **MultiMian** © 2026
 
----
 
-**Open `index.html` and start creating!** 🚀
