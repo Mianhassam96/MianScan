@@ -418,3 +418,30 @@ pre{color:var(--muted);font-size:.8rem;overflow-x:auto;line-height:1.8;backgroun
   font-size: .72rem; font-weight: 700; color: var(--muted);
   white-space: nowrap; flex-shrink: 0;
 }
+
+/* ===== ACTIVE COMPARE BUTTON ===== */
+.icon-btn.active-btn {
+  color: var(--primary2);
+  border-color: var(--primary2);
+  background: rgba(100,112,255,.12);
+}
+
+/* ===== COMPARE SECTION inside scanner-app ===== */
+#compareSection {
+  padding: 2.5rem 0;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+}
+
+/* ===== COMPARE COLUMN HEADERS ===== */
+.cmp-col-headers {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 1.25rem; margin-bottom: .5rem;
+}
+.cmp-col-hdr {
+  text-align: center; font-size: .82rem; font-weight: 700;
+  color: var(--primary2); padding: .4rem;
+  background: rgba(100,112,255,.08);
+  border: 1px solid rgba(100,112,255,.2);
+  border-radius: var(--radius-s);
+}

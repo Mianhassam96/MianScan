@@ -9,39 +9,45 @@ const Compare = {
     prog.classList.remove('hidden');
     bar.style.width = '0%';
 
-    const update = (msg, pct) => { bar.style.width = pct+'%'; label.textContent = msg; };
+    const update = (msg, pct) => { bar.style.width = pct + '%'; label.textContent = msg; };
 
-    update('Scanning Site A…', 10);
-    this.dataA = await Scanner.scan(urlA, (m,p) => update('Site A: '+m, p*0.48));
+    // Save existing scan so we don't overwrite it
+    const savedData = Scanner.currentData;
+
+    update('Scanning Site A…', 5);
+    this.dataA = await Scanner.scan(urlA, (m, p) => update('Site A — ' + m, p * 0.46));
 
     update('Scanning Site B…', 50);
-    this.dataB = await Scanner.scan(urlB, (m,p) => update('Site B: '+m, 50+p*0.48));
+    this.dataB = await Scanner.scan(urlB, (m, p) => update('Site B — ' + m, 50 + p * 0.46));
 
-    update('Building comparison…', 100);
+    update('Building report…', 100);
     setTimeout(() => prog.classList.add('hidden'), 800);
+
+    // Restore previous single scan data
+    Scanner.currentData = savedData;
 
     this.render(this.dataA, this.dataB);
   },
 
   render(a, b) {
     const out = document.getElementById('compareOutput');
+    const hostA = new URL(a.url).hostname;
+    const hostB = new URL(b.url).hostname;
     out.innerHTML = `
       <div class="compare-title-row">
-        <div class="compare-site-label">
-          <i class="bi bi-globe2"></i>
-          <a href="${a.url}" target="_blank">${new URL(a.url).hostname}</a>
-        </div>
+        <div class="compare-site-label"><i class="bi bi-globe2"></i><a href="${a.url}" target="_blank">${hostA}</a></div>
         <div class="compare-vs-badge">VS</div>
-        <div class="compare-site-label">
-          <i class="bi bi-globe2"></i>
-          <a href="${b.url}" target="_blank">${new URL(b.url).hostname}</a>
-        </div>
+        <div class="compare-site-label"><i class="bi bi-globe2"></i><a href="${b.url}" target="_blank">${hostB}</a></div>
       </div>
-
+      <div class="cmp-col-headers">
+        <div class="cmp-col-hdr">${hostA}</div>
+        <div class="cmp-col-hdr">${hostB}</div>
+      </div>
       ${this.section('📊 SEO Score',      this.seoBlock(a,b))}
       ${this.section('🏆 DA / Authority', this.daBlock(a,b))}
       ${this.section('🌍 Ranking',        this.rankBlock(a,b))}
       ${this.section('🔑 Top Keywords',   this.keywordsBlock(a,b))}
+      ${this.section('📝 Headings',       this.headingsBlock(a,b))}
       ${this.section('🎯 Primary CTAs',   this.ctaBlock(a,b))}
       ${this.section('🛠️ Tech Stack',     this.techBlock(a,b))}
       ${this.section('🎨 Colors',         this.colorsBlock(a,b))}
@@ -87,6 +93,17 @@ const Compare = {
       </div>`;
     };
     return this.col(rank(a)) + this.col(rank(b));
+  },
+
+  headingsBlock(a, b) {
+    const h = d => `
+      <div style="display:flex;gap:1rem;justify-content:center;margin-bottom:.75rem">
+        <div class="auth-card" style="flex:1"><div class="auth-val" style="color:${d.seo.h1s.length===1?'var(--green)':d.seo.h1s.length===0?'var(--red)':'var(--yellow)'}">${d.seo.h1s.length}</div><div class="auth-lbl">H1</div></div>
+        <div class="auth-card" style="flex:1"><div class="auth-val" style="color:var(--primary2)">${(d.seo.h2s||[]).length}</div><div class="auth-lbl">H2</div></div>
+        <div class="auth-card" style="flex:1"><div class="auth-val" style="color:var(--accent)">${(d.seo.h3s||[]).length}</div><div class="auth-lbl">H3</div></div>
+      </div>
+      ${d.seo.h1s.length ? d.seo.h1s.slice(0,2).map(h=>`<div class="litem" style="font-size:.8rem"><i class="bi bi-type-h1" style="color:var(--primary2)"></i>${h}</div>`).join('') : '<div class="a11y-row a11y-warn" style="font-size:.8rem"><i class="bi bi-exclamation-triangle-fill"></i>No H1</div>'}`;
+    return this.col(h(a)) + this.col(h(b));
   },
 
   seoBlock(a, b) {

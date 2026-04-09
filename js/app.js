@@ -1,57 +1,68 @@
 document.addEventListener('DOMContentLoaded', () => {
-  const urlInput    = document.getElementById('urlInput');
-  const scanBtn     = document.getElementById('scanBtn');
-  const progBox     = document.getElementById('progressBox');
-  const progBar     = document.getElementById('progBar');
-  const progLbl     = document.getElementById('progLabel');
-  const results     = document.getElementById('results');
-  const heroSection = document.getElementById('heroSection');
-  const cmpSection  = document.getElementById('compareSection');
-  const cmpResults  = document.getElementById('compareResults');
-  const html        = document.documentElement;
+  const urlInput   = document.getElementById('urlInput');
+  const scanBtn    = document.getElementById('scanBtn');
+  const progBox    = document.getElementById('progressBox');
+  const progBar    = document.getElementById('progBar');
+  const progLbl    = document.getElementById('progLabel');
+  const results    = document.getElementById('results');
+  const cmpSection = document.getElementById('compareSection');
+  const cmpResults = document.getElementById('compareResults');
+  const htmlEl     = document.documentElement;
 
   /* ── Theme ── */
   const saved = localStorage.getItem('ms_theme') || 'dark';
-  html.setAttribute('data-theme', saved);
-  document.querySelector('#themeBtn i').className = saved==='light'?'bi bi-sun-fill':'bi bi-moon-stars-fill';
+  htmlEl.setAttribute('data-theme', saved);
+  document.querySelector('#themeBtn i').className = saved === 'light' ? 'bi bi-sun-fill' : 'bi bi-moon-stars-fill';
 
   document.getElementById('themeBtn').addEventListener('click', () => {
-    const next = html.getAttribute('data-theme')==='dark'?'light':'dark';
-    html.setAttribute('data-theme', next);
+    const next = htmlEl.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    htmlEl.setAttribute('data-theme', next);
     localStorage.setItem('ms_theme', next);
-    document.querySelector('#themeBtn i').className = next==='light'?'bi bi-sun-fill':'bi bi-moon-stars-fill';
+    document.querySelector('#themeBtn i').className = next === 'light' ? 'bi bi-sun-fill' : 'bi bi-moon-stars-fill';
   });
 
   /* ── Compare toggle ── */
   let compareMode = false;
-  document.getElementById('compareToggle').addEventListener('click', () => {
+  const compareToggle = document.getElementById('compareToggle');
+
+  compareToggle.addEventListener('click', () => {
     compareMode = !compareMode;
-    heroSection.classList.toggle('hidden', compareMode);
+    // Show/hide compare section inside scanner-app
     cmpSection.classList.toggle('hidden', !compareMode);
-    results.classList.add('hidden');
-    cmpResults.classList.add('hidden');
-    document.getElementById('compareToggle').style.color = compareMode ? 'var(--primary2)' : '';
+    // If switching to compare, hide single results
+    if (compareMode) {
+      results.classList.add('hidden');
+      cmpResults.classList.add('hidden');
+      // Scroll to scanner app
+      document.getElementById('scanner-app').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    compareToggle.classList.toggle('active-btn', compareMode);
+    compareToggle.title = compareMode ? 'Back to Single Scan' : 'Compare Mode';
   });
 
   /* ── Compare scan ── */
   document.getElementById('compareBtn').addEventListener('click', async () => {
     let urlA = document.getElementById('urlA').value.trim();
     let urlB = document.getElementById('urlB').value.trim();
-    if (!urlA || !urlB) { UI.toast('Enter both URLs'); return; }
+    if (!urlA || !urlB) { UI.toast('Enter both URLs to compare'); return; }
     if (!urlA.startsWith('http')) urlA = 'https://' + urlA;
     if (!urlB.startsWith('http')) urlB = 'https://' + urlB;
-    document.getElementById('compareBtn').disabled = true;
-    document.getElementById('compareBtn').innerHTML = '<i class="bi bi-radar spin"></i><span>Comparing…</span>';
+
+    const btn = document.getElementById('compareBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="bi bi-radar spin"></i><span>Comparing…</span>';
     cmpResults.classList.add('hidden');
+
     try {
       await Compare.run(urlA, urlB);
       cmpResults.classList.remove('hidden');
-      cmpResults.scrollIntoView({ behavior:'smooth', block:'start' });
-    } catch(e) {
+      cmpResults.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } catch (e) {
       UI.toast('Compare failed: ' + e.message);
+      console.error(e);
     } finally {
-      document.getElementById('compareBtn').disabled = false;
-      document.getElementById('compareBtn').innerHTML = '<i class="bi bi-arrow-left-right"></i><span>Compare Sites</span>';
+      btn.disabled = false;
+      btn.innerHTML = '<i class="bi bi-arrow-left-right"></i><span>Compare Sites</span>';
     }
   });
 
@@ -62,7 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   /* ── Single scan ── */
   scanBtn.addEventListener('click', run);
-  urlInput.addEventListener('keydown', e => { if (e.key==='Enter') run(); });
+  urlInput.addEventListener('keydown', e => { if (e.key === 'Enter') run(); });
 
   /* ── Tabs ── */
   document.getElementById('tabs').addEventListener('click', e => {
@@ -79,12 +90,20 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btnCSS').addEventListener('click',  () => Scanner.currentData && Exporter.downloadCSS(Scanner.currentData.colors.colors));
   document.getElementById('btnCopy').addEventListener('click', () => Scanner.currentData && Exporter.copyReport(Scanner.currentData));
 
+  /* ── Main scan ── */
   async function run() {
     let url = urlInput.value.trim();
     if (!url) { UI.toast('Enter a URL first'); return; }
     if (!url.startsWith('http')) url = 'https://' + url;
     try { new URL(url); } catch { UI.toast('Invalid URL'); return; }
     urlInput.value = url;
+
+    // Hide compare mode if active
+    if (compareMode) {
+      compareMode = false;
+      cmpSection.classList.add('hidden');
+      compareToggle.classList.remove('active-btn');
+    }
 
     scanBtn.disabled = true;
     scanBtn.innerHTML = '<i class="bi bi-radar spin"></i><span>Scanning…</span>';
@@ -106,9 +125,9 @@ document.addEventListener('DOMContentLoaded', () => {
       document.querySelector('[data-tab="overview"]').classList.add('active');
       UI.renderTab('overview', data);
 
-      results.scrollIntoView({ behavior:'smooth', block:'start' });
+      document.getElementById('scanner-app').scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-    } catch(err) {
+    } catch (err) {
       UI.toast('Scan failed: ' + err.message);
       console.error(err);
     } finally {
