@@ -23,15 +23,29 @@
 
   renderBanner(data) {
     const o = data.overview;
+    const hostname = new URL(data.url).hostname;
+    const faviconUrl = `https://www.google.com/s2/favicons?domain=${hostname}&sz=64`;
+    const scannedTime = new Date(data.scannedAt).toLocaleString();
     document.getElementById('siteBanner').innerHTML = `
-      <div class="sb-title">${this.e(o.title)}</div>
-      <div class="sb-desc">${this.e(o.desc)||'<em style="opacity:.45">No description found</em>'}</div>
-      <div class="sb-tags">
-        <span class="sb-tag"><i class="bi bi-tag-fill"></i>${this.e(o.type)}</span>
-        <span class="sb-tag"><i class="bi bi-translate"></i>${this.e(o.lang)}</span>
-        <span class="sb-tag"><i class="bi bi-layout-split"></i>${o.sections} sections</span>
-        <span class="sb-tag"><i class="bi bi-file-word"></i>${(data.content.wordCount||0).toLocaleString()} words</span>
-        <span class="sb-tag"><i class="bi bi-lightbulb-fill"></i>${this.e(o.topic)}</span>
+      <div class="sb-favicon-wrap">
+        <img class="sb-favicon" src="${faviconUrl}" alt="${hostname}" onerror="this.style.display='none'">
+        <div class="sb-info">
+          <div class="sb-title">${this.e(o.title)}</div>
+          <div class="sb-url">
+            <a href="${this.e(data.url)}" target="_blank" rel="noopener">
+              <i class="bi bi-box-arrow-up-right"></i> ${this.e(hostname)}
+            </a>
+            <span class="sb-scan-time"><i class="bi bi-clock"></i> ${scannedTime}</span>
+          </div>
+          <div class="sb-desc">${this.e(o.desc) || '<em style="opacity:.45">No description found</em>'}</div>
+          <div class="sb-tags">
+            <span class="sb-tag"><i class="bi bi-tag-fill"></i>${this.e(o.type)}</span>
+            <span class="sb-tag"><i class="bi bi-translate"></i>${this.e(o.lang)}</span>
+            <span class="sb-tag"><i class="bi bi-layout-split"></i>${o.sections} sections</span>
+            <span class="sb-tag"><i class="bi bi-file-word"></i>${(data.content.wordCount || 0).toLocaleString()} words</span>
+            <span class="sb-tag"><i class="bi bi-lightbulb-fill"></i>${this.e(o.topic)}</span>
+          </div>
+        </div>
       </div>`;
   },
 

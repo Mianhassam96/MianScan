@@ -90,6 +90,22 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btnCSS').addEventListener('click',  () => Scanner.currentData && Exporter.downloadCSS(Scanner.currentData.colors.colors));
   document.getElementById('btnCopy').addEventListener('click', () => Scanner.currentData && Exporter.copyReport(Scanner.currentData));
 
+  /* ── Scan Again ── */
+  document.getElementById('scanAgainBtn').addEventListener('click', () => {
+    results.classList.add('hidden');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setTimeout(() => urlInput.focus(), 600);
+  });
+
+  /* ── Tab scroll arrows ── */
+  const tabsBar = document.getElementById('tabsBar');
+  document.getElementById('tabScrollLeft').addEventListener('click', () => {
+    tabsBar.scrollBy({ left: -200, behavior: 'smooth' });
+  });
+  document.getElementById('tabScrollRight').addEventListener('click', () => {
+    tabsBar.scrollBy({ left: 200, behavior: 'smooth' });
+  });
+
   /* ── Main scan ── */
   async function run() {
     let url = urlInput.value.trim();

@@ -445,3 +445,107 @@ pre{color:var(--muted);font-size:.8rem;overflow-x:auto;line-height:1.8;backgroun
   border: 1px solid rgba(100,112,255,.2);
   border-radius: var(--radius-s);
 }
+
+/* ===== FAVICON BANNER ===== */
+.sb-favicon-wrap {
+  display: flex; align-items: flex-start; gap: 1.25rem;
+}
+.sb-favicon {
+  width: 52px; height: 52px; border-radius: 10px;
+  border: 1px solid var(--border); flex-shrink: 0;
+  background: var(--bg3); object-fit: contain;
+}
+.sb-info { flex: 1; min-width: 0 }
+.sb-title { font-size: 1.3rem; font-weight: 800; letter-spacing: -.02em; margin-bottom: .25rem }
+.sb-url {
+  display: flex; align-items: center; gap: 1rem;
+  flex-wrap: wrap; margin-bottom: .4rem;
+}
+.sb-url a {
+  color: var(--primary2); font-size: .875rem; font-weight: 600;
+  text-decoration: none; display: flex; align-items: center; gap: .3rem;
+  transition: color .2s;
+}
+.sb-url a:hover { color: var(--accent) }
+.sb-scan-time {
+  font-size: .75rem; color: var(--muted);
+  display: flex; align-items: center; gap: .3rem;
+}
+.sb-desc { color: var(--muted); font-size: .875rem; line-height: 1.6; margin-bottom: .75rem; max-width: 640px }
+
+/* ===== GROUPED TABS ===== */
+.tab-nav-wrap {
+  display: flex; align-items: center; gap: .25rem;
+  margin-bottom: 1.5rem; position: relative;
+}
+.tab-scroll-btn {
+  width: 30px; height: 30px; border-radius: 8px; flex-shrink: 0;
+  background: var(--bg3); border: 1px solid var(--border);
+  color: var(--muted); display: flex; align-items: center; justify-content: center;
+  font-size: .85rem; transition: all .2s; cursor: pointer;
+}
+.tab-scroll-btn:hover { color: var(--primary2); border-color: var(--primary2) }
+
+.tabs-bar {
+  flex: 1; overflow-x: auto; scrollbar-width: none;
+  border-bottom: 1px solid var(--border);
+}
+.tabs-bar::-webkit-scrollbar { display: none }
+
+.tabs {
+  display: flex; align-items: flex-end;
+  gap: 0; min-width: max-content; padding-bottom: 0;
+}
+
+.tab-group {
+  display: flex; align-items: flex-end; gap: .1rem;
+  position: relative; padding-top: 1.4rem;
+}
+.tab-group-label {
+  position: absolute; top: 0; left: .5rem;
+  font-size: .62rem; font-weight: 700; color: var(--muted);
+  text-transform: uppercase; letter-spacing: .08em;
+  white-space: nowrap;
+}
+.tab-group-divider {
+  width: 1px; background: var(--border);
+  margin: 0 .5rem; height: 32px; align-self: flex-end; flex-shrink: 0;
+}
+
+/* ===== SCAN AGAIN BUTTON ===== */
+.scan-again-btn {
+  background: rgba(100,112,255,.12) !important;
+  border-color: rgba(100,112,255,.3) !important;
+  color: var(--primary2) !important;
+  font-weight: 600 !important;
+}
+.scan-again-btn:hover {
+  background: rgba(100,112,255,.22) !important;
+  border-color: var(--primary2) !important;
+}
+
+/* ===== LOADING SKELETON ===== */
+.skeleton {
+  background: linear-gradient(90deg, var(--bg3) 25%, var(--bg4) 50%, var(--bg3) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+  border-radius: 8px;
+}
+@keyframes shimmer {
+  0%   { background-position: 200% 0 }
+  100% { background-position: -200% 0 }
+}
+
+/* ===== MOBILE RESPONSIVE TABS ===== */
+@media (max-width: 640px) {
+  .tab-group-label { display: none }
+  .tab-group { padding-top: 0 }
+  .tab { padding: .6rem .75rem; font-size: .78rem }
+  .tab i { display: none }
+  .sb-favicon { width: 40px; height: 40px }
+  .sb-title { font-size: 1.1rem }
+  .tab-scroll-btn { display: flex }
+}
+@media (min-width: 641px) {
+  .tab-scroll-btn { display: none }
+}
