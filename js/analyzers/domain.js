@@ -1,53 +1,51 @@
 const DomainAnalyzer = {
   async analyze(url) {
-    const hostname = new URL(url).hostname.replace(/^www\./, '');
+    const raw = new URL(url).hostname;
+    const hostname = raw.replace(/^www\./, '');
 
-    // Estimate DA/PA using open-source signals from free APIs
     const result = {
       hostname,
-      da: null, pa: null,
+      da: null,
       rank: null,
-      backlinks: null,
-      indexed: null,
       age: null,
-      registrar: null,
-      error: null
+      error: null,
+      daNote: 'Estimated from on-page signals'
     };
 
-    // 1. Try Open PageRank API (free, no key needed)
+    // Try Open PageRank (works without key for basic domains)
     try {
-      const res = await fetch(`https://openpagerank.com/api/v1.0/getPageRank?domains[]=${hostname}`, {
-        headers: { 'API-OPR': 'free' },
-        signal: AbortSignal.timeout(6000)
-      });
+      const res = await fetch(
+        `https://openpagerank.com/api/v1.0/getPageRank?domains[]=${hostname}`,
+        { signal: AbortSignal.timeout(8000) }
+      );
       if (res.ok) {
         const data = await res.json();
         const entry = data?.response?.[0];
         if (entry) {
-          result.da = entry.page_rank_integer ?? null;
-          result.rank = entry.rank ?? null;
+          if (entry.page_rank_integer != null) {
+            result.da = entry.page_rank_integer;
+            result.daNote = 'Open PageRank (0–10)';
+          }
+          if (entry.rank) result.rank = entry.rank;
         }
       }
-    } catch(_) {}
+    } catch (_) {}
 
-    // 2. Try website-worth / domain info via free WHOIS API
+    // Try domain age via RDAP (free, no key, CORS-friendly)
     try {
-      const res = await fetch(`https://api.domainsdb.info/v1/domains/search?domain=${hostname}&limit=1`, {
-        signal: AbortSignal.timeout(5000)
-      });
+      const res = await fetch(
+        `https://rdap.org/domain/${hostname}`,
+        { signal: AbortSignal.timeout(5000) }
+      );
       if (res.ok) {
         const data = await res.json();
-        const entry = data?.domains?.[0];
-        if (entry) {
-          result.age = entry.create_date ? entry.create_date.split('T')[0] : null;
+        const events = data?.events || [];
+        const reg = events.find(e => e.eventAction === 'registration');
+        if (reg?.eventDate) {
+          result.age = reg.eventDate.split('T')[0];
         }
       }
-    } catch(_) {}
-
-    // 3. Estimate PA from SEO score (local fallback)
-    // PA is always estimated — no free API gives real Moz PA
-    result.paNote = 'Estimated from on-page signals';
-    result.daNote = result.da !== null ? 'Open PageRank score (0–10)' : 'Not available — API limit reached';
+    } catch (_) {}
 
     return result;
   }
