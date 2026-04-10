@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="description" content="Compare two websites side by side — SEO score, DA/PA, ranking, keywords, tech stack, colors, fonts, and performance."/>
+<title>Compare Websites — MianScan</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"/>
+<link rel="stylesheet" href="css/style.css"/>
+<link rel="stylesheet" href="css/landing.css"/>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="wrap nav-row">
+    <a class="logo" href="index.html"><i class="bi bi-radar"></i> MianScan</a>
+    <div class="nav-links">
+      <a href="features.html">Features</a>
+      <a href="how-it-works.html">How It Works</a>
+      <a href="compare.html" class="nav-active">Compare</a>
+      <a href="try.html">Try Now</a>
+    </div>
+    <div class="nav-right">
+      <button class="icon-btn" id="themeBtn"><i class="bi bi-moon-stars-fill"></i></button>
+    </div>
+  </div>
+</nav>
+
+<section class="page-hero">
+  <div class="wrap text-center">
+    <span class="lp-section-pill">Compare Mode</span>
+    <h1 class="page-hero-title">Compare Two Websites<br><span class="grad">Side by Side</span></h1>
+    <p class="page-hero-sub">SEO score, DA/PA, ranking, keywords, tech stack, colors, fonts, performance — all compared instantly.</p>
+  </div>
+</section>
+
+<section class="lp-section">
+  <div class="wrap">
+    <div class="compare-page-box">
+      <div class="compare-tab-inputs">
+        <div class="compare-tab-col">
+          <label class="compare-label">Site A</label>
+          <div class="url-row" style="margin-bottom:0">
+            <i class="bi bi-globe2 url-icon"></i>
+            <input id="cmpUrlA" type="url" placeholder="https://stripe.com" autocomplete="off" spellcheck="false"/>
+          </div>
+        </div>
+        <div class="compare-tab-vs">VS</div>
+        <div class="compare-tab-col">
+          <label class="compare-label">Site B</label>
+          <div class="url-row" style="margin-bottom:0">
+            <i class="bi bi-globe2 url-icon"></i>
+            <input id="cmpUrlB" type="url" placeholder="https://paddle.com" autocomplete="off" spellcheck="false"/>
+          </div>
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:1.5rem">
+        <button class="scan-btn" id="cmpRunBtn" style="display:inline-flex">
+          <i class="bi bi-arrow-left-right"></i><span>Compare Sites</span>
+        </button>
+      </div>
+      <div id="cmpProgress" class="progress-box hidden" style="max-width:500px;margin:1.25rem auto 0">
+        <div class="prog-track"><div id="cmpBar" class="prog-fill"></div></div>
+        <div id="cmpLabel" class="prog-label">Scanning…</div>
+      </div>
+    </div>
+
+    <div id="cmpOutput" style="margin-top:2rem"></div>
+  </div>
+</section>
+
+<!-- Compare highlight mock -->
+<section class="lp-section lp-section-alt" id="compare-highlight">
+  <div class="wrap">
+    <div class="lp-section-head">
+      <span class="lp-section-pill">What Gets Compared</span>
+      <h2>Full Side-by-Side Analysis</h2>
+      <p>Every important metric compared between two sites.</p>
+    </div>
+    <div class="compare-mock-wrap">
+      <div class="compare-mock">
+        <div class="compare-mock-header">
+          <div class="compare-mock-site"><i class="bi bi-globe2"></i> stripe.com</div>
+          <div class="compare-mock-vs">VS</div>
+          <div class="compare-mock-site"><i class="bi bi-globe2"></i> paddle.com</div>
+        </div>
+        <div class="compare-mock-body">
+          <div class="compare-mock-col">
+            <div class="cmp-mock-row"><span class="cmp-mock-lbl">SEO Score</span><span class="cmp-mock-val good-val">92/100</span></div>
+            <div class="cmp-mock-row"><span class="cmp-mock-lbl">Tech Stack</span><span><span class="mock-tag">React</span><span class="mock-tag">Next.js</span></span></div>
+            <div class="cmp-mock-row"><span class="cmp-mock-lbl">Primary CTA</span><span class="cmp-mock-cta">Start now →</span></div>
+            <div class="cmp-mock-row"><span class="cmp-mock-lbl">Colors</span><span style="display:flex;gap:.3rem"><span style="width:18px;height:18px;border-radius:4px;background:#635bff;display:inline-block"></span><span style="width:18px;height:18px;border-radius:4px;background:#0a2540;display:inline-block"></span></span></div>
+            <div class="cmp-mock-row"><span class="cmp-mock-lbl">Fonts</span><span style="font-weight:700">Sohne, Inter</span></div>
+          </div>
+          <div class="compare-mock-divider"></div>
+          <div class="compare-mock-col">
+            <div class="cmp-mock-row"><span class="cmp-mock-lbl">SEO Score</span><span class="cmp-mock-val ok-val">74/100</span></div>
+            <div class="cmp-mock-row"><span class="cmp-mock-lbl">Tech Stack</span><span><span class="mock-tag">Vue.js</span><span class="mock-tag">Nuxt</span></span></div>
+            <div class="cmp-mock-row"><span class="cmp-mock-lbl">Primary CTA</span><span class="cmp-mock-cta">Get started free</span></div>
+            <div class="cmp-mock-row"><span class="cmp-mock-lbl">Colors</span><span style="display:flex;gap:.3rem"><span style="width:18px;height:18px;border-radius:4px;background:#ee6c4d;display:inline-block"></span><span style="width:18px;height:18px;border-radius:4px;background:#293241;display:inline-block"></span></span></div>
+            <div class="cmp-mock-row"><span class="cmp-mock-lbl">Fonts</span><span style="font-weight:700">Geist, DM Sans</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="lp-footer">
+  <div class="wrap lp-footer-inner">
+    <div class="lp-footer-brand"><a class="logo" href="index.html"><i class="bi bi-radar"></i> MianScan</a><p>Full website intelligence scanner. Free, fast, and powerful.</p></div>
+    <div class="lp-footer-col"><strong>Features</strong><a href="features.html">SEO Analysis</a><a href="features.html">Tech Stack</a><a href="features.html">Color Palette</a><a href="compare.html">Compare Mode</a></div>
+    <div class="lp-footer-col"><strong>Resources</strong><a href="how-it-works.html">How It Works</a><a href="compare.html">Compare</a><a href="try.html">Try Now</a><a href="https://github.com/Mianhassam96/MianScan" target="_blank">GitHub</a></div>
+    <div class="lp-footer-col"><strong>Built by</strong><a href="https://multimian.com/" target="_blank">MultiMian</a><a href="https://multimian.com/" target="_blank"><i class="bi bi-globe2"></i> multimian.com</a></div>
+  </div>
+  <div class="lp-footer-bottom"><div class="wrap"><span>© 2025 MianScan — Built by <a href="https://multimian.com/" target="_blank">MultiMian</a></span><span>Free · Open Source · No Signup</span></div></div>
+</footer>
+
+<div id="toast" class="toast-msg"></div>
+<div class="scan-overlay hidden" id="scanOverlay">
+  <i class="bi bi-radar scan-overlay-icon"></i>
+  <div class="scan-overlay-msg" id="overlayMsg">Scanning…</div>
+  <div class="scan-overlay-url" id="overlayUrl"></div>
+  <div class="scan-overlay-prog"><div class="scan-overlay-fill" id="overlayFill"></div></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="js/analyzers/colors.js"></script>
+<script src="js/analyzers/fonts.js"></script>
+<script src="js/analyzers/structure.js"></script>
+<script src="js/analyzers/content.js"></script>
+<script src="js/analyzers/cta.js"></script>
+<script src="js/analyzers/seo.js"></script>
+<script src="js/analyzers/media.js"></script>
+<script src="js/analyzers/links.js"></script>
+<script src="js/analyzers/images.js"></script>
+<script src="js/analyzers/contacts.js"></script>
+<script src="js/analyzers/tech.js"></script>
+<script src="js/analyzers/performance.js"></script>
+<script src="js/analyzers/domain.js"></script>
+<script src="js/analyzers/ranking.js"></script>
+<script src="js/analyzers/indexing.js"></script>
+<script src="js/scanner.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/compare.js"></script>
+<script src="js/export.js"></script>
+<script>
+// Theme
+const saved = localStorage.getItem('ms_theme') || 'dark';
+document.documentElement.setAttribute('data-theme', saved);
+document.querySelector('#themeBtn i').className = saved === 'light' ? 'bi bi-sun-fill' : 'bi bi-moon-stars-fill';
+document.getElementById('themeBtn').addEventListener('click', () => {
+  const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('ms_theme', next);
+  document.querySelector('#themeBtn i').className = next === 'light' ? 'bi bi-sun-fill' : 'bi bi-moon-stars-fill';
+});
+
+// Toast helper
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2400);
+}
+
+// Compare
+document.getElementById('cmpRunBtn').addEventListener('click', async () => {
+  let urlA = document.getElementById('cmpUrlA').value.trim();
+  let urlB = document.getElementById('cmpUrlB').value.trim();
+  if (!urlA || !urlB) { showToast('Enter both URLs'); return; }
+  if (!urlA.startsWith('http')) urlA = 'https://' + urlA;
+  if (!urlB.startsWith('http')) urlB = 'https://' + urlB;
+  const btn = document.getElementById('cmpRunBtn');
+  const bar = document.getElementById('cmpBar');
+  const lbl = document.getElementById('cmpLabel');
+  const prog = document.getElementById('cmpProgress');
+  const out  = document.getElementById('cmpOutput');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="bi bi-radar spin"></i><span>Comparing…</span>';
+  prog.classList.remove('hidden');
+  out.innerHTML = '';
+  bar.style.width = '0%';
+  try {
+    await Compare.runInline(urlA, urlB, bar, lbl, out);
+    out.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } catch(e) {
+    showToast('Compare failed: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="bi bi-arrow-left-right"></i><span>Compare Sites</span>';
+    setTimeout(() => prog.classList.add('hidden'), 800);
+  }
+});
+</script>
+</body>
+</html>

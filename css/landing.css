@@ -543,3 +543,78 @@
 }
 .feat-card:hover .feat-try { opacity: 1; transform: translateY(0) }
 .feat-card { cursor: pointer }
+
+/* ── Page hero (inner pages) ── */
+.page-hero {
+  padding: 5rem 0 4rem;
+  text-align: center;
+  background: radial-gradient(ellipse 70% 50% at 50% 0%, rgba(100,112,255,.18) 0%, transparent 70%);
+  position: relative;
+}
+.page-hero-title {
+  font-size: clamp(2rem, 4.5vw, 3.2rem);
+  font-weight: 900; line-height: 1.1; letter-spacing: -.04em;
+  color: var(--text); margin: 1rem 0 .875rem;
+}
+.page-hero-sub {
+  color: var(--muted); font-size: 1.05rem; max-width: 520px;
+  margin: 0 auto; line-height: 1.7;
+}
+.text-center { text-align: center }
+
+/* ── Try page hero ── */
+.try-hero {
+  padding: 4rem 0 3rem;
+  background: radial-gradient(ellipse 70% 50% at 50% 0%, rgba(100,112,255,.18) 0%, transparent 70%);
+  text-align: center;
+}
+.try-hero-inner {
+  display: flex; flex-direction: column; align-items: center; gap: 1rem;
+}
+.try-hero h1 {
+  font-size: clamp(2rem, 4.5vw, 3rem);
+  font-weight: 900; line-height: 1.1; letter-spacing: -.04em; color: var(--text);
+}
+
+/* ── Nav active state ── */
+.nav-active {
+  color: var(--primary2) !important;
+  font-weight: 700 !important;
+}
+
+/* ── How It Works tabs grid ── */
+.hiw-tabs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: .875rem;
+}
+.hiw-tab-item {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 1rem;
+  display: flex; align-items: center; gap: .6rem;
+  font-size: .875rem; font-weight: 500;
+  transition: border-color .2s, transform .2s;
+}
+.hiw-tab-item:hover { border-color: var(--border-h); transform: translateY(-2px) }
+.hiw-tab-item i { color: var(--primary2); font-size: 1rem; flex-shrink: 0 }
+.hiw-tab-highlight {
+  border-color: rgba(168,85,247,.3);
+  background: linear-gradient(135deg, var(--card), rgba(168,85,247,.06));
+}
+.hiw-tab-highlight i { color: var(--purple) }
+
+/* ── Compare page box ── */
+.compare-page-box {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 2rem;
+  max-width: 860px; margin: 0 auto;
+}
+
+/* ── Responsive inner pages ── */
+@media(max-width:640px) {
+  .page-hero { padding: 3rem 0 2.5rem }
+  .page-hero-title { font-size: 2rem }
+  .try-hero { padding: 2.5rem 0 2rem }
+  .hiw-tabs-grid { grid-template-columns: repeat(2, 1fr) }
+  .compare-page-box { padding: 1.25rem }
+}
