@@ -532,3 +532,14 @@
   .step-arrow { display: none }
   .lp-section { padding: 4rem 0 }
 }
+
+/* ── Feature card try button ── */
+.feat-try {
+  display: inline-flex; align-items: center; gap: .3rem;
+  margin-top: 1rem; font-size: .8rem; font-weight: 600;
+  color: var(--primary2); opacity: 0;
+  transform: translateY(4px);
+  transition: opacity .2s, transform .2s;
+}
+.feat-card:hover .feat-try { opacity: 1; transform: translateY(0) }
+.feat-card { cursor: pointer }

@@ -923,3 +923,101 @@ button:focus-visible, input:focus-visible {
 
 /* Better scrollbar on tabs */
 .tabs-bar { position: relative }
+
+/* ═══ TAB BAR RESPONSIVE FIX ═══ */
+
+/* Make tab nav wrap sticky and full width */
+.tab-nav-wrap {
+  position: sticky;
+  top: 56px;
+  z-index: 90;
+  background: var(--bg);
+  padding: .5rem 0 0;
+  margin-left: -1.5rem;
+  margin-right: -1.5rem;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+/* Tabs bar takes full width */
+.tabs-bar {
+  flex: 1;
+  overflow-x: auto;
+  scrollbar-width: none;
+  border-bottom: none;
+  margin-bottom: 0;
+}
+.tabs-bar::-webkit-scrollbar { display: none }
+
+/* Tabs row */
+.tabs {
+  display: flex;
+  align-items: flex-end;
+  gap: 0;
+  min-width: max-content;
+  padding-bottom: 0;
+}
+
+/* Individual tab */
+.tab {
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--muted);
+  padding: .65rem .9rem;
+  font-size: .8rem;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: color .2s, background .2s;
+  margin-bottom: -1px;
+  cursor: pointer;
+  position: relative;
+}
+.tab i { font-size: .85rem }
+.tab:hover { color: var(--primary2); background: rgba(100,116,255,.06); border-radius: 6px 6px 0 0 }
+.tab.active { color: var(--primary2); border-bottom-color: var(--primary) }
+.tab-compare { color: var(--purple) !important }
+.tab-compare.active { border-bottom-color: var(--purple) !important }
+.tab-divider { width: 1px; background: var(--border); margin: 0 .4rem; height: 24px; align-self: center; flex-shrink: 0 }
+
+/* Scroll buttons always visible on mobile */
+.tab-scroll-btn {
+  width: 28px; height: 28px; border-radius: 6px; flex-shrink: 0;
+  background: var(--bg3); border: 1px solid var(--border);
+  color: var(--muted); display: flex; align-items: center; justify-content: center;
+  font-size: .8rem; transition: all .2s; cursor: pointer; align-self: center;
+}
+.tab-scroll-btn:hover { color: var(--primary2); border-color: var(--primary2) }
+
+@media (max-width: 900px) {
+  .tab-scroll-btn { display: flex !important }
+  .tab { padding: .6rem .7rem; font-size: .78rem }
+}
+@media (max-width: 560px) {
+  .tab { padding: .55rem .6rem; font-size: .75rem }
+  .tab i { display: none }
+  .tab-group-label { display: none }
+}
+
+/* ═══ FEATURE CARD TRY BUTTON ═══ */
+.feat-try {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  margin-top: 1rem;
+  font-size: .8rem;
+  font-weight: 600;
+  color: var(--primary2);
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity .2s, transform .2s;
+}
+.feat-card:hover .feat-try {
+  opacity: 1;
+  transform: translateY(0);
+}
+.feat-card { cursor: pointer }

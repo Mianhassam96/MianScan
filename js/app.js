@@ -14,6 +14,34 @@ document.addEventListener('DOMContentLoaded', () => {
   const overlayFill= document.getElementById('overlayFill');
   const backToTop  = document.getElementById('backToTop');
 
+  /* ── Feature cards → scroll to scanner + open tab ── */
+  document.querySelectorAll('.feat-card[data-goto]').forEach(card => {
+    card.style.cursor = 'pointer';
+    card.addEventListener('click', () => {
+      const tab = card.dataset.goto;
+      // Scroll to scanner
+      document.getElementById('scanner-app').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      // If we have scan data, switch to that tab
+      setTimeout(() => {
+        if (Scanner.currentData) {
+          document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+          const targetTab = document.querySelector(`[data-tab="${tab}"]`);
+          if (targetTab) {
+            targetTab.classList.add('active');
+            UI.renderTab(tab, Scanner.currentData);
+            // Scroll tab into view
+            targetTab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+          }
+        } else {
+          // No scan yet — focus URL input with a hint
+          urlInput.focus();
+          urlInput.placeholder = `Scan a site first, then see ${tab} data`;
+          setTimeout(() => urlInput.placeholder = 'https://stripe.com', 3000);
+        }
+      }, 600);
+    });
+  });
+
   /* ── Smooth scroll for nav + footer links ── */
   document.querySelectorAll('.scroll-link').forEach(link => {
     link.addEventListener('click', e => {
