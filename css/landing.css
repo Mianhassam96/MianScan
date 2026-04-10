@@ -482,9 +482,6 @@
   gap: 3rem; padding-bottom: 4rem;
   align-items: start;
 }
-.lp-footer-cols {
-  display: contents;
-}
 .lp-footer-brand .logo { font-size: 1.3rem }
 .foot-ver {
   background: rgba(100,112,255,.14); border: 1px solid rgba(100,112,255,.24);

@@ -798,3 +798,128 @@ pre{color:var(--muted);font-size:.8rem;overflow-x:auto;line-height:1.8;backgroun
   .compare-tab-inputs { grid-template-columns: 1fr; }
   .compare-tab-vs { display: none }
 }
+
+/* ═══ MISSING VARIABLES FIX ═══ */
+:root {
+  --gradient-primary: linear-gradient(135deg, #6470ff, #a855f7);
+  --gradient-accent:  linear-gradient(135deg, #00d4ff, #22c55e);
+  --card-hover: rgba(100,116,255,.03);
+}
+[data-theme="light"] {
+  --gradient-primary: linear-gradient(135deg, #5058e5, #9333ea);
+  --gradient-accent:  linear-gradient(135deg, #0ea5e9, #16a34a);
+  --card-hover: rgba(80,88,229,.03);
+}
+
+/* ═══ RESPONSIVE FIXES ═══ */
+
+/* Stats row — 4 cols on tablet, 2 on mobile */
+@media(max-width:900px) {
+  .stats-row { grid-template-columns: repeat(4,1fr) }
+}
+@media(max-width:560px) {
+  .stats-row { grid-template-columns: repeat(2,1fr) }
+  .stat-val  { font-size: 1.35rem }
+}
+
+/* Tab bar mobile — show scroll hint */
+.tabs-bar::after {
+  content: '';
+  position: absolute; right: 0; top: 0; bottom: 0;
+  width: 40px;
+  background: linear-gradient(to right, transparent, var(--bg));
+  pointer-events: none;
+}
+[data-theme="light"] .tabs-bar::after {
+  background: linear-gradient(to right, transparent, var(--bg));
+}
+
+/* Site banner responsive */
+@media(max-width:560px) {
+  .sb-favicon-wrap { flex-direction: column; gap: .75rem }
+  .sb-favicon { width: 44px; height: 44px }
+  .sb-title { font-size: 1.1rem }
+  .sb-url { flex-direction: column; gap: .35rem; align-items: flex-start }
+}
+
+/* Cards responsive */
+@media(max-width:560px) {
+  .card { padding: 1.1rem }
+  .g2, .g3 { grid-template-columns: 1fr }
+  .authority-grid { grid-template-columns: repeat(2,1fr) }
+}
+
+/* Compare tab inputs mobile */
+@media(max-width:640px) {
+  .compare-tab-inputs { grid-template-columns: 1fr }
+  .compare-tab-vs { display: none }
+}
+
+/* Export row mobile */
+@media(max-width:560px) {
+  .export-row { gap: .35rem; padding: .875rem 1rem }
+  .exp-btn { padding: .32rem .65rem; font-size: .75rem }
+  .scan-again-btn { width: 100%; justify-content: center; margin-bottom: .25rem }
+}
+
+/* Health gauge mobile */
+@media(max-width:560px) {
+  .health-gauge { flex-direction: column; text-align: center; padding: 1rem }
+  .health-ring { width: 70px; height: 70px; font-size: 1.2rem }
+}
+
+/* Keyword table mobile */
+@media(max-width:480px) {
+  .kw-header, .kw-row { grid-template-columns: 1fr 45px }
+  .kw-density { display: none }
+}
+
+/* OG previews mobile */
+@media(max-width:640px) {
+  .og-previews { grid-template-columns: 1fr }
+}
+
+/* ═══ LIGHT MODE FIXES ═══ */
+[data-theme="light"] .hero h1 {
+  background: linear-gradient(135deg, #0f172a 0%, #5058e5 55%, #0ea5e9 100%);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+[data-theme="light"] .card { background: #fff; border-color: rgba(80,90,220,.15) }
+[data-theme="light"] .litem,
+[data-theme="light"] .cta-row,
+[data-theme="light"] .font-row { background: #f4f6ff }
+[data-theme="light"] .tech-chip { background: #f4f6ff }
+[data-theme="light"] .auth-card { background: #f4f6ff }
+[data-theme="light"] .cs-card   { background: #f4f6ff }
+[data-theme="light"] pre { background: #f4f6ff }
+[data-theme="light"] .kw-row:hover { background: #f4f6ff }
+[data-theme="light"] .site-banner { background: #fff }
+[data-theme="light"] .health-gauge { background: #f4f6ff }
+[data-theme="light"] .scan-overlay { background: rgba(238,242,255,.97) }
+[data-theme="light"] .scan-overlay-msg { color: #0f172a }
+
+/* ═══ GENERAL POLISH ═══ */
+
+/* Smoother card transitions */
+.card { transition: border-color .2s, border-left-color .2s, box-shadow .2s }
+
+/* Better focus states */
+button:focus-visible, input:focus-visible {
+  outline: 2px solid var(--primary2);
+  outline-offset: 2px;
+}
+
+/* Scan button pulse when idle */
+@keyframes btnPulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(100,112,255,.4) }
+  50%      { box-shadow: 0 0 0 8px rgba(100,112,255,0) }
+}
+.scan-btn:not(:disabled) { animation: btnPulse 3s ease-in-out infinite }
+.scan-btn:hover, .scan-btn:disabled { animation: none }
+
+/* Smooth tab content transitions */
+.fu { animation: fadeUp .3s ease forwards }
+
+/* Better scrollbar on tabs */
+.tabs-bar { position: relative }

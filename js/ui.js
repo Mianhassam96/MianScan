@@ -180,7 +180,12 @@
   tSEO(seo) {
     const cls = seo.score>=70?'sg':seo.score>=50?'so':'sb';
     const grade = seo.score>=70?'Good':seo.score>=50?'Needs Work':'Poor';
-    return `<div class="g2" style="align-items:start">
+    return `
+    <div class="section-page-header">
+      <h3><i class="bi bi-graph-up-arrow" style="color:var(--green)"></i> SEO Score Analysis</h3>
+      <p>On-page SEO evaluation based on title, description, headings, alt tags, canonical, and OG tags.</p>
+    </div>
+    <div class="g2" style="align-items:start">
       <div class="card">
         <div class="card-head"><i class="bi bi-graph-up-arrow"></i> SEO Score</div>
         <div class="score-box">
@@ -403,6 +408,10 @@
     const si={Twitter:'twitter-x',Facebook:'facebook',LinkedIn:'linkedin',Instagram:'instagram',YouTube:'youtube',GitHub:'github',TikTok:'tiktok',Pinterest:'pinterest',Telegram:'telegram','X (Twitter)':'twitter-x'};
     const socialCount = Object.values(c.social).flat().length;
     const summary = `
+    <div class="section-page-header">
+      <h3><i class="bi bi-person-lines-fill" style="color:var(--accent)"></i> Contact Information</h3>
+      <p>Emails, phone numbers, WhatsApp links, and social media profiles found on this page.</p>
+    </div>
     <div class="contact-summary">
       <div class="cs-card"><div class="cs-val" style="color:var(--primary2)">${c.emails.length}</div><div class="cs-lbl">Emails</div></div>
       <div class="cs-card"><div class="cs-val" style="color:var(--green)">${c.phones.length}</div><div class="cs-lbl">Phones</div></div>
@@ -444,8 +453,11 @@
 
   /* ── 11. Tech Stack ── */
   tTech(tech) {
-    const cats = {
-      'Frontend':       ['React','Vue.js','Angular','Next.js','Nuxt.js','Svelte','Alpine.js','Astro'],
+    const techHeader = `<div class="section-page-header">
+      <h3><i class="bi bi-cpu-fill" style="color:var(--purple)"></i> Tech Stack Detector</h3>
+      <p>Frameworks, CMS, analytics, CDN, and libraries detected from page source.</p>
+    </div>`;
+    const cats = {      'Frontend':       ['React','Vue.js','Angular','Next.js','Nuxt.js','Svelte','Alpine.js','Astro'],
       'CSS / UI':       ['Tailwind CSS','Bootstrap','Font Awesome'],
       'CMS / Platform': ['WordPress','Shopify','Webflow','Framer'],
       'Analytics':      ['Google Analytics','Google Tag Manager','Hotjar'],
@@ -482,7 +494,7 @@
         </div>
       </div>`).join('');
 
-    return `<div class="card">
+    return `${techHeader}<div class="card">
       <div class="card-head"><i class="bi bi-cpu-fill"></i> Detected Technologies <span class="badge-cnt">${tech.detected.length}</span></div>
       ${tech.detected.length ? catHtml : this.empty('No technologies detected')}
       ${tech.detected.length?`<button class="exp-btn" style="margin-top:.875rem" onclick="UI.copy('${tech.detected.join(', ')}')"><i class="bi bi-clipboard"></i> Copy All</button>`:''}
