@@ -72,6 +72,11 @@
   },
 
   renderTab(tab, data) {
+    // Compare tab — show inline compare UI
+    if (tab === 'compare') {
+      document.getElementById('tabContent').innerHTML = `<div class="fu">${this.tCompareUI()}</div>`;
+      return;
+    }
     const map = {
       overview:    ()=>this.tOverview(data),
       seo:         ()=>this.tSEO(data.seo),
@@ -667,6 +672,44 @@
     return `<div class="card">
       <div class="card-head"><i class="bi bi-type"></i> Detected Fonts <span class="badge-cnt">${f.total}</span></div>
       ${f.fonts.map(font=>`<div class="font-row"><div><div class="font-name" style="font-family:'${this.e(font.name)}',sans-serif">${this.e(font.name)}</div><div class="font-meta">Weight: ${this.e(font.weights)}${font.google?` &nbsp;·&nbsp; <a href="${font.link}" target="_blank">Google Font ↗</a>`:''}</div></div><div style="display:flex;gap:.4rem;flex-wrap:wrap">${this.copyBtn(`@import url('https://fonts.googleapis.com/css2?family=${encodeURIComponent(font.name)}:wght@400;700&display=swap');`,'Import')}${this.copyBtn(font.name,'Name')}</div></div>`).join('')}
+    </div>`;
+  },
+
+  /* ── Compare Tab (inline) ── */
+  tCompareUI() {
+    return `
+    <div class="compare-tab-wrap">
+      <div class="section-page-header">
+        <h3><i class="bi bi-arrow-left-right" style="color:var(--primary2)"></i> Compare Two Websites</h3>
+        <p>Enter two URLs to scan and compare them side by side — SEO, DA/PA, ranking, keywords, tech stack, and more.</p>
+      </div>
+      <div class="compare-tab-inputs">
+        <div class="compare-tab-col">
+          <label class="compare-label">Site A</label>
+          <div class="url-row" style="margin-bottom:0">
+            <i class="bi bi-globe2 url-icon"></i>
+            <input id="cmpUrlA" type="url" placeholder="https://site-a.com" autocomplete="off" spellcheck="false"/>
+          </div>
+        </div>
+        <div class="compare-tab-vs">VS</div>
+        <div class="compare-tab-col">
+          <label class="compare-label">Site B</label>
+          <div class="url-row" style="margin-bottom:0">
+            <i class="bi bi-globe2 url-icon"></i>
+            <input id="cmpUrlB" type="url" placeholder="https://site-b.com" autocomplete="off" spellcheck="false"/>
+          </div>
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:1.25rem">
+        <button class="scan-btn" id="cmpRunBtn" style="display:inline-flex">
+          <i class="bi bi-arrow-left-right"></i><span>Compare Sites</span>
+        </button>
+      </div>
+      <div id="cmpProgress" class="progress-box hidden" style="max-width:500px;margin:1.25rem auto 0">
+        <div class="prog-track"><div id="cmpBar" class="prog-fill"></div></div>
+        <div id="cmpLabel" class="prog-label">Scanning…</div>
+      </div>
+      <div id="cmpOutput" style="margin-top:1.75rem"></div>
     </div>`;
   },
 

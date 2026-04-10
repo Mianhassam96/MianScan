@@ -2,6 +2,18 @@ const Compare = {
   dataA: null,
   dataB: null,
 
+  async runInline(urlA, urlB, bar, lbl, outputEl) {
+    const update = (msg, pct) => { bar.style.width = pct+'%'; lbl.textContent = msg; };
+    const saved = Scanner.currentData;
+    update('Scanning Site A…', 5);
+    this.dataA = await Scanner.scan(urlA, (m,p) => update('Site A — '+m, p*0.46));
+    update('Scanning Site B…', 50);
+    this.dataB = await Scanner.scan(urlB, (m,p) => update('Site B — '+m, 50+p*0.46));
+    update('Building report…', 100);
+    Scanner.currentData = saved;
+    outputEl.innerHTML = this._buildOutput(this.dataA, this.dataB);
+  },
+
   async run(urlA, urlB) {
     const bar   = document.getElementById('compareBar');
     const label = document.getElementById('compareLabel');
@@ -31,9 +43,13 @@ const Compare = {
 
   render(a, b) {
     const out = document.getElementById('compareOutput');
+    out.innerHTML = this._buildOutput(a, b);
+  },
+
+  _buildOutput(a, b) {
     const hostA = new URL(a.url).hostname;
     const hostB = new URL(b.url).hostname;
-    out.innerHTML = `
+    return `
       <div class="compare-title-row">
         <div class="compare-site-label"><i class="bi bi-globe2"></i><a href="${a.url}" target="_blank">${hostA}</a></div>
         <div class="compare-vs-badge">VS</div>

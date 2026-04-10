@@ -772,3 +772,29 @@ pre{color:var(--muted);font-size:.8rem;overflow-x:auto;line-height:1.8;backgroun
   .scan-overlay-prog{width:240px}
   .back-to-top{bottom:1.25rem;right:1.25rem}
 }
+
+/* ═══ Compare Tab Inline ═══ */
+.compare-tab-wrap { max-width: 900px; margin: 0 auto }
+.compare-tab-inputs {
+  display: grid; grid-template-columns: 1fr auto 1fr;
+  gap: 1rem; align-items: end; margin-top: 1.25rem;
+}
+.compare-tab-col { display: flex; flex-direction: column; gap: .5rem }
+.compare-tab-vs {
+  font-size: 1rem; font-weight: 900; color: var(--muted);
+  padding: .5rem; align-self: center; text-align: center;
+}
+.tab-divider {
+  width: 1px; background: var(--border);
+  margin: 0 .5rem; height: 28px; align-self: flex-end; flex-shrink: 0;
+}
+.tab-compare {
+  color: var(--purple) !important;
+  font-weight: 700 !important;
+}
+.tab-compare.active { border-bottom-color: var(--purple) !important }
+.tab-compare i { color: var(--purple) }
+@media(max-width:640px) {
+  .compare-tab-inputs { grid-template-columns: 1fr; }
+  .compare-tab-vs { display: none }
+}
