@@ -477,8 +477,13 @@
   padding: 4.5rem 0 0;
 }
 .lp-footer-inner {
-  display: grid; grid-template-columns: 1.6fr 1fr 1fr 1fr;
+  display: grid;
+  grid-template-columns: 1.6fr 1fr 1fr 1fr;
   gap: 3rem; padding-bottom: 4rem;
+  align-items: start;
+}
+.lp-footer-cols {
+  display: contents;
 }
 .lp-footer-brand .logo { font-size: 1.3rem }
 .foot-ver {

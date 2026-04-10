@@ -14,6 +14,17 @@ document.addEventListener('DOMContentLoaded', () => {
   const overlayFill= document.getElementById('overlayFill');
   const backToTop  = document.getElementById('backToTop');
 
+  /* ── Smooth scroll for nav + footer links ── */
+  document.querySelectorAll('.scroll-link').forEach(link => {
+    link.addEventListener('click', e => {
+      const href = link.getAttribute('href');
+      if (!href || !href.startsWith('#')) return;
+      e.preventDefault();
+      const target = document.querySelector(href);
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+
   /* ── Back to top ── */
   window.addEventListener('scroll', () => {
     backToTop.classList.toggle('visible', window.scrollY > 400);
