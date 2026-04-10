@@ -8,6 +8,25 @@ document.addEventListener('DOMContentLoaded', () => {
   const cmpSection = document.getElementById('compareSection');
   const cmpResults = document.getElementById('compareResults');
   const htmlEl     = document.documentElement;
+  const overlay    = document.getElementById('scanOverlay');
+  const overlayMsg = document.getElementById('overlayMsg');
+  const overlayUrl = document.getElementById('overlayUrl');
+  const overlayFill= document.getElementById('overlayFill');
+  const backToTop  = document.getElementById('backToTop');
+
+  /* ── Back to top ── */
+  window.addEventListener('scroll', () => {
+    backToTop.classList.toggle('visible', window.scrollY > 400);
+  });
+
+  /* ── Keyboard shortcut: / to focus URL ── */
+  document.addEventListener('keydown', e => {
+    if (e.key === '/' && document.activeElement.tagName !== 'INPUT') {
+      e.preventDefault();
+      urlInput.focus();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  });
 
   /* ── Theme ── */
   const saved = localStorage.getItem('ms_theme') || 'dark';
@@ -127,13 +146,21 @@ document.addEventListener('DOMContentLoaded', () => {
     progBox.classList.remove('hidden');
     results.classList.add('hidden');
     progBar.style.width = '0%';
+    // Show overlay
+    overlayUrl.textContent = url;
+    overlayMsg.textContent = 'Initializing scan…';
+    overlayFill.style.width = '0%';
+    overlay.classList.add('active');
 
     try {
       const data = await Scanner.scan(url, (msg, pct) => {
         progBar.style.width = pct + '%';
         progLbl.textContent = msg;
+        overlayMsg.textContent = msg;
+        overlayFill.style.width = pct + '%';
       });
 
+      overlay.classList.remove('active');
       results.classList.remove('hidden');
       UI.renderBanner(data);
       UI.renderStats(data);
@@ -145,7 +172,13 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('scanner-app').scrollIntoView({ behavior: 'smooth', block: 'start' });
 
     } catch (err) {
-      UI.toast('Scan failed: ' + err.message);
+      overlay.classList.remove('active');
+      // Better error messages
+      let msg = err.message;
+      if (/timeout|abort/i.test(msg))       msg = 'The site took too long to respond. Try again.';
+      else if (/proxies failed/i.test(msg)) msg = 'This site blocks external requests. Try a different URL.';
+      else if (/empty response/i.test(msg)) msg = 'No content returned. The site may require login.';
+      UI.toast('Scan failed: ' + msg);
       console.error(err);
     } finally {
       scanBtn.disabled = false;

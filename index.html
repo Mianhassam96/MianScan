@@ -471,7 +471,7 @@
   <div class="wrap lp-footer-inner">
     <div class="lp-footer-brand">
       <span class="logo"><i class="bi bi-radar"></i> MianScan</span>
-      <span class="foot-ver">v1.4</span>
+      <span class="foot-ver">v1.7</span>
       <p>Full website intelligence scanner. Free, fast, and powerful.</p>
     </div>
     <div class="lp-footer-links">
@@ -504,6 +504,19 @@
 </footer>
 
 <div id="toast" class="toast-msg"></div>
+
+<!-- Loading overlay -->
+<div class="scan-overlay" id="scanOverlay">
+  <i class="bi bi-radar scan-overlay-icon"></i>
+  <div class="scan-overlay-msg" id="overlayMsg">Scanning…</div>
+  <div class="scan-overlay-url" id="overlayUrl"></div>
+  <div class="scan-overlay-prog"><div class="scan-overlay-fill" id="overlayFill"></div></div>
+</div>
+
+<!-- Back to top -->
+<button class="back-to-top" id="backToTop" title="Back to top" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+  <i class="bi bi-arrow-up"></i>
+</button>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="js/analyzers/colors.js"></script>

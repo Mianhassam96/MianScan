@@ -54,19 +54,19 @@
     const da = domain?.da !== null && domain?.da !== undefined ? domain.da+'/10' : '—';
     const rank = ranking?.globalRank ? '#'+Number(ranking.globalRank).toLocaleString() : '—';
     const cards = [
-      {icon:'📊', val:seo.score+'/100',       lbl:'SEO Score'},
-      {icon:'🏆', val:da,                      lbl:'Domain Auth'},
-      {icon:'🌍', val:rank,                    lbl:'Global Rank'},
-      {icon:'🔗', val:links.totalInternal,     lbl:'Int. Links'},
-      {icon:'🌐', val:links.totalExternal,     lbl:'Ext. Links'},
-      {icon:'🖼️', val:images.total,           lbl:'Images'},
-      {icon:'⚠️', val:images.missingAltCount, lbl:'Missing Alt'},
-      {icon:'🛠️', val:tech.detected.length,   lbl:'Tech Found'},
+      {icon:'📊', val:seo.score+'/100',       lbl:'SEO Score',   color:'var(--green)'},
+      {icon:'🏆', val:da,                      lbl:'Domain Auth', color:'var(--primary2)'},
+      {icon:'🌍', val:rank,                    lbl:'Global Rank', color:'var(--accent)'},
+      {icon:'🔗', val:links.totalInternal,     lbl:'Int. Links',  color:'var(--primary2)'},
+      {icon:'🌐', val:links.totalExternal,     lbl:'Ext. Links',  color:'var(--muted)'},
+      {icon:'🖼️', val:images.total,           lbl:'Images',      color:'var(--yellow)'},
+      {icon:'⚠️', val:images.missingAltCount, lbl:'Missing Alt', color:images.missingAltCount>0?'var(--red)':'var(--green)'},
+      {icon:'🛠️', val:tech.detected.length,   lbl:'Tech Found',  color:'var(--purple)'},
     ];
     document.getElementById('statsRow').innerHTML = cards.map((c,i)=>
       `<div class="stat-card fu" style="animation-delay:${i*.05}s">
         <div class="stat-icon">${c.icon}</div>
-        <div class="stat-val">${c.val}</div>
+        <div class="stat-val" style="color:${c.color}">${c.val}</div>
         <div class="stat-lbl">${c.lbl}</div>
       </div>`).join('');
   },
@@ -99,7 +99,34 @@
     const comps = d.structure.components||[];
     const da = d.domain?.da !== null && d.domain?.da !== undefined ? d.domain.da+'/10' : 'N/A';
     const rank = d.ranking?.globalRank ? '#'+Number(d.ranking.globalRank).toLocaleString() : 'N/A';
-    return `<div class="g2">
+
+    // Site health score
+    let health = 0;
+    if (d.seo.score >= 70) health += 30; else if (d.seo.score >= 50) health += 15;
+    if (d.seo.title) health += 10;
+    if (d.seo.metaDesc) health += 10;
+    if (d.seo.h1s.length === 1) health += 10;
+    if (!d.indexing?.noindex) health += 10;
+    if (d.tech.detected.length > 0) health += 10;
+    if (d.contacts.emails.length > 0 || Object.keys(d.contacts.social).length > 0) health += 10;
+    if (d.seo.noAlt === 0) health += 10;
+    const healthCls = health >= 70 ? 'sg' : health >= 50 ? 'so' : 'sb';
+    const healthLabel = health >= 70 ? 'Healthy' : health >= 50 ? 'Needs Work' : 'Poor';
+    const healthDesc = health >= 70
+      ? 'This site has good SEO, contacts, and technical setup.'
+      : health >= 50
+      ? 'Some improvements needed — check SEO and accessibility tabs.'
+      : 'Multiple issues found — review SEO, indexing, and contacts.';
+
+    return `
+    <div class="health-gauge">
+      <div class="health-ring ${healthCls}">${health}</div>
+      <div class="health-info">
+        <h4>Site Health Score: ${healthLabel}</h4>
+        <p>${healthDesc}</p>
+      </div>
+    </div>
+    <div class="g2">
       <div class="card">
         <div class="card-head"><i class="bi bi-info-circle-fill"></i> Website Overview</div>
         ${this.irow('URL',      `<a href="${this.e(d.url)}" target="_blank" style="color:var(--primary2);word-break:break-all">${this.e(d.url)}</a>`)}
@@ -368,8 +395,16 @@
 
   /* ── 9. Contacts ── */
   tContacts(c) {
-    const si={Twitter:'twitter-x',Facebook:'facebook',LinkedIn:'linkedin',Instagram:'instagram',YouTube:'youtube',GitHub:'github',TikTok:'tiktok',Pinterest:'pinterest',Telegram:'telegram'};
-    return `<div class="g2">
+    const si={Twitter:'twitter-x',Facebook:'facebook',LinkedIn:'linkedin',Instagram:'instagram',YouTube:'youtube',GitHub:'github',TikTok:'tiktok',Pinterest:'pinterest',Telegram:'telegram','X (Twitter)':'twitter-x'};
+    const socialCount = Object.values(c.social).flat().length;
+    const summary = `
+    <div class="contact-summary">
+      <div class="cs-card"><div class="cs-val" style="color:var(--primary2)">${c.emails.length}</div><div class="cs-lbl">Emails</div></div>
+      <div class="cs-card"><div class="cs-val" style="color:var(--green)">${c.phones.length}</div><div class="cs-lbl">Phones</div></div>
+      <div class="cs-card"><div class="cs-val" style="color:var(--accent)">${c.whatsapp?.length||0}</div><div class="cs-lbl">WhatsApp</div></div>
+      <div class="cs-card"><div class="cs-val" style="color:var(--purple)">${socialCount}</div><div class="cs-lbl">Social</div></div>
+    </div>`;
+    return summary + `<div class="g2">
       <div class="card">
         <div class="card-head"><i class="bi bi-envelope-fill"></i> Emails <span class="badge-cnt">${c.emails.length}</span></div>
         ${c.emails.length?c.emails.map(e=>`<div class="litem"><i class="bi bi-envelope-fill"></i><a href="mailto:${e}" style="flex:1">${e}</a>${this.copyBtn(e)}</div>`).join(''):this.empty('No emails found')}
@@ -384,7 +419,7 @@
       ${c.contactPage?`<div class="card"><div class="card-head"><i class="bi bi-link-45deg"></i> Contact Page</div><div class="litem"><i class="bi bi-link-45deg"></i><a href="${this.e(c.contactPage)}" target="_blank" style="flex:1">${this.e(c.contactPage)}</a>${this.copyBtn(c.contactPage)}</div></div>`:''}
     </div>
     <div class="card">
-      <div class="card-head"><i class="bi bi-share-fill"></i> Social Media Profiles</div>
+      <div class="card-head"><i class="bi bi-share-fill"></i> Social Media Profiles <span class="badge-cnt">${socialCount}</span></div>
       ${Object.entries(c.social).length
         ?Object.entries(c.social).map(([k,urls])=>(Array.isArray(urls)?urls:[urls]).map(url=>`<div class="litem"><i class="bi bi-${si[k]||'link-45deg'}"></i><span class="social-platform">${k}</span><a href="${this.e(url)}" target="_blank" style="flex:1;word-break:break-all">${this.e(url)}</a>${this.copyBtn(url)}</div>`).join('')).join('')
         :this.empty('No social links found')}
@@ -404,9 +439,47 @@
 
   /* ── 11. Tech Stack ── */
   tTech(tech) {
+    const cats = {
+      'Frontend':       ['React','Vue.js','Angular','Next.js','Nuxt.js','Svelte','Alpine.js','Astro'],
+      'CSS / UI':       ['Tailwind CSS','Bootstrap','Font Awesome'],
+      'CMS / Platform': ['WordPress','Shopify','Webflow','Framer'],
+      'Analytics':      ['Google Analytics','Google Tag Manager','Hotjar'],
+      'Infrastructure': ['Cloudflare','Vercel','Netlify'],
+      'Libraries':      ['jQuery','GSAP','Webpack','Vite'],
+      'Payments':       ['Stripe'],
+      'Support':        ['Intercom','HubSpot'],
+    };
+    const catColors = {
+      'Frontend':'var(--primary2)','CSS / UI':'var(--accent)',
+      'CMS / Platform':'var(--purple)','Analytics':'var(--yellow)',
+      'Infrastructure':'var(--green)','Libraries':'var(--muted)',
+      'Payments':'var(--green)','Support':'var(--yellow)',
+    };
+    const detected = new Set(tech.detected);
+    const grouped = {};
+    const uncategorized = [];
+    detected.forEach(t => {
+      let found = false;
+      for (const [cat, items] of Object.entries(cats)) {
+        if (items.includes(t)) { (grouped[cat] = grouped[cat]||[]).push(t); found = true; break; }
+      }
+      if (!found) uncategorized.push(t);
+    });
+    if (uncategorized.length) grouped['Other'] = uncategorized;
+
+    const catHtml = Object.entries(grouped).map(([cat, items]) => `
+      <div class="tech-category">
+        <div class="tech-cat-label" style="color:${catColors[cat]||'var(--muted)'}">
+          ${cat}
+        </div>
+        <div class="tech-wrap">
+          ${items.map(t=>`<span class="tech-chip" style="border-color:${catColors[cat]||'var(--border)'}20"><span class="tdot" style="background:${catColors[cat]||'var(--green)'}"></span>${this.e(t)}<button class="copy-btn-sm" onclick="UI.copy('${t}')"><i class="bi bi-clipboard"></i></button></span>`).join('')}
+        </div>
+      </div>`).join('');
+
     return `<div class="card">
       <div class="card-head"><i class="bi bi-cpu-fill"></i> Detected Technologies <span class="badge-cnt">${tech.detected.length}</span></div>
-      <div class="tech-wrap">${tech.detected.length?tech.detected.map(t=>`<span class="tech-chip"><span class="tdot"></span>${this.e(t)}<button class="copy-btn-sm" onclick="UI.copy('${t}')"><i class="bi bi-clipboard"></i></button></span>`).join(''):this.empty('No technologies detected')}</div>
+      ${tech.detected.length ? catHtml : this.empty('No technologies detected')}
       ${tech.detected.length?`<button class="exp-btn" style="margin-top:.875rem" onclick="UI.copy('${tech.detected.join(', ')}')"><i class="bi bi-clipboard"></i> Copy All</button>`:''}
     </div>
     <div class="card">
@@ -417,15 +490,24 @@
 
   /* ── 12. Performance ── */
   tPerf(p) {
+    const bar = (lbl, val, max, unit, color) => {
+      const pct = Math.min((val/max)*100, 100);
+      const barColor = pct > 70 ? 'var(--red)' : pct > 40 ? 'var(--yellow)' : color||'var(--green)';
+      return `<div class="perf-bar-row">
+        <span class="perf-bar-lbl">${lbl}</span>
+        <div class="perf-bar-wrap"><div class="perf-bar-fill" style="width:${pct}%;background:${barColor}"></div></div>
+        <span class="perf-bar-val" style="color:${barColor}">${val}${unit}</span>
+      </div>`;
+    };
     return `<div class="g2">
       <div class="card">
         <div class="card-head"><i class="bi bi-speedometer2"></i> Page Metrics</div>
-        <div class="prow"><span class="plbl">HTML Size</span><span class="pval">${p.htmlSizeKB} KB</span></div>
-        <div class="prow"><span class="plbl">Scripts</span><span class="pval">${p.scriptsCount}</span></div>
-        <div class="prow"><span class="plbl">Stylesheets</span><span class="pval">${p.stylesCount}</span></div>
-        <div class="prow"><span class="plbl">Images</span><span class="pval">${p.imagesCount}</span></div>
-        <div class="prow"><span class="plbl">Iframes</span><span class="pval">${p.iframesCount}</span></div>
-        <div class="prow"><span class="plbl">Inline Script Size</span><span class="pval">${p.inlineKB} KB</span></div>
+        ${bar('HTML Size',    parseFloat(p.htmlSizeKB), 500, ' KB', 'var(--primary2)')}
+        ${bar('Scripts',      p.scriptsCount,  30, '', 'var(--primary2)')}
+        ${bar('Stylesheets',  p.stylesCount,   10, '', 'var(--accent)')}
+        ${bar('Images',       p.imagesCount,   50, '', 'var(--yellow)')}
+        ${bar('Iframes',      p.iframesCount,  5,  '', 'var(--purple)')}
+        ${bar('Inline JS',    parseFloat(p.inlineKB), 100, ' KB', 'var(--muted)')}
       </div>
       <div class="card">
         <div class="card-head"><i class="bi bi-universal-access"></i> Accessibility</div>
@@ -561,8 +643,12 @@
   /* ── Colors ── */
   tColors(c) {
     if (!c.colors.length) return this.empty('No colors detected');
+    const strip = `<div class="palette-strip" title="Click any color to copy">
+      ${c.colors.slice(0,16).map(hex=>`<div class="palette-strip-seg" style="background:${hex}" onclick="UI.copy('${hex}')" title="${hex}"></div>`).join('')}
+    </div>`;
     return `<div class="card">
       <div class="card-head"><i class="bi bi-palette-fill"></i> Color Palette <span class="badge-cnt">${c.total}</span></div>
+      ${strip}
       <div class="color-grid">${c.colors.map(hex=>`<div class="color-item" onclick="UI.copy('${hex}')" title="Click to copy ${hex}"><div class="swatch" style="background:${hex}"></div><span class="chex">${hex}</span><span class="crgb">${ColorAnalyzer.toRgb(hex)}</span></div>`).join('')}</div>
     </div>
     <div class="card">
