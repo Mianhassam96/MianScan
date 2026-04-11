@@ -13,14 +13,14 @@
 <meta property="og:url"         content="https://mianhassam96.github.io/MianScan/"/>
 <meta property="og:title"       content="MianScan — Website Intelligence Scanner"/>
 <meta property="og:description" content="Analyze any website instantly. SEO score, tech stack, colors, fonts, contacts, links — all in one powerful scan. Free, no signup."/>
-<meta property="og:image"       content="https://mianhassam96.github.io/MianScan/og-image.png"/>
+<meta property="og:image"       content="https://mianhassam96.github.io/MianScan/favicon.svg"/>
 <meta property="og:site_name"   content="MianScan"/>
 
 <!-- Twitter Card -->
 <meta name="twitter:card"        content="summary_large_image"/>
 <meta name="twitter:title"       content="MianScan — Website Intelligence Scanner"/>
 <meta name="twitter:description" content="Analyze any website instantly. SEO, tech stack, colors, fonts, contacts — free tool."/>
-<meta name="twitter:image"       content="https://mianhassam96.github.io/MianScan/og-image.png"/>
+<meta name="twitter:image"       content="https://mianhassam96.github.io/MianScan/favicon.svg"/>
 
 <title>MianScan — Website Analyzer</title>
 <link rel="manifest" href="manifest.json"/>
@@ -47,6 +47,7 @@
     <div class="nav-right">
       <button class="icon-btn" id="compareToggle" title="Compare Mode"><i class="bi bi-arrow-left-right"></i></button>
       <button class="icon-btn" id="themeBtn" title="Toggle theme"><i class="bi bi-moon-stars-fill"></i></button>
+      <span class="kbd-hint" title="Press / to focus URL bar"><kbd>/</kbd></span>
     </div>
   </div>
 </nav>
@@ -288,7 +289,7 @@
         </div>
       </div>
       <div class="compare-mock-cta">
-        <a href="#scanner-app" class="lp-btn-primary" onclick="document.getElementById('compareToggle').click();return false;">
+        <a href="#scanner-app" class="lp-btn-primary" onclick="event.preventDefault();document.getElementById('scanner-app').scrollIntoView({behavior:'smooth'});setTimeout(()=>{document.getElementById('compareToggle').click();},700);">
           <i class="bi bi-arrow-left-right"></i> Try Compare Mode
         </a>
       </div>

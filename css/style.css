@@ -361,28 +361,6 @@ pre{color:var(--muted);font-size:.8rem;overflow-x:auto;line-height:1.8;backgroun
 /* ===== MEDIA LABEL WARN ===== */
 .media-lbl-warn{color:var(--yellow)!important}
 
-/* ===== COPY BUTTONS ===== */
-.copy-btn{background:var(--bg4);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:.18rem .55rem;font-size:.72rem;font-weight:500;display:inline-flex;align-items:center;gap:.25rem;transition:all .2s;white-space:nowrap;flex-shrink:0}
-.copy-btn:hover{border-color:var(--primary2);color:var(--primary2);background:var(--bg3)}
-.copy-btn i{font-size:.7rem}
-.copy-btn-sm{background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:5px;padding:.15rem .35rem;font-size:.68rem;display:inline-flex;align-items:center;transition:all .2s;flex-shrink:0}
-.copy-btn-sm:hover{border-color:var(--primary2);color:var(--primary2)}
-
-/* ===== COMPONENTS ===== */
-.comp-grid{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.25rem}
-.comp-item{display:inline-flex;align-items:center;gap:.4rem;border-radius:8px;padding:.32rem .8rem;font-size:.82rem;font-weight:500;border:1px solid}
-.comp-found{background:rgba(34,197,94,.08);border-color:rgba(34,197,94,.25);color:var(--green)}
-.comp-missing{background:rgba(122,143,168,.06);border-color:rgba(122,143,168,.15);color:var(--muted)}
-
-/* ===== MEDIA ===== */
-.media-lbl-row{display:flex;align-items:center;justify-content:space-between;padding:.28rem .45rem;gap:.25rem}
-.media-lbl{font-size:.63rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
-
-/* ===== A11Y ROWS ===== */
-.a11y-row{display:flex;align-items:center;gap:.62rem;padding:.58rem .82rem;border-radius:var(--radius-s);margin-bottom:.45rem;font-size:.875rem}
-.a11y-warn{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.22);color:var(--yellow)}
-.a11y-ok{background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.22);color:var(--green)}
-
 @media(max-width:640px){
   .cmp-row{grid-template-columns:1fr}
   .compare-inputs{flex-direction:column}
@@ -531,6 +509,21 @@ pre{color:var(--muted);font-size:.8rem;overflow-x:auto;line-height:1.8;backgroun
   width: 1px; background: var(--border);
   margin: 0 .5rem; height: 32px; align-self: flex-end; flex-shrink: 0;
 }
+
+/* ===== KEYBOARD SHORTCUT HINT ===== */
+.kbd-hint {
+  display: flex; align-items: center;
+}
+kbd {
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 5px; padding: .1rem .45rem;
+  font-size: .72rem; font-weight: 700; color: var(--muted);
+  font-family: monospace; line-height: 1.6;
+  box-shadow: 0 1px 0 var(--border);
+  transition: color .2s, border-color .2s;
+}
+kbd:hover { color: var(--primary2); border-color: var(--primary2) }
+@media(max-width:640px) { .kbd-hint { display: none } }
 
 /* ===== SCAN AGAIN BUTTON ===== */
 .scan-again-btn {
