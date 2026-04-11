@@ -510,6 +510,29 @@ pre{color:var(--muted);font-size:.8rem;overflow-x:auto;line-height:1.8;backgroun
   margin: 0 .5rem; height: 32px; align-self: flex-end; flex-shrink: 0;
 }
 
+/* ===== NEW SCAN STICKY BAR ===== */
+.new-scan-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 1rem; padding: .6rem 1rem;
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius); margin-bottom: 1.25rem;
+  position: sticky; top: 58px; z-index: 89;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 2px 12px rgba(0,0,0,.2);
+}
+.new-scan-url {
+  font-size: .82rem; color: var(--muted); font-weight: 600;
+  display: flex; align-items: center; gap: .4rem;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.new-scan-url::before {
+  content: '\F52F';
+  font-family: 'Bootstrap-Icons';
+  color: var(--primary2);
+}
+[data-theme="light"] .new-scan-bar { background: rgba(238,242,255,.95) }
+@media(max-width:480px) { .new-scan-url { display: none } }
+
 /* ===== KEYBOARD SHORTCUT HINT ===== */
 .kbd-hint {
   display: flex; align-items: center;

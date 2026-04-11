@@ -85,7 +85,7 @@ const Scanner = {
     p('Analyzing page…', 20);
     const [
       colors, fonts, structure, content, cta, seo,
-      media, links, images, contacts, tech, performance
+      media, links, images, contacts, tech, performance, mobile
     ] = await Promise.all([
       Promise.resolve(ColorAnalyzer.analyze(doc, html)),
       Promise.resolve(FontAnalyzer.analyze(doc, html)),
@@ -99,15 +99,17 @@ const Scanner = {
       Promise.resolve(ContactAnalyzer.analyze(doc, html)),
       Promise.resolve(TechAnalyzer.analyze(doc, html)),
       Promise.resolve(PerformanceAnalyzer.analyze(doc, html)),
+      Promise.resolve(MobileAnalyzer.analyze(doc, html)),
     ]);
 
-    p('Fetching external data…', 65);
+    p('Fetching external data…', 55);
 
     // ── Phase 3: All network analyzers in parallel (slow APIs)
-    const [indexing, domain, ranking] = await Promise.allSettled([
+    const [indexing, domain, ranking, security] = await Promise.allSettled([
       IndexingAnalyzer.analyze(doc, html, url),
       DomainAnalyzer.analyze(url),
       RankingAnalyzer.analyze(url),
+      SecurityAnalyzer.analyze(url, doc),
     ]).then(results => results.map(r => r.status === 'fulfilled' ? r.value : null));
 
     p('Done!', 100);
@@ -119,10 +121,11 @@ const Scanner = {
       url, scannedAt: new Date().toISOString(),
       overview: this._overview(doc, url, structure, content, desc),
       colors, fonts, structure, content, cta, seo,
-      media, links, images, contacts, tech, performance,
+      media, links, images, contacts, tech, performance, mobile,
       indexing: indexing || { indexStatus: 'Unknown', robotsTxt: 'Not checked', noindex: false, nofollow: false },
       domain:   domain   || { hostname: new URL(url).hostname.replace(/^www\./, ''), da: null, rank: null, age: null },
-      ranking:  ranking  || { hostname: new URL(url).hostname.replace(/^www\./, ''), globalRank: null, pageRank: null, source: null }
+      ranking:  ranking  || { hostname: new URL(url).hostname.replace(/^www\./, ''), globalRank: null, pageRank: null, source: null },
+      security: security || { https: url.startsWith('https://'), score: 0, grade: 'F', checks: [] },
     };
     return this.currentData;
   }

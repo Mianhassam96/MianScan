@@ -116,6 +116,8 @@
       performance: ()=>this.tPerf(data.performance),
       metatags:    ()=>this.tMetaTags(data.seo),
       indexing:    ()=>this.tIndexing(data.indexing),
+      security:    ()=>this.tSecurity(data.security, data.url),
+      mobile:      ()=>this.tMobile(data.mobile),
       colors:      ()=>this.tColors(data.colors),
       fonts:       ()=>this.tFonts(data.fonts),
     };
@@ -698,6 +700,89 @@
       <div class="card-head"><i class="bi bi-translate"></i> Hreflang Tags <span class="badge-cnt">${idx.hreflang.length}</span></div>
       ${idx.hreflang.map(h=>`<div class="litem"><i class="bi bi-translate"></i><span class="social-platform">${h.lang}</span><span style="flex:1;word-break:break-all">${this.e(h.href)}</span></div>`).join('')}
     </div>`:''}`;
+  },
+
+  /* ── Security ── */
+  tSecurity(sec, url) {
+    if (!sec) return this.empty('Security data not available');
+    const gradeColor = sec.score >= 80 ? 'var(--green)' : sec.score >= 65 ? 'var(--primary2)' : sec.score >= 50 ? 'var(--yellow)' : 'var(--red)';
+    const gradeDesc  = sec.score >= 80 ? 'Good security posture' : sec.score >= 65 ? 'Some improvements recommended' : sec.score >= 50 ? 'Several issues found' : 'Critical issues detected';
+    return `
+    <div class="g2" style="align-items:start">
+      <div class="card">
+        <div class="card-head"><i class="bi bi-shield-lock-fill"></i> Security Score</div>
+        <div class="score-box">
+          <div class="score-ring" style="border-color:${gradeColor};color:${gradeColor}">${sec.score}</div>
+          <div class="score-grade" style="color:${gradeColor}">Grade ${sec.grade}</div>
+          <div class="score-sub">${gradeDesc}</div>
+        </div>
+        <div style="margin-top:1rem">
+          ${this.irow('HTTPS', sec.https
+            ? '<span style="color:var(--green);font-weight:700"><i class="bi bi-lock-fill"></i> Secure</span>'
+            : '<span style="color:var(--red);font-weight:700"><i class="bi bi-unlock-fill"></i> Not Secure</span>')}
+          ${this.irow('External Scripts', sec.extScripts?.length || 0)}
+          ${this.irow('Iframes', sec.iframeCount || 0)}
+          ${this.irow('Password Fields', sec.passwordFields || 0)}
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><i class="bi bi-list-check"></i> Security Checks</div>
+        ${(sec.checks || []).map(c => {
+          const icon = c.type === 'ok' ? 'check-circle-fill' : c.type === 'warn' ? 'exclamation-triangle-fill' : 'x-circle-fill';
+          const cls  = c.type === 'ok' ? 'a11y-ok' : 'a11y-warn';
+          return `<div class="a11y-row ${cls}">
+            <i class="bi bi-${icon}"></i>
+            <div style="flex:1">
+              <div style="font-weight:600">${c.label}</div>
+              <div style="font-size:.8rem;opacity:.85">${c.msg}</div>
+              ${c.detail ? `<div style="font-size:.75rem;margin-top:.2rem;opacity:.7">${c.detail}</div>` : ''}
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+    ${sec.extScripts?.length ? `
+    <div class="card">
+      <div class="card-head"><i class="bi bi-code-slash"></i> External Scripts Loaded <span class="badge-cnt">${sec.extScripts.length}</span></div>
+      ${sec.extScripts.map(s => `<div class="litem" style="font-size:.78rem"><i class="bi bi-box-arrow-up-right"></i><span style="word-break:break-all;flex:1">${this.e(s)}</span>${this.copyBtn(s)}</div>`).join('')}
+    </div>` : ''}`;
+  },
+
+  /* ── Mobile Friendliness ── */
+  tMobile(mob) {
+    if (!mob) return this.empty('Mobile data not available');
+    const gradeColor = mob.score >= 80 ? 'var(--green)' : mob.score >= 65 ? 'var(--primary2)' : mob.score >= 50 ? 'var(--yellow)' : 'var(--red)';
+    return `
+    <div class="g2" style="align-items:start">
+      <div class="card">
+        <div class="card-head"><i class="bi bi-phone-fill"></i> Mobile Score</div>
+        <div class="score-box">
+          <div class="score-ring" style="border-color:${gradeColor};color:${gradeColor}">${mob.score}</div>
+          <div class="score-grade" style="color:${gradeColor}">Grade ${mob.grade}</div>
+          <div class="score-sub">${mob.score >= 80 ? 'Mobile-friendly' : mob.score >= 50 ? 'Needs improvement' : 'Poor mobile experience'}</div>
+        </div>
+        <div style="margin-top:1rem">
+          ${this.crow('Viewport Meta',       mob.hasViewport && mob.hasWidthDevice)}
+          ${this.crow('Responsive Images',   mob.hasResponsiveImgs)}
+          ${this.crow('CSS Media Queries',   mob.hasMediaQueries)}
+          ${this.crow('PWA Manifest',        mob.hasManifest)}
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><i class="bi bi-list-check"></i> Mobile Checks</div>
+        ${(mob.checks || []).map(c => {
+          const icon = c.type === 'ok' ? 'check-circle-fill' : c.type === 'warn' ? 'exclamation-triangle-fill' : 'x-circle-fill';
+          const cls  = c.type === 'ok' ? 'a11y-ok' : 'a11y-warn';
+          return `<div class="a11y-row ${cls}">
+            <i class="bi bi-${icon}"></i>
+            <div style="flex:1">
+              <div style="font-weight:600">${c.label}</div>
+              <div style="font-size:.8rem;opacity:.85">${c.msg}</div>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
   },
 
   /* ── Colors ── */

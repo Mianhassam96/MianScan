@@ -190,6 +190,13 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => urlInput.focus(), 600);
   });
 
+  /* ── New Scan sticky bar ── */
+  document.getElementById('newScanBtn').addEventListener('click', () => {
+    results.classList.add('hidden');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setTimeout(() => urlInput.focus(), 600);
+  });
+
   /* ── Tab scroll arrows ── */
   const tabsBar = document.getElementById('tabsBar');
   document.getElementById('tabScrollLeft').addEventListener('click', () => {
@@ -242,6 +249,10 @@ document.addEventListener('DOMContentLoaded', () => {
       UI.renderBanner(data);
       UI.renderStats(data);
 
+      // Update sticky new-scan bar
+      const newScanUrl = document.getElementById('newScanUrl');
+      if (newScanUrl) newScanUrl.textContent = new URL(url).hostname;
+
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
       document.querySelector('[data-tab="overview"]').classList.add('active');
       UI.renderTab('overview', data);
@@ -270,6 +281,25 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => run(autoUrl), 400);
   }
 });
+
+/* ── Animated hero mock counter ── */
+(function animateHeroMock() {
+  const el = document.querySelector('.mock-stat-val[style*="22c55e"]');
+  if (!el) return;
+  const target = 92;
+  let current = 0;
+  const step = () => {
+    current = Math.min(current + 2, target);
+    el.textContent = current;
+    if (current < target) requestAnimationFrame(step);
+  };
+  // Start when hero is visible
+  const io = new IntersectionObserver(entries => {
+    if (entries[0].isIntersecting) { requestAnimationFrame(step); io.disconnect(); }
+  }, { threshold: 0.5 });
+  const hero = document.querySelector('.lp-hero');
+  if (hero) io.observe(hero);
+})();
 
 /* ── Scroll Reveal ── */
 (function initScrollReveal() {
