@@ -14,7 +14,7 @@
 </head>
 <body>
 
-<nav class="topnav">
+<nav class="topnav" id="topnav">
   <div class="wrap nav-row">
     <a class="logo" href="index.html"><i class="bi bi-radar"></i> MianScan</a>
     <div class="nav-links">
@@ -22,11 +22,21 @@
       <a href="how-it-works.html">How It Works</a>
       <a href="compare.html" class="nav-active">Compare</a>
       <a href="tools.html">Tools</a>
-      <a href="index.html#scanner-app">Try Now</a>
+      <a href="index.html#scanner-app" class="nav-cta"><i class="bi bi-radar"></i> Try Now</a>
     </div>
     <div class="nav-right">
       <button class="icon-btn" id="themeBtn"><i class="bi bi-moon-stars-fill"></i></button>
+      <button class="nav-hamburger" id="navHamburger" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
     </div>
+  </div>
+  <div class="nav-mobile" id="navMobile">
+    <a href="features.html"><i class="bi bi-grid-3x3-gap-fill"></i> Features</a>
+    <a href="how-it-works.html"><i class="bi bi-info-circle-fill"></i> How It Works</a>
+    <a href="compare.html" class="nav-active"><i class="bi bi-arrow-left-right"></i> Compare</a>
+    <a href="tools.html"><i class="bi bi-tools"></i> Tools</a>
+    <a href="index.html#scanner-app" class="nav-cta-mobile"><i class="bi bi-radar"></i> Try Now — Free</a>
   </div>
 </nav>
 
@@ -161,6 +171,13 @@ document.getElementById('themeBtn').addEventListener('click', () => {
   localStorage.setItem('ms_theme', next);
   document.querySelector('#themeBtn i').className = next === 'light' ? 'bi bi-sun-fill' : 'bi bi-moon-stars-fill';
 });
+// Hamburger
+const _hbg = document.getElementById('navHamburger');
+const _nmb = document.getElementById('navMobile');
+if (_hbg && _nmb) {
+  _hbg.addEventListener('click', () => { _hbg.classList.toggle('open'); _nmb.classList.toggle('open'); });
+  _nmb.querySelectorAll('a').forEach(a => a.addEventListener('click', () => { _hbg.classList.remove('open'); _nmb.classList.remove('open'); }));
+}
 
 // Toast helper
 function showToast(msg) {

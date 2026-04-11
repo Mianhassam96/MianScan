@@ -14,6 +14,23 @@ document.addEventListener('DOMContentLoaded', () => {
   const overlayFill= document.getElementById('overlayFill');
   const backToTop  = document.getElementById('backToTop');
 
+  /* ── Hamburger menu ── */
+  const hamburger = document.getElementById('navHamburger');
+  const navMobile = document.getElementById('navMobile');
+  if (hamburger && navMobile) {
+    hamburger.addEventListener('click', () => {
+      hamburger.classList.toggle('open');
+      navMobile.classList.toggle('open');
+    });
+    // Close on link click
+    navMobile.querySelectorAll('a').forEach(a =>
+      a.addEventListener('click', () => {
+        hamburger.classList.remove('open');
+        navMobile.classList.remove('open');
+      })
+    );
+  }
+
   /* ── Feature cards → scroll to scanner + open tab ── */
   document.querySelectorAll('.feat-card[data-goto]').forEach(card => {
     card.style.cursor = 'pointer';
@@ -81,24 +98,22 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelector('#themeBtn i').className = next === 'light' ? 'bi bi-sun-fill' : 'bi bi-moon-stars-fill';
   });
 
-  /* ── Compare toggle ── */
+  /* ── Compare toggle — now triggered from compare tab only ── */
   let compareMode = false;
   const compareToggle = document.getElementById('compareToggle');
-
-  compareToggle.addEventListener('click', () => {
-    compareMode = !compareMode;
-    // Show/hide compare section inside scanner-app
-    cmpSection.classList.toggle('hidden', !compareMode);
-    // If switching to compare, hide single results
-    if (compareMode) {
-      results.classList.add('hidden');
-      cmpResults.classList.add('hidden');
-      // Scroll to scanner app
-      document.getElementById('scanner-app').scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-    compareToggle.classList.toggle('active-btn', compareMode);
-    compareToggle.title = compareMode ? 'Back to Single Scan' : 'Compare Mode';
-  });
+  if (compareToggle) {
+    compareToggle.addEventListener('click', () => {
+      compareMode = !compareMode;
+      cmpSection.classList.toggle('hidden', !compareMode);
+      if (compareMode) {
+        results.classList.add('hidden');
+        cmpResults.classList.add('hidden');
+        document.getElementById('scanner-app').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+      compareToggle.classList.toggle('active-btn', compareMode);
+      compareToggle.title = compareMode ? 'Back to Single Scan' : 'Compare Mode';
+    });
+  }
 
   /* ── Compare scan ── */
   document.getElementById('compareBtn').addEventListener('click', async () => {
