@@ -118,6 +118,7 @@
       indexing:    ()=>this.tIndexing(data.indexing),
       security:    ()=>this.tSecurity(data.security, data.url),
       mobile:      ()=>this.tMobile(data.mobile),
+      social:      ()=>this.tSocial(data.seo, data.contacts),
       colors:      ()=>this.tColors(data.colors),
       fonts:       ()=>this.tFonts(data.fonts),
     };
@@ -149,7 +150,35 @@
       ? 'Some improvements needed — check SEO and accessibility tabs.'
       : 'Multiple issues found — review SEO, indexing, and contacts.';
 
-    return `
+    // Build issues/warnings/passed from seo checks
+    const checks = d.seo.checks || d.seo.warnings || [];
+    const errItems  = checks.filter(c => c.type === 'error');
+    const warnItems = checks.filter(c => c.type === 'warn');
+    const okItems   = checks.filter(c => c.type === 'ok');
+
+    const issuesSummary = `
+    <div class="card" style="margin-bottom:1.25rem">
+      <div class="card-head"><i class="bi bi-clipboard2-pulse-fill"></i> SEO Report Summary</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;margin-bottom:1rem">
+        <div style="background:rgba(240,68,68,.08);border:1px solid rgba(240,68,68,.22);border-radius:10px;padding:.875rem;text-align:center">
+          <div style="font-size:1.6rem;font-weight:900;color:var(--red)">${errItems.length}</div>
+          <div style="font-size:.72rem;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.06em">Errors</div>
+        </div>
+        <div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.22);border-radius:10px;padding:.875rem;text-align:center">
+          <div style="font-size:1.6rem;font-weight:900;color:var(--yellow)">${warnItems.length}</div>
+          <div style="font-size:.72rem;font-weight:700;color:var(--yellow);text-transform:uppercase;letter-spacing:.06em">Warnings</div>
+        </div>
+        <div style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.22);border-radius:10px;padding:.875rem;text-align:center">
+          <div style="font-size:1.6rem;font-weight:900;color:var(--green)">${okItems.length}</div>
+          <div style="font-size:.72rem;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.06em">Passed</div>
+        </div>
+      </div>
+      ${errItems.length ? `<div style="margin-bottom:.5rem">${errItems.map(c=>`<div class="a11y-row a11y-warn" style="background:rgba(240,68,68,.06);border-color:rgba(240,68,68,.2)"><i class="bi bi-x-circle-fill" style="color:var(--red)"></i>${c.msg}</div>`).join('')}</div>` : ''}
+      ${warnItems.length ? `<div style="margin-bottom:.5rem">${warnItems.map(c=>this.warnRow(c)).join('')}</div>` : ''}
+      ${okItems.length ? `<details style="margin-top:.25rem"><summary style="cursor:pointer;font-size:.8rem;color:var(--muted);padding:.3rem 0">${okItems.length} checks passed ▸</summary><div style="margin-top:.35rem">${okItems.map(c=>this.warnRow(c)).join('')}</div></details>` : ''}
+    </div>`;
+
+    return issuesSummary + `
     <div class="health-gauge">
       <div class="health-ring ${healthCls}">${health}</div>
       <div class="health-info">
@@ -204,14 +233,32 @@
 
   /* ── 2. SEO Score ── */
   tSEO(seo) {
-    const cls = seo.score>=70?'sg':seo.score>=50?'so':'sb';
-    const grade = seo.score>=70?'Good':seo.score>=50?'Needs Work':'Poor';
+    const cls   = seo.score >= 70 ? 'sg' : seo.score >= 50 ? 'so' : 'sb';
+    const grade = seo.score >= 70 ? 'Good' : seo.score >= 50 ? 'Needs Work' : 'Poor';
+    const checks = seo.checks || seo.warnings || [];
+    const passed  = checks.filter(c => c.type === 'ok');
+    const warns   = checks.filter(c => c.type === 'warn');
+    const errors  = checks.filter(c => c.type === 'error');
+
+    // Group checks by category
+    const cats = {};
+    checks.forEach(c => {
+      const cat = c.category || 'General';
+      (cats[cat] = cats[cat] || []).push(c);
+    });
+
+    const catColors = { Meta:'var(--primary2)', Content:'var(--green)', Images:'var(--yellow)', Technical:'var(--accent)', Social:'var(--purple)', General:'var(--muted)' };
+
+    const checksHtml = Object.entries(cats).map(([cat, items]) => `
+      <div style="margin-bottom:.75rem">
+        <div style="font-size:.7rem;font-weight:700;color:${catColors[cat]||'var(--muted)'};text-transform:uppercase;letter-spacing:.08em;margin-bottom:.35rem;display:flex;align-items:center;gap:.4rem">
+          ${cat}<span style="flex:1;height:1px;background:var(--border);display:inline-block"></span>
+        </div>
+        ${items.map(w => this.warnRow(w)).join('')}
+      </div>`).join('');
+
     return `
-    <div class="section-page-header">
-      <h3><i class="bi bi-graph-up-arrow" style="color:var(--green)"></i> SEO Score Analysis</h3>
-      <p>On-page SEO evaluation based on title, description, headings, alt tags, canonical, and OG tags.</p>
-    </div>
-    <div class="g2" style="align-items:start">
+    <div class="g2" style="align-items:start;margin-bottom:1.25rem">
       <div class="card">
         <div class="card-head"><i class="bi bi-graph-up-arrow"></i> SEO Score</div>
         <div class="score-box">
@@ -219,10 +266,24 @@
           <div class="score-grade">${grade}</div>
           <div class="score-sub">${seo.imagesTotal} images · ${seo.withAlt} with alt · ${seo.noAlt} missing</div>
         </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;margin-top:1rem">
+          <div style="text-align:center;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:8px;padding:.6rem">
+            <div style="font-size:1.3rem;font-weight:800;color:var(--green)">${passed.length}</div>
+            <div style="font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">Passed</div>
+          </div>
+          <div style="text-align:center;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:8px;padding:.6rem">
+            <div style="font-size:1.3rem;font-weight:800;color:var(--yellow)">${warns.length}</div>
+            <div style="font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">Warnings</div>
+          </div>
+          <div style="text-align:center;background:rgba(240,68,68,.08);border:1px solid rgba(240,68,68,.2);border-radius:8px;padding:.6rem">
+            <div style="font-size:1.3rem;font-weight:800;color:var(--red)">${errors.length}</div>
+            <div style="font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">Errors</div>
+          </div>
+        </div>
       </div>
       <div class="card">
-        <div class="card-head"><i class="bi bi-exclamation-triangle-fill"></i> SEO Checks</div>
-        ${(seo.warnings||[]).map(w=>this.warnRow(w)).join('')}
+        <div class="card-head"><i class="bi bi-list-check"></i> SEO Checks by Category</div>
+        ${checksHtml || (seo.warnings||[]).map(w=>this.warnRow(w)).join('')}
       </div>
     </div>`;
   },
@@ -242,6 +303,11 @@
         ${this.irow('Type',     overview.type)}
         ${this.irow('Language', overview.lang)}
         ${this.irow('Registered', d?.age || '<em style="color:var(--muted)">Unknown</em>')}
+        ${d?.ip      ? this.irow('IP Address', `<code style="color:var(--primary2)">${this.e(d.ip)}</code>`) : ''}
+        ${d?.country ? this.irow('Country',    this.e(d.country)) : ''}
+        ${d?.city    ? this.irow('City',       this.e(d.city)) : ''}
+        ${d?.isp     ? this.irow('ISP',        this.e(d.isp)) : ''}
+        ${d?.org     ? this.irow('Org / Host', this.e(d.org)) : ''}
       </div>
       <div class="card">
         <div class="card-head"><i class="bi bi-bar-chart-fill"></i> Authority Metrics</div>
@@ -781,6 +847,107 @@
             </div>
           </div>`;
         }).join('')}
+      </div>
+    </div>`;
+  },
+
+  /* ── Social SEO ── */
+  tSocial(seo, contacts) {
+    const og = seo.ogTags || [];
+    const tw = seo.twitterTags || [];
+    const getOG = p => og.find(t=>t.property===p)?.content || '';
+    const getTW = n => tw.find(t=>t.name===n)?.content || '';
+    const ogTitle = getOG('og:title') || seo.title || '';
+    const ogDesc  = getOG('og:description') || seo.metaDesc || '';
+    const ogImg   = getOG('og:image') || seo.ogImage || '';
+    const ogSite  = getOG('og:site_name') || '';
+    const ogType  = getOG('og:type') || '';
+    const ogUrl   = getOG('og:url') || '';
+    const twCard  = getTW('twitter:card') || '';
+    const twTitle = getTW('twitter:title') || ogTitle;
+    const twDesc  = getTW('twitter:description') || ogDesc;
+    const twImg   = getTW('twitter:image') || ogImg;
+    const twSite  = getTW('twitter:site') || '';
+    const social  = contacts?.social || {};
+    const socialCount = Object.values(social).flat().length;
+
+    const scoreItems = [
+      { ok: !!ogTitle,  label: 'OG Title' },
+      { ok: !!ogDesc,   label: 'OG Description' },
+      { ok: !!ogImg,    label: 'OG Image' },
+      { ok: !!ogType,   label: 'OG Type' },
+      { ok: !!twCard,   label: 'Twitter Card' },
+      { ok: !!twTitle,  label: 'Twitter Title' },
+      { ok: !!twImg,    label: 'Twitter Image' },
+      { ok: socialCount > 0, label: 'Social Links Found' },
+    ];
+    const socialScore = Math.round((scoreItems.filter(i=>i.ok).length / scoreItems.length) * 100);
+    const scoreColor = socialScore >= 75 ? 'var(--green)' : socialScore >= 50 ? 'var(--yellow)' : 'var(--red)';
+
+    const siIcons = {Twitter:'twitter-x',Facebook:'facebook',LinkedIn:'linkedin',Instagram:'instagram',YouTube:'youtube',GitHub:'github',TikTok:'tiktok',Pinterest:'pinterest',Telegram:'telegram','X (Twitter)':'twitter-x'};
+
+    return `
+    <div class="g2" style="align-items:start;margin-bottom:1.25rem">
+      <div class="card">
+        <div class="card-head"><i class="bi bi-share-fill"></i> Social SEO Score</div>
+        <div class="score-box">
+          <div class="score-ring" style="border-color:${scoreColor};color:${scoreColor}">${socialScore}</div>
+          <div class="score-grade" style="color:${scoreColor}">${socialScore>=75?'Good':socialScore>=50?'Needs Work':'Poor'}</div>
+          <div class="score-sub">${scoreItems.filter(i=>i.ok).length}/${scoreItems.length} social tags present</div>
+        </div>
+        <div style="margin-top:1rem">
+          ${scoreItems.map(i=>`<div class="crow"><span class="clbl">${i.label}</span><span class="${i.ok?'pass':'fail'}"><i class="bi bi-${i.ok?'check-circle-fill':'x-circle-fill'}"></i>${i.ok?'Present':'Missing'}</span></div>`).join('')}
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><i class="bi bi-people-fill"></i> Social Profiles Found <span class="badge-cnt">${socialCount}</span></div>
+        ${Object.entries(social).length ? Object.entries(social).map(([platform, urls]) =>
+          (Array.isArray(urls)?urls:[urls]).map(u=>`
+          <div class="litem">
+            <i class="bi bi-${siIcons[platform]||'globe2'}"></i>
+            <span class="social-platform">${platform}</span>
+            <a href="${this.e(u)}" target="_blank" rel="noopener" style="flex:1;word-break:break-all;font-size:.82rem">${this.e(u)}</a>
+            ${this.copyBtn(u)}
+          </div>`).join('')
+        ).join('') : this.empty('No social profiles found')}
+      </div>
+    </div>
+    <div class="g2">
+      <div class="card">
+        <div class="card-head"><i class="bi bi-facebook"></i> Facebook / LinkedIn Preview</div>
+        <div class="og-card" style="border-radius:var(--radius-s);overflow:hidden;background:var(--bg3);border:1px solid var(--border)">
+          ${ogImg?`<div style="width:100%;height:140px;overflow:hidden;background:var(--bg4)"><img src="${this.e(ogImg)}" style="width:100%;height:140px;object-fit:cover" onerror="this.parentElement.style.display='none'"></div>`:'<div style="height:80px;display:flex;align-items:center;justify-content:center;background:var(--bg4);color:var(--muted);font-size:1.5rem"><i class="bi bi-image"></i></div>'}
+          <div style="padding:.75rem">
+            ${ogSite?`<div style="font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.2rem">${this.e(ogSite)}</div>`:''}
+            <div style="font-weight:700;color:var(--text);margin-bottom:.2rem;line-height:1.3">${this.e(ogTitle)||'<em style="opacity:.4">No OG title</em>'}</div>
+            <div style="font-size:.8rem;color:var(--muted);line-height:1.4">${this.e(ogDesc)||'<em style="opacity:.4">No OG description</em>'}</div>
+          </div>
+        </div>
+        <div style="margin-top:.75rem">
+          ${this.irow('og:title',       this.miss(ogTitle))}
+          ${this.irow('og:description', this.miss(ogDesc))}
+          ${this.irow('og:image',       ogImg?`<a href="${this.e(ogImg)}" target="_blank" style="color:var(--primary2);word-break:break-all;font-size:.8rem">${this.e(ogImg)}</a>`:this.miss(''))}
+          ${this.irow('og:type',        this.none(ogType))}
+          ${this.irow('og:url',         this.none(ogUrl))}
+          ${this.irow('og:site_name',   this.none(ogSite))}
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><i class="bi bi-twitter-x"></i> Twitter / X Preview</div>
+        <div class="og-card" style="border-radius:var(--radius-s);overflow:hidden;background:var(--bg3);border:1px solid var(--border)">
+          ${twImg?`<div style="width:100%;height:140px;overflow:hidden;background:var(--bg4)"><img src="${this.e(twImg)}" style="width:100%;height:140px;object-fit:cover" onerror="this.parentElement.style.display='none'"></div>`:'<div style="height:80px;display:flex;align-items:center;justify-content:center;background:var(--bg4);color:var(--muted);font-size:1.5rem"><i class="bi bi-image"></i></div>'}
+          <div style="padding:.75rem">
+            <div style="font-weight:700;color:var(--text);margin-bottom:.2rem;line-height:1.3">${this.e(twTitle)||'<em style="opacity:.4">No Twitter title</em>'}</div>
+            <div style="font-size:.8rem;color:var(--muted);line-height:1.4">${this.e(twDesc)||'<em style="opacity:.4">No Twitter description</em>'}</div>
+          </div>
+        </div>
+        <div style="margin-top:.75rem">
+          ${this.irow('twitter:card',        this.miss(twCard))}
+          ${this.irow('twitter:title',       this.none(twTitle))}
+          ${this.irow('twitter:description', this.none(twDesc))}
+          ${this.irow('twitter:image',       twImg?`<a href="${this.e(twImg)}" target="_blank" style="color:var(--primary2);word-break:break-all;font-size:.8rem">${this.e(twImg)}</a>`:this.miss(''))}
+          ${this.irow('twitter:site',        this.none(twSite))}
+        </div>
       </div>
     </div>`;
   },

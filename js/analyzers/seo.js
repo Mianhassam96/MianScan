@@ -34,50 +34,140 @@ const SEOAnalyzer = {
     const imgs = doc.querySelectorAll('img');
     const withAlt = [...imgs].filter(i=>i.getAttribute('alt')).length;
     const noAlt = imgs.length - withAlt;
+    // ── Weighted SEO score engine (100 pts total)
     let score = 0;
-    if (title)                                     score += 15;
-    if (title.length>=30 && title.length<=60)      score += 5;
-    if (metaDesc)                                  score += 15;
-    if (metaDesc.length>=100&&metaDesc.length<=160)score += 5;
-    if (h1s.length===1)                            score += 10;
-    if (h2s.length>0)                              score += 5;
-    if (canonical)                                 score += 5;
-    if (ogTitle)                                   score += 5;
-    if (ogImage)                                   score += 5;
-    if (twCard)                                    score += 5;
-    if (viewport)                                  score += 5;
-    if (noAlt===0 && imgs.length>0)                score += 10;
-    else if (noAlt<3)                              score += 5;
-    if (metaKw)                                    score += 5;
+    const checks = [];
 
-    // Detailed warnings for SEO tab
-    const warnings = [];
-    if (!title)                                    warnings.push({type:'error', msg:'Missing meta title'});
-    else if (title.length < 30)                    warnings.push({type:'warn',  msg:`Title too short (${title.length} chars, min 30)`});
-    else if (title.length > 60)                    warnings.push({type:'warn',  msg:`Title too long (${title.length} chars, max 60)`});
-    else                                           warnings.push({type:'ok',    msg:`Title length good (${title.length} chars)`});
+    // ── Meta Title — 20 pts
+    if (title) {
+      score += 10;
+      checks.push({ id:'title', type:'ok', category:'Meta', msg:`Title present (${title.length} chars)` });
+      if (title.length >= 30 && title.length <= 60) {
+        score += 10;
+        checks.push({ id:'title_len', type:'ok', category:'Meta', msg:'Title length optimal (30–60 chars)' });
+      } else if (title.length < 30) {
+        score += 3;
+        checks.push({ id:'title_len', type:'warn', category:'Meta', msg:`Title too short (${title.length} chars, min 30)` });
+      } else {
+        score += 3;
+        checks.push({ id:'title_len', type:'warn', category:'Meta', msg:`Title too long (${title.length} chars, max 60)` });
+      }
+    } else {
+      checks.push({ id:'title', type:'error', category:'Meta', msg:'Missing meta title — critical SEO issue' });
+    }
 
-    if (!metaDesc)                                 warnings.push({type:'error', msg:'Missing meta description'});
-    else if (metaDesc.length < 100)                warnings.push({type:'warn',  msg:`Description too short (${metaDesc.length} chars, min 100)`});
-    else if (metaDesc.length > 160)                warnings.push({type:'warn',  msg:`Description too long (${metaDesc.length} chars, max 160)`});
-    else                                           warnings.push({type:'ok',    msg:`Description length good (${metaDesc.length} chars)`});
+    // ── Meta Description — 15 pts
+    if (metaDesc) {
+      score += 8;
+      checks.push({ id:'desc', type:'ok', category:'Meta', msg:`Meta description present (${metaDesc.length} chars)` });
+      if (metaDesc.length >= 100 && metaDesc.length <= 160) {
+        score += 7;
+        checks.push({ id:'desc_len', type:'ok', category:'Meta', msg:'Description length optimal (100–160 chars)' });
+      } else if (metaDesc.length < 100) {
+        score += 2;
+        checks.push({ id:'desc_len', type:'warn', category:'Meta', msg:`Description too short (${metaDesc.length} chars, min 100)` });
+      } else {
+        score += 2;
+        checks.push({ id:'desc_len', type:'warn', category:'Meta', msg:`Description too long (${metaDesc.length} chars, max 160)` });
+      }
+    } else {
+      checks.push({ id:'desc', type:'error', category:'Meta', msg:'Missing meta description' });
+    }
 
-    if (h1s.length === 0)                          warnings.push({type:'error', msg:'No H1 tag found'});
-    else if (h1s.length > 1)                       warnings.push({type:'warn',  msg:`Multiple H1 tags found (${h1s.length}) — should be 1`});
-    else                                           warnings.push({type:'ok',    msg:'Single H1 tag — correct'});
+    // ── Headings — 20 pts
+    if (h1s.length === 1) {
+      score += 12;
+      checks.push({ id:'h1', type:'ok', category:'Content', msg:'Single H1 tag — correct' });
+    } else if (h1s.length === 0) {
+      checks.push({ id:'h1', type:'error', category:'Content', msg:'No H1 tag found — critical SEO issue' });
+    } else {
+      score += 4;
+      checks.push({ id:'h1', type:'warn', category:'Content', msg:`Multiple H1 tags (${h1s.length}) — should be exactly 1` });
+    }
+    if (h2s.length > 0) {
+      score += 5;
+      checks.push({ id:'h2', type:'ok', category:'Content', msg:`H2 tags present (${h2s.length})` });
+    } else {
+      checks.push({ id:'h2', type:'warn', category:'Content', msg:'No H2 tags — add subheadings for structure' });
+    }
+    if (h3s.length > 0) {
+      score += 3;
+      checks.push({ id:'h3', type:'ok', category:'Content', msg:`H3 tags present (${h3s.length})` });
+    }
 
-    if (noAlt > 0)                                 warnings.push({type:'warn',  msg:`${noAlt} image(s) missing alt text`});
-    else if (imgs.length > 0)                      warnings.push({type:'ok',    msg:'All images have alt text'});
+    // ── Images Alt Text — 10 pts
+    if (imgs.length > 0) {
+      if (noAlt === 0) {
+        score += 10;
+        checks.push({ id:'alt', type:'ok', category:'Images', msg:'All images have alt text' });
+      } else if (noAlt <= 2) {
+        score += 5;
+        checks.push({ id:'alt', type:'warn', category:'Images', msg:`${noAlt} image(s) missing alt text` });
+      } else {
+        score += 2;
+        checks.push({ id:'alt', type:'error', category:'Images', msg:`${noAlt} images missing alt text — hurts SEO` });
+      }
+    }
 
-    if (!canonical)                                warnings.push({type:'warn',  msg:'No canonical URL set'});
-    else                                           warnings.push({type:'ok',    msg:'Canonical URL present'});
+    // ── Technical — 15 pts
+    if (canonical) {
+      score += 7;
+      checks.push({ id:'canonical', type:'ok', category:'Technical', msg:'Canonical URL present' });
+    } else {
+      checks.push({ id:'canonical', type:'warn', category:'Technical', msg:'No canonical URL — duplicate content risk' });
+    }
+    if (viewport) {
+      score += 8;
+      checks.push({ id:'viewport', type:'ok', category:'Technical', msg:'Viewport meta present — mobile-friendly' });
+    } else {
+      checks.push({ id:'viewport', type:'error', category:'Technical', msg:'Missing viewport meta — not mobile-friendly' });
+    }
 
-    if (!ogTitle)                                  warnings.push({type:'warn',  msg:'Missing OG title (social sharing)'});
-    else                                           warnings.push({type:'ok',    msg:'OG title present'});
+    // ── Social / OG — 10 pts
+    if (ogTitle) {
+      score += 4;
+      checks.push({ id:'og_title', type:'ok', category:'Social', msg:'OG title present' });
+    } else {
+      checks.push({ id:'og_title', type:'warn', category:'Social', msg:'Missing OG title — affects social sharing' });
+    }
+    if (ogImage) {
+      score += 3;
+      checks.push({ id:'og_image', type:'ok', category:'Social', msg:'OG image present' });
+    } else {
+      checks.push({ id:'og_image', type:'warn', category:'Social', msg:'Missing OG image — affects social sharing' });
+    }
+    if (twCard) {
+      score += 3;
+      checks.push({ id:'tw_card', type:'ok', category:'Social', msg:'Twitter card meta present' });
+    } else {
+      checks.push({ id:'tw_card', type:'warn', category:'Social', msg:'Missing Twitter card meta' });
+    }
 
-    if (!viewport)                                 warnings.push({type:'error', msg:'Missing viewport meta (not mobile-friendly)'});
-    else                                           warnings.push({type:'ok',    msg:'Viewport meta present'});
+    // ── Keywords — 5 pts
+    if (metaKw) {
+      score += 5;
+      checks.push({ id:'keywords', type:'ok', category:'Meta', msg:'Meta keywords present' });
+    } else {
+      checks.push({ id:'keywords', type:'warn', category:'Meta', msg:'No meta keywords (minor)' });
+    }
 
-    return { score: Math.min(score,100), title, metaDesc, metaKw, canonical, ogTitle, ogImage, twCard, viewport, h1s, h2s, h3s, imagesTotal: imgs.length, withAlt, noAlt, warnings, allMeta, ogTags, twitterTags };
+    // Build legacy warnings array for backward compat
+    const warnings = checks.map(c => ({ type: c.type, msg: c.msg }));
+
+    // Categorized summary counts
+    const passed   = checks.filter(c => c.type === 'ok').length;
+    const warnings_count = checks.filter(c => c.type === 'warn').length;
+    const errors   = checks.filter(c => c.type === 'error').length;
+
+    return {
+      score: Math.min(score, 100),
+      title, metaDesc, metaKw, canonical, ogTitle, ogImage, twCard, viewport,
+      h1s, h2s, h3s,
+      imagesTotal: imgs.length, withAlt, noAlt,
+      warnings,   // legacy compat
+      checks,     // new detailed checks with categories
+      passed, warnings_count, errors,
+      allMeta, ogTags, twitterTags
+    };
   }
 };

@@ -49,12 +49,25 @@ const Compare = {
   _buildOutput(a, b) {
     const hostA = new URL(a.url).hostname;
     const hostB = new URL(b.url).hostname;
+
+    // Determine overall winner
+    const scoreA = a.seo.score + (a.mobile?.score||0) + (a.security?.score||0);
+    const scoreB = b.seo.score + (b.mobile?.score||0) + (b.security?.score||0);
+    const winnerHost = scoreA > scoreB ? hostA : scoreB > scoreA ? hostB : null;
+    const winnerBadge = winnerHost
+      ? `<div style="text-align:center;margin-bottom:1.5rem">
+          <div style="display:inline-flex;align-items:center;gap:.5rem;background:linear-gradient(135deg,var(--primary),var(--purple));color:#fff;border-radius:30px;padding:.5rem 1.5rem;font-weight:800;font-size:.95rem;box-shadow:0 4px 20px rgba(100,112,255,.4)">
+            <i class="bi bi-trophy-fill"></i> ${winnerHost} wins overall
+          </div>
+        </div>` : `<div style="text-align:center;margin-bottom:1.5rem"><span style="color:var(--muted);font-size:.9rem">🤝 It's a tie!</span></div>`;
+
     return `
       <div class="compare-title-row">
         <div class="compare-site-label"><i class="bi bi-globe2"></i><a href="${a.url}" target="_blank">${hostA}</a></div>
         <div class="compare-vs-badge">VS</div>
         <div class="compare-site-label"><i class="bi bi-globe2"></i><a href="${b.url}" target="_blank">${hostB}</a></div>
       </div>
+      ${winnerBadge}
       <div class="cmp-col-headers">
         <div class="cmp-col-hdr">${hostA}</div>
         <div class="cmp-col-hdr">${hostB}</div>
@@ -69,6 +82,8 @@ const Compare = {
       ${this.section('🎨 Colors',         this.colorsBlock(a,b))}
       ${this.section('🔤 Fonts',          this.fontsBlock(a,b))}
       ${this.section('⚡ Performance',    this.perfBlock(a,b))}
+      ${this.section('📱 Mobile Score',   this.mobileBlock(a,b))}
+      ${this.section('🔐 Security Score', this.securityBlock(a,b))}
       ${this.section('📧 Contacts',       this.contactsBlock(a,b))}
     `;
   },
@@ -123,9 +138,12 @@ const Compare = {
   },
 
   seoBlock(a, b) {
-    const ring = (d) => {
+    const winner = a.seo.score > b.seo.score ? 'a' : b.seo.score > a.seo.score ? 'b' : null;
+    const ring = (d, side) => {
       const cls = d.seo.score>=70?'sg':d.seo.score>=50?'so':'sb';
+      const isWinner = winner === side;
       return `<div class="cmp-score-wrap">
+        ${isWinner ? `<div style="font-size:.72rem;font-weight:700;color:var(--green);margin-bottom:.4rem"><i class="bi bi-trophy-fill"></i> WINNER</div>` : ''}
         <div class="score-ring ${cls}" style="width:80px;height:80px;font-size:1.4rem">${d.seo.score}</div>
         <div style="font-size:.82rem;color:var(--muted);margin-top:.5rem">
           H1: ${d.seo.h1s.length} · H2: ${d.seo.h2s.length}<br>
@@ -138,7 +156,7 @@ const Compare = {
         </div>
       </div>`;
     };
-    return this.col(ring(a)) + this.col(ring(b));
+    return this.col(ring(a,'a')) + this.col(ring(b,'b'));
   },
 
   keywordsBlock(a, b) {
@@ -197,5 +215,35 @@ const Compare = {
              (socials ? `<div class="tags" style="margin-top:.5rem">${socials}</div>` : '');
     };
     return this.col(info(a)) + this.col(info(b));
+  },
+
+  mobileBlock(a, b) {
+    const mob = d => {
+      const s = d.mobile?.score ?? '—';
+      const g = d.mobile?.grade ?? '?';
+      const c = s >= 80 ? 'var(--green)' : s >= 50 ? 'var(--yellow)' : 'var(--red)';
+      return `<div class="cmp-score-wrap">
+        <div class="score-ring" style="width:72px;height:72px;font-size:1.3rem;border-color:${c};color:${c}">${s}</div>
+        <div style="font-size:.82rem;color:var(--muted);margin-top:.5rem">Grade ${g}</div>
+        ${(d.mobile?.checks||[]).slice(0,4).map(c=>`<div class="${c.type==='ok'?'pass':'fail'}" style="font-size:.78rem;margin-top:.3rem"><i class="bi bi-${c.type==='ok'?'check-circle-fill':'x-circle-fill'}"></i> ${c.label}</div>`).join('')}
+      </div>`;
+    };
+    return this.col(mob(a)) + this.col(mob(b));
+  },
+
+  securityBlock(a, b) {
+    const sec = d => {
+      const s = d.security?.score ?? '—';
+      const g = d.security?.grade ?? '?';
+      const c = s >= 80 ? 'var(--green)' : s >= 50 ? 'var(--yellow)' : 'var(--red)';
+      return `<div class="cmp-score-wrap">
+        <div class="score-ring" style="width:72px;height:72px;font-size:1.3rem;border-color:${c};color:${c}">${s}</div>
+        <div style="font-size:.82rem;color:var(--muted);margin-top:.5rem">Grade ${g}</div>
+        <div style="margin-top:.5rem;font-size:.82rem;font-weight:700;color:${d.security?.https?'var(--green)':'var(--red)'}">
+          <i class="bi bi-${d.security?.https?'lock-fill':'unlock-fill'}"></i> ${d.security?.https?'HTTPS':'HTTP'}
+        </div>
+      </div>`;
+    };
+    return this.col(sec(a)) + this.col(sec(b));
   }
 };

@@ -14,6 +14,47 @@ document.addEventListener('DOMContentLoaded', () => {
   const overlayFill= document.getElementById('overlayFill');
   const backToTop  = document.getElementById('backToTop');
 
+  /* ══════════════════════════════════════
+     SCAN HISTORY (localStorage)
+  ══════════════════════════════════════ */
+  const History = {
+    KEY: 'ms_history',
+    MAX: 8,
+    get() {
+      try { return JSON.parse(localStorage.getItem(this.KEY) || '[]'); } catch { return []; }
+    },
+    add(url) {
+      let h = this.get().filter(u => u !== url);
+      h.unshift(url);
+      h = h.slice(0, this.MAX);
+      localStorage.setItem(this.KEY, JSON.stringify(h));
+      this.render();
+    },
+    clear() {
+      localStorage.removeItem(this.KEY);
+      this.render();
+    },
+    render() {
+      const h = this.get();
+      const wrap = document.getElementById('historyBar');
+      if (!wrap) return;
+      if (!h.length) { wrap.classList.add('hidden'); return; }
+      wrap.classList.remove('hidden');
+      wrap.innerHTML = `
+        <span class="history-label"><i class="bi bi-clock-history"></i> Recent</span>
+        ${h.map(u => `<button class="history-item" data-url="${u}" title="${u}">
+          <i class="bi bi-globe2"></i>${new URL(u).hostname}
+        </button>`).join('')}
+        <button class="history-clear" onclick="History.clear()" title="Clear history"><i class="bi bi-x-lg"></i></button>`;
+      wrap.querySelectorAll('.history-item').forEach(btn =>
+        btn.addEventListener('click', () => { urlInput.value = btn.dataset.url; run(btn.dataset.url); })
+      );
+    }
+  };
+  // Expose globally so onclick in template works
+  window.History = History;
+  History.render();
+
   /* ── Feature cards → scroll to scanner + open tab ── */
   document.querySelectorAll('.feat-card[data-goto]').forEach(card => {
     card.style.cursor = 'pointer';
@@ -250,6 +291,9 @@ document.addEventListener('DOMContentLoaded', () => {
       results.classList.remove('hidden');
       UI.renderBanner(data);
       UI.renderStats(data);
+
+      // Save to history
+      History.add(url);
 
       // Update sticky new-scan bar
       const newScanUrl = document.getElementById('newScanUrl');
