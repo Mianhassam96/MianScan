@@ -53,9 +53,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  /* ── Back to top ── */
+  /* ── Back to top + nav scroll glow ── */
+  const topnav = document.querySelector('.topnav');
   window.addEventListener('scroll', () => {
     backToTop.classList.toggle('visible', window.scrollY > 400);
+    if (topnav) topnav.classList.toggle('scrolled', window.scrollY > 40);
   });
 
   /* ── Keyboard shortcut: / to focus URL ── */
