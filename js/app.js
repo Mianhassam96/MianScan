@@ -132,7 +132,6 @@ document.addEventListener('DOMContentLoaded', () => {
   /* ── Single scan ── */
   scanBtn.addEventListener('click', () => run());
   urlInput.addEventListener('keydown', e => { if (e.key === 'Enter') run(); });
-
   /* ── Tabs ── */
   document.getElementById('tabs').addEventListener('click', e => {
     const btn = e.target.closest('.tab');
@@ -211,7 +210,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Update browser URL for shareability
     const shareParam = new URL(location.href);
     shareParam.searchParams.set('url', url);
-    history.replaceState(null, '', shareParam.toString());
+    window.history.replaceState(null, '', shareParam.toString());
 
     // Hide compare mode if active
     if (compareMode) {
@@ -225,7 +224,6 @@ document.addEventListener('DOMContentLoaded', () => {
     progBox.classList.remove('hidden');
     results.classList.add('hidden');
     progBar.style.width = '0%';
-    // Show overlay
     overlayUrl.textContent = url;
     overlayMsg.textContent = 'Initializing scan…';
     overlayFill.style.width = '0%';
@@ -238,10 +236,6 @@ document.addEventListener('DOMContentLoaded', () => {
         overlayMsg.textContent = msg;
         overlayFill.style.width = pct + '%';
       });
-
-      // Save to history
-      History.add(url, data.seo?.score);
-      UI.renderHistory(History.get(), (u) => { urlInput.value = u; run(u); });
 
       overlay.classList.remove('active');
       results.classList.remove('hidden');
@@ -256,7 +250,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     } catch (err) {
       overlay.classList.remove('active');
-      // Better error messages
       let msg = err.message;
       if (/timeout|abort/i.test(msg))       msg = 'The site took too long to respond. Try again.';
       else if (/proxies failed/i.test(msg)) msg = 'This site blocks external requests. Try a different URL.';
@@ -276,9 +269,6 @@ document.addEventListener('DOMContentLoaded', () => {
     urlInput.value = autoUrl;
     setTimeout(() => run(autoUrl), 400);
   }
-
-  // ── Render history on load ──
-  UI.renderHistory(History.get(), (u) => { urlInput.value = u; run(u); });
 });
 
 /* ── Scroll Reveal ── */

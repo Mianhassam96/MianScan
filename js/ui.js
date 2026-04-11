@@ -761,21 +761,5 @@
   copyCSSVars(colors) {
     const css=`:root {\n${colors.map((c,i)=>`  --color-${i+1}: ${c};`).join('\n')}\n}`;
     navigator.clipboard.writeText(css).then(()=>this.toast('CSS variables copied!'));
-  },
-
-  renderHistory(history, onSelect) {
-    const el = document.getElementById('scanHistory');
-    if (!el) return;
-    if (!history.length) { el.innerHTML = ''; return; }
-    el.innerHTML = `
-      <div class="history-bar">
-        <span class="history-label"><i class="bi bi-clock-history"></i> Recent</span>
-        ${history.map(h => `
-          <button class="history-item" title="${this.e(h.url)}" onclick="(${onSelect.toString()})('${h.url.replace(/'/g,"\\'")}')">
-            <img src="https://www.google.com/s2/favicons?domain=${new URL(h.url).hostname}&sz=32" width="14" height="14" onerror="this.style.display='none'">
-            <span>${new URL(h.url).hostname}</span>
-          </button>`).join('')}
-        <button class="history-clear" onclick="History.clear()" title="Clear history"><i class="bi bi-x-lg"></i></button>
-      </div>`;
   }
 };
