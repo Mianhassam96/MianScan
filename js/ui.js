@@ -344,13 +344,36 @@
     const globalRank = r?.globalRank ? '#'+Number(r.globalRank).toLocaleString() : null;
     const pageRank   = r?.pageRank != null ? r.pageRank+'/10' : null;
     const hasData    = !!r?.source;
+    const hasSpeed   = r?.perfScore != null;
+    const speedColor = r?.perfScore >= 90 ? 'var(--green)' : r?.perfScore >= 50 ? 'var(--yellow)' : 'var(--red)';
+
+    const speedCard = hasSpeed ? `
+    <div class="card" style="margin-bottom:1.25rem">
+      <div class="card-head"><i class="bi bi-speedometer2" style="color:var(--green)"></i> Google PageSpeed Insights <span style="font-size:.7rem;color:var(--muted);font-weight:400">(Mobile)</span></div>
+      <div style="display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap;margin-bottom:1rem">
+        <div class="score-ring" style="border-color:${speedColor};color:${speedColor};flex-shrink:0">${r.perfScore}</div>
+        <div>
+          <div style="font-size:1rem;font-weight:700;color:${speedColor}">${r.perfScore>=90?'Fast':r.perfScore>=50?'Needs Improvement':'Slow'}</div>
+          <div style="font-size:.8rem;color:var(--muted);margin-top:.2rem">Performance score from Google PageSpeed API</div>
+        </div>
+      </div>
+      <div class="g2" style="gap:.75rem">
+        ${r.fcp ? `<div class="auth-card"><div class="auth-val" style="font-size:1.1rem;color:var(--primary2)">${r.fcp}</div><div class="auth-lbl">First Contentful Paint</div></div>` : ''}
+        ${r.lcp ? `<div class="auth-card"><div class="auth-val" style="font-size:1.1rem;color:var(--accent)">${r.lcp}</div><div class="auth-lbl">Largest Contentful Paint</div></div>` : ''}
+        ${r.cls ? `<div class="auth-card"><div class="auth-val" style="font-size:1.1rem;color:var(--yellow)">${r.cls}</div><div class="auth-lbl">Cumulative Layout Shift</div></div>` : ''}
+        ${r.tbt ? `<div class="auth-card"><div class="auth-val" style="font-size:1.1rem;color:var(--purple)">${r.tbt}</div><div class="auth-lbl">Total Blocking Time</div></div>` : ''}
+      </div>
+    </div>` : '';
+
     const manualLinks = `
       <div style="margin-top:1rem;display:flex;gap:.5rem;flex-wrap:wrap">
         <a href="https://www.similarweb.com/website/${r?.hostname||''}" target="_blank" class="exp-btn"><i class="bi bi-box-arrow-up-right"></i> SimilarWeb</a>
         <a href="https://ahrefs.com/website-authority-checker/?target=${r?.hostname||''}" target="_blank" class="exp-btn"><i class="bi bi-box-arrow-up-right"></i> Ahrefs</a>
         <a href="https://moz.com/domain-analysis?site=${r?.hostname||''}" target="_blank" class="exp-btn"><i class="bi bi-box-arrow-up-right"></i> Moz</a>
+        <a href="https://pagespeed.web.dev/report?url=${encodeURIComponent(r?.hostname||'')}" target="_blank" class="exp-btn"><i class="bi bi-speedometer2"></i> PageSpeed</a>
       </div>`;
-    return `<div class="g2">
+
+    return speedCard + `<div class="g2">
       <div class="card">
         <div class="card-head"><i class="bi bi-trophy-fill"></i> Website Ranking</div>
         <div class="authority-grid" style="grid-template-columns:repeat(2,1fr)">
@@ -362,11 +385,12 @@
       </div>
       <div class="card">
         <div class="card-head"><i class="bi bi-info-circle-fill"></i> About Ranking Data</div>
-        <div class="auth-note-box" style="margin-bottom:.75rem"><i class="bi bi-info-circle"></i> Ranking data is fetched from Open PageRank API. If unavailable, check manually using the links provided.</div>
+        <div class="auth-note-box" style="margin-bottom:.75rem"><i class="bi bi-info-circle"></i> Ranking data is from Open PageRank API. PageSpeed data is from Google's free API.</div>
         ${this.irow('Data Source', r?.source||'Not available')}
         ${this.irow('Domain', this.e(r?.hostname||d?.hostname||'—'))}
         ${this.irow('PageRank Score', pageRank||'N/A')}
         ${this.irow('Global Rank', globalRank||'N/A')}
+        ${hasSpeed ? this.irow('PageSpeed Score', `<span style="color:${speedColor};font-weight:700">${r.perfScore}/100</span>`) : ''}
       </div>
     </div>`;
   },

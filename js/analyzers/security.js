@@ -1,96 +1,99 @@
 const SecurityAnalyzer = {
-  async analyze(url, doc) {
+  async analyze(url, doc, html = '') {
     const results = {
-      https: false,
-      headers: {},
+      https: url.startsWith('https://'),
       checks: [],
       score: 0,
       grade: 'F',
+      extScripts: [],
+      iframeCount: 0,
+      passwordFields: 0,
     };
 
-    // HTTPS check
-    results.https = url.startsWith('https://');
+    const fullHtml = html || doc.documentElement.innerHTML;
 
-    // Try to fetch headers via a HEAD-like approach using allorigins
-    try {
-      const ctrl = new AbortController();
-      const timer = setTimeout(() => ctrl.abort(), 8000);
-      const res = await fetch(
-        `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
-        { signal: ctrl.signal }
-      );
-      clearTimeout(timer);
-      if (res.ok) {
-        // allorigins exposes some headers in the JSON response
-        const json = await res.json();
-        // Parse any security-relevant meta tags from the HTML as fallback
-        const csp     = doc.querySelector('meta[http-equiv="Content-Security-Policy"]')?.getAttribute('content') || null;
-        const refresh = doc.querySelector('meta[http-equiv="refresh"]')?.getAttribute('content') || null;
-        results.headers = { csp, refresh };
-      }
-    } catch (_) {}
+    // ── Mixed content
+    const hasMixedContent = /src=["']http:\/\//i.test(fullHtml) || /href=["']http:\/\//i.test(fullHtml);
 
-    // Analyze from HTML signals
-    const html = doc.documentElement.innerHTML;
-
-    // Mixed content check
-    const hasMixedContent = /src=["']http:\/\//i.test(html) || /href=["']http:\/\//i.test(html);
-
-    // External scripts from unknown CDNs
+    // ── External scripts
     const extScripts = [...doc.querySelectorAll('script[src]')]
       .map(s => s.getAttribute('src'))
-      .filter(s => s && s.startsWith('http'));
+      .filter(s => s && (s.startsWith('http://') || s.startsWith('https://')));
 
-    // Forms without HTTPS action
+    // ── Unsafe forms
     const unsafeForms = [...doc.querySelectorAll('form[action]')]
-      .filter(f => f.getAttribute('action')?.startsWith('http://'));
+      .filter(f => (f.getAttribute('action') || '').startsWith('http://'));
 
-    // iframes (potential clickjacking surface)
+    // ── iframes
     const iframeCount = doc.querySelectorAll('iframe').length;
 
-    // Password fields
+    // ── Password fields
     const passwordFields = doc.querySelectorAll('input[type="password"]').length;
 
-    // Autocomplete on sensitive fields
+    // ── CSP meta tag
+    const hasCspMeta = !!doc.querySelector('meta[http-equiv="Content-Security-Policy"]');
+
+    // ── Referrer policy
+    const hasReferrerPolicy = !!doc.querySelector('meta[name="referrer"]') ||
+      !!doc.querySelector('meta[name="referrerpolicy"]') ||
+      /referrer-policy/i.test(fullHtml);
+
+    // ── X-Frame-Options equivalent (CSP frame-ancestors)
+    const hasFrameGuard = hasCspMeta &&
+      /frame-ancestors/i.test(doc.querySelector('meta[http-equiv="Content-Security-Policy"]')?.getAttribute('content') || '');
+
+    // ── Subresource Integrity on scripts
+    const scriptsWithSRI = [...doc.querySelectorAll('script[src][integrity]')].length;
+    const scriptsWithoutSRI = extScripts.length - scriptsWithSRI;
+
+    // ── Autocomplete on sensitive fields
     const noAutocomplete = [...doc.querySelectorAll('input[type="password"],input[type="email"]')]
       .filter(i => i.getAttribute('autocomplete') === 'off').length;
 
-    // CSP meta tag
-    const hasCspMeta = !!doc.querySelector('meta[http-equiv="Content-Security-Policy"]');
+    // ── Open redirect patterns
+    const hasOpenRedirect = /window\.location\s*=\s*[^;]*\?/i.test(fullHtml) ||
+      /document\.location\s*=\s*[^;]*\?/i.test(fullHtml);
 
-    // Referrer policy
-    const hasReferrerPolicy = !!doc.querySelector('meta[name="referrer"]') ||
-      !!doc.querySelector('meta[name="referrerpolicy"]');
+    // ── Inline event handlers (XSS surface)
+    const inlineHandlers = (fullHtml.match(/\bon\w+\s*=/gi) || []).length;
 
-    // Build checks
+    // ── Build checks
     const checks = [];
 
     checks.push({
       type: results.https ? 'ok' : 'error',
-      label: 'HTTPS',
-      msg: results.https ? 'Site uses HTTPS — connection is encrypted' : 'Site is not using HTTPS — insecure',
-      detail: results.https ? null : 'All modern sites must use HTTPS. Get a free SSL cert via Let\'s Encrypt.',
+      label: 'HTTPS / SSL',
+      msg: results.https
+        ? 'Site uses HTTPS — connection is encrypted'
+        : 'Site is not using HTTPS — all data is sent in plain text',
+      detail: results.https ? null : 'Get a free SSL certificate via Let\'s Encrypt.',
     });
 
     checks.push({
       type: hasMixedContent ? 'warn' : 'ok',
       label: 'Mixed Content',
-      msg: hasMixedContent ? 'Mixed content detected — HTTP resources on HTTPS page' : 'No mixed content detected',
-      detail: hasMixedContent ? 'HTTP resources on an HTTPS page can be blocked by browsers.' : null,
+      msg: hasMixedContent
+        ? 'Mixed content detected — HTTP resources loaded on HTTPS page'
+        : 'No mixed content detected',
+      detail: hasMixedContent ? 'HTTP resources on HTTPS pages can be blocked by browsers.' : null,
     });
 
     checks.push({
       type: hasCspMeta ? 'ok' : 'warn',
       label: 'Content Security Policy',
-      msg: hasCspMeta ? 'CSP meta tag found' : 'No Content-Security-Policy meta tag found',
-      detail: hasCspMeta ? null : 'CSP helps prevent XSS attacks. Add a CSP header or meta tag.',
+      msg: hasCspMeta
+        ? 'CSP meta tag found'
+        : 'No Content-Security-Policy found — XSS risk',
+      detail: hasCspMeta ? null : 'Add a CSP header or meta tag to prevent cross-site scripting.',
     });
 
     checks.push({
       type: hasReferrerPolicy ? 'ok' : 'warn',
       label: 'Referrer Policy',
-      msg: hasReferrerPolicy ? 'Referrer policy meta tag found' : 'No referrer policy found',
-      detail: hasReferrerPolicy ? null : 'A referrer policy controls what info is sent when users click links.',
+      msg: hasReferrerPolicy
+        ? 'Referrer policy found'
+        : 'No referrer policy — user navigation data may leak',
+      detail: hasReferrerPolicy ? null : 'Add <meta name="referrer" content="strict-origin-when-cross-origin">',
     });
 
     checks.push({
@@ -99,16 +102,36 @@ const SecurityAnalyzer = {
       msg: unsafeForms.length > 0
         ? `${unsafeForms.length} form(s) submit to HTTP — data sent unencrypted`
         : 'No insecure form actions detected',
-      detail: unsafeForms.length > 0 ? 'Forms submitting to HTTP expose user data.' : null,
+      detail: unsafeForms.length > 0 ? 'Change form action URLs to HTTPS.' : null,
     });
 
     checks.push({
-      type: iframeCount > 2 ? 'warn' : 'ok',
+      type: iframeCount > 3 ? 'warn' : 'ok',
       label: 'Iframes',
-      msg: iframeCount > 2
-        ? `${iframeCount} iframes found — review for clickjacking risk`
-        : iframeCount > 0 ? `${iframeCount} iframe(s) found` : 'No iframes found',
-      detail: iframeCount > 2 ? 'Excessive iframes can be a clickjacking vector.' : null,
+      msg: iframeCount > 3
+        ? `${iframeCount} iframes — review for clickjacking risk`
+        : iframeCount > 0 ? `${iframeCount} iframe(s) found — looks fine`
+        : 'No iframes found',
+    });
+
+    checks.push({
+      type: scriptsWithoutSRI > 5 ? 'warn' : 'ok',
+      label: 'Subresource Integrity',
+      msg: scriptsWithSRI > 0
+        ? `${scriptsWithSRI} script(s) use SRI integrity checks`
+        : extScripts.length > 0
+          ? `${extScripts.length} external scripts loaded without SRI`
+          : 'No external scripts found',
+      detail: scriptsWithoutSRI > 5 ? 'Add integrity="" attributes to external scripts to prevent supply-chain attacks.' : null,
+    });
+
+    checks.push({
+      type: inlineHandlers > 20 ? 'warn' : 'ok',
+      label: 'Inline Event Handlers',
+      msg: inlineHandlers > 20
+        ? `${inlineHandlers} inline event handlers (onclick, onload…) — increases XSS surface`
+        : `${inlineHandlers} inline event handler(s) — acceptable`,
+      detail: inlineHandlers > 20 ? 'Move event handlers to external JS files.' : null,
     });
 
     checks.push({
@@ -117,28 +140,27 @@ const SecurityAnalyzer = {
       msg: noAutocomplete > 0
         ? `${noAutocomplete} sensitive field(s) have autocomplete="off"`
         : 'Autocomplete settings look fine',
-      detail: noAutocomplete > 0 ? 'Disabling autocomplete on password fields can hurt UX.' : null,
     });
 
     checks.push({
-      type: extScripts.length > 10 ? 'warn' : 'ok',
+      type: extScripts.length > 15 ? 'warn' : 'ok',
       label: 'External Scripts',
       msg: `${extScripts.length} external script(s) loaded`,
-      detail: extScripts.length > 10 ? 'Many external scripts increase attack surface.' : null,
+      detail: extScripts.length > 15 ? 'Many external scripts increase attack surface and slow load time.' : null,
     });
 
     results.checks = checks;
 
-    // Score
+    // ── Score: ok=10pts, warn=4pts, error=0pts
     let score = 0;
     checks.forEach(c => {
-      if (c.type === 'ok')    score += 12;
-      else if (c.type === 'warn') score += 6;
+      if (c.type === 'ok')   score += 10;
+      else if (c.type === 'warn') score += 4;
     });
-    results.score = Math.min(100, score);
-    results.grade = results.score >= 80 ? 'A' : results.score >= 65 ? 'B' : results.score >= 50 ? 'C' : results.score >= 35 ? 'D' : 'F';
-    results.extScripts = extScripts.slice(0, 20);
-    results.iframeCount = iframeCount;
+    results.score    = Math.min(100, score);
+    results.grade    = results.score >= 85 ? 'A' : results.score >= 70 ? 'B' : results.score >= 55 ? 'C' : results.score >= 40 ? 'D' : 'F';
+    results.extScripts    = extScripts.slice(0, 20);
+    results.iframeCount   = iframeCount;
     results.passwordFields = passwordFields;
 
     return results;

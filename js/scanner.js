@@ -1,20 +1,24 @@
 const Scanner = {
   currentData: null,
 
+  // ── Proxy pool — tried in order, first success wins
   PROXIES: [
     u => `https://corsproxy.io/?${encodeURIComponent(u)}`,
     u => `https://api.allorigins.win/get?url=${encodeURIComponent(u)}`,
     u => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
+    u => `https://thingproxy.freeboard.io/fetch/${encodeURIComponent(u)}`,
+    u => `https://cors-anywhere.herokuapp.com/${u}`,
   ],
 
   async fetchHTML(url) {
+    const errors = [];
     for (const proxy of this.PROXIES) {
       try {
-        const ctrl = new AbortController();
+        const ctrl  = new AbortController();
         const timer = setTimeout(() => ctrl.abort(), 14000);
-        const res = await fetch(proxy(url), { signal: ctrl.signal });
+        const res   = await fetch(proxy(url), { signal: ctrl.signal });
         clearTimeout(timer);
-        if (!res.ok) continue;
+        if (!res.ok) { errors.push(`${proxy(url).split('?')[0]} → HTTP ${res.status}`); continue; }
         const raw = await res.text();
         // allorigins wraps in JSON
         try {
@@ -22,20 +26,19 @@ const Scanner = {
           if (j.contents && j.contents.length > 200) return j.contents;
         } catch (_) {}
         if (raw.length > 200) return raw;
-      } catch (_) {}
+        errors.push(`${proxy(url).split('?')[0]} → empty response`);
+      } catch (e) {
+        errors.push(`${proxy(url).split('?')[0]} → ${e.message}`);
+      }
     }
-    throw new Error('All proxies failed. The site may block external requests.');
+    throw new Error('All proxies failed. The site may block external requests.\n' + errors.join('\n'));
   },
 
-  parse(html, url) {
-    const doc = new DOMParser().parseFromString(html, 'text/html');
-    // Don't prepend base tag — it breaks relative meta tag resolution
-    // Instead resolve URLs manually in analyzers that need it
-    return doc;
+  parse(html) {
+    return new DOMParser().parseFromString(html, 'text/html');
   },
 
-  _extractDesc(doc, html) {
-    // Try multiple ways to get description
+  _extractDesc(doc) {
     const selectors = [
       'meta[name="description"]',
       'meta[property="og:description"]',
@@ -45,7 +48,6 @@ const Scanner = {
       const val = doc.querySelector(sel)?.getAttribute('content')?.trim();
       if (val && val.length > 5) return val;
     }
-    // Fallback: first meaningful paragraph
     const paras = [...doc.querySelectorAll('p')];
     for (const p of paras) {
       const t = p.textContent?.trim();
@@ -75,14 +77,12 @@ const Scanner = {
   async scan(url, onProgress) {
     const p = (msg, pct) => onProgress && onProgress(msg, pct);
 
-    // ── Phase 1: Fetch & parse (sequential — must happen first)
     p('Fetching page…', 6);
     const html = await this.fetchHTML(url);
     p('Parsing HTML…', 13);
-    const doc = this.parse(html, url);
+    const doc = this.parse(html);
 
-    // ── Phase 2: All local analyzers in parallel (fast, no network)
-    p('Analyzing page…', 20);
+    p('Running analyzers…', 20);
     const [
       colors, fonts, structure, content, cta, seo,
       media, links, images, contacts, tech, performance, mobile
@@ -104,18 +104,16 @@ const Scanner = {
 
     p('Fetching external data…', 55);
 
-    // ── Phase 3: All network analyzers in parallel (slow APIs)
     const [indexing, domain, ranking, security] = await Promise.allSettled([
       IndexingAnalyzer.analyze(doc, html, url),
       DomainAnalyzer.analyze(url),
       RankingAnalyzer.analyze(url),
-      SecurityAnalyzer.analyze(url, doc),
+      SecurityAnalyzer.analyze(url, doc, html),
     ]).then(results => results.map(r => r.status === 'fulfilled' ? r.value : null));
 
     p('Done!', 100);
 
-    // Extract description properly (after base tag issue)
-    const desc = this._extractDesc(doc, html);
+    const desc = this._extractDesc(doc);
 
     this.currentData = {
       url, scannedAt: new Date().toISOString(),
