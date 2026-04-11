@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://mianhassam96.github.io/MianScan/sitemap.xml

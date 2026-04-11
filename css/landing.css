@@ -778,7 +778,7 @@
 }
 .lp-footer-inner {
   display: grid;
-  grid-template-columns: 1.6fr 1fr 1fr 1fr;
+  grid-template-columns: 1.4fr 1fr 1fr 1fr;
   gap: 3rem; padding-bottom: 4rem;
   align-items: start;
 }

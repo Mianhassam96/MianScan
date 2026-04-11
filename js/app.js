@@ -285,6 +285,10 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       overlay.classList.remove('active');
+      // Clear skeletons and render real data
+      document.getElementById('siteBanner').innerHTML = '';
+      document.getElementById('statsRow').innerHTML = '';
+      document.getElementById('tabContent').innerHTML = '';
       results.classList.remove('hidden');
       UI.renderBanner(data);
       UI.renderStats(data);
