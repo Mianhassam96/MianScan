@@ -1046,3 +1046,74 @@ button:focus-visible, input:focus-visible {
   transform: translateY(0);
 }
 .feat-card { cursor: pointer }
+
+/* ===== SCAN HISTORY ===== */
+.history-bar {
+  display: flex; align-items: center; gap: .5rem; flex-wrap: wrap;
+  margin-top: .75rem; padding: .5rem .75rem;
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: var(--radius-s); animation: fadeUp .3s ease;
+}
+.history-label {
+  font-size: .72rem; font-weight: 700; color: var(--muted);
+  text-transform: uppercase; letter-spacing: .06em; flex-shrink: 0;
+  display: flex; align-items: center; gap: .3rem;
+}
+.history-item {
+  display: inline-flex; align-items: center; gap: .35rem;
+  background: var(--bg4); border: 1px solid var(--border);
+  color: var(--muted); border-radius: 20px;
+  padding: .2rem .7rem; font-size: .78rem; font-weight: 500;
+  transition: all .2s; cursor: pointer;
+}
+.history-item:hover { border-color: var(--primary2); color: var(--primary2); background: var(--bg3) }
+.history-clear {
+  margin-left: auto; color: var(--muted); font-size: .75rem;
+  padding: .2rem .4rem; border-radius: 6px; transition: color .2s;
+  flex-shrink: 0;
+}
+.history-clear:hover { color: var(--red) }
+
+/* ===== SITE BANNER ACTIONS ===== */
+.sb-actions {
+  display: flex; gap: .5rem; flex-wrap: wrap; margin-top: .75rem;
+}
+.sb-readability {
+  font-size: .78rem; font-weight: 600;
+  display: flex; align-items: center; gap: .3rem;
+}
+
+/* ===== OG SOCIAL PREVIEW ===== */
+.og-preview {
+  display: flex; gap: 1rem; align-items: flex-start;
+  margin-top: 1.25rem; padding: 1rem;
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: var(--radius-s); overflow: hidden;
+}
+.og-img {
+  width: 120px; height: 72px; object-fit: cover;
+  border-radius: 8px; flex-shrink: 0; border: 1px solid var(--border);
+}
+.og-text { flex: 1; min-width: 0 }
+.og-label {
+  font-size: .65rem; font-weight: 700; color: var(--muted);
+  text-transform: uppercase; letter-spacing: .08em; margin-bottom: .3rem;
+}
+.og-title {
+  font-size: .9rem; font-weight: 700; color: var(--text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  margin-bottom: .25rem;
+}
+.og-desc {
+  font-size: .78rem; color: var(--muted); line-height: 1.5;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.og-domain {
+  font-size: .72rem; color: var(--primary2); margin-top: .35rem;
+  font-weight: 600;
+}
+@media(max-width:480px) {
+  .og-preview { flex-direction: column }
+  .og-img { width: 100%; height: 140px }
+}

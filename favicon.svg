@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6470ff"/>
+      <stop offset="100%" stop-color="#00d4ff"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="#07101f"/>
+  <!-- Radar circles -->
+  <circle cx="32" cy="32" r="26" fill="none" stroke="url(#g)" stroke-width="1.5" opacity="0.3"/>
+  <circle cx="32" cy="32" r="18" fill="none" stroke="url(#g)" stroke-width="1.5" opacity="0.5"/>
+  <circle cx="32" cy="32" r="10" fill="none" stroke="url(#g)" stroke-width="1.5" opacity="0.8"/>
+  <!-- Crosshairs -->
+  <line x1="32" y1="6" x2="32" y2="58" stroke="url(#g)" stroke-width="1" opacity="0.25"/>
+  <line x1="6" y1="32" x2="58" y2="32" stroke="url(#g)" stroke-width="1" opacity="0.25"/>
+  <!-- Radar sweep line -->
+  <line x1="32" y1="32" x2="52" y2="14" stroke="url(#g)" stroke-width="2" stroke-linecap="round"/>
+  <!-- Center dot -->
+  <circle cx="32" cy="32" r="3" fill="url(#g)"/>
+  <!-- Blip -->
+  <circle cx="46" cy="20" r="2.5" fill="#00d4ff" opacity="0.9"/>
+</svg>

@@ -1,0 +1,12 @@
+{
+  "name": "MianScan — Website Intelligence Scanner",
+  "short_name": "MianScan",
+  "description": "Analyze any website instantly. SEO score, tech stack, colors, fonts, contacts — free tool.",
+  "start_url": "/MianScan/",
+  "display": "standalone",
+  "background_color": "#07101f",
+  "theme_color": "#6470ff",
+  "icons": [
+    { "src": "favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

@@ -26,6 +26,22 @@
     const hostname = new URL(data.url).hostname;
     const faviconUrl = `https://www.google.com/s2/favicons?domain=${hostname}&sz=64`;
     const scannedTime = new Date(data.scannedAt).toLocaleString();
+    const shareUrl = `${location.origin}${location.pathname}?url=${encodeURIComponent(data.url)}`;
+    const r = data.content?.readability || {};
+    const readColor = r.score >= 70 ? 'var(--green)' : r.score >= 50 ? 'var(--yellow)' : 'var(--red)';
+
+    // OG social preview
+    const ogPreview = (data.seo.ogTitle || data.seo.ogImage) ? `
+      <div class="og-preview">
+        ${data.seo.ogImage ? `<img class="og-img" src="${this.e(data.seo.ogImage)}" alt="OG Image" onerror="this.parentElement.style.display='none'">` : ''}
+        <div class="og-text">
+          <div class="og-label">Open Graph Preview</div>
+          <div class="og-title">${this.e(data.seo.ogTitle || o.title)}</div>
+          <div class="og-desc">${this.e(data.seo.metaDesc || o.desc || '')}</div>
+          <div class="og-domain">${this.e(hostname)}</div>
+        </div>
+      </div>` : '';
+
     document.getElementById('siteBanner').innerHTML = `
       <div class="sb-favicon-wrap">
         <img class="sb-favicon" src="${faviconUrl}" alt="${hostname}" onerror="this.style.display='none'">
@@ -36,6 +52,7 @@
               <i class="bi bi-box-arrow-up-right"></i> ${this.e(hostname)}
             </a>
             <span class="sb-scan-time"><i class="bi bi-clock"></i> ${scannedTime}</span>
+            ${r.label ? `<span class="sb-readability" style="color:${readColor}"><i class="bi bi-book-fill"></i> ${r.label} (${r.score})</span>` : ''}
           </div>
           <div class="sb-desc">${this.e(o.desc) || '<em style="opacity:.45">No description found</em>'}</div>
           <div class="sb-tags">
@@ -45,8 +62,13 @@
             <span class="sb-tag"><i class="bi bi-file-word"></i>${(data.content.wordCount || 0).toLocaleString()} words</span>
             <span class="sb-tag"><i class="bi bi-lightbulb-fill"></i>${this.e(o.topic)}</span>
           </div>
+          <div class="sb-actions">
+            <button class="exp-btn" onclick="UI.shareUrl('${shareUrl.replace(/'/g,"\\'")}')"><i class="bi bi-share-fill"></i> Share</button>
+            <button class="exp-btn" onclick="UI.copy('${shareUrl.replace(/'/g,"\\'")}')"><i class="bi bi-link-45deg"></i> Copy Link</button>
+          </div>
         </div>
-      </div>`;
+      </div>
+      ${ogPreview}`;
   },
 
   renderStats(data) {
@@ -728,8 +750,32 @@
   },
 
   copy(val) { navigator.clipboard.writeText(val).then(()=>this.toast('Copied!')); },
+
+  shareUrl(url) {
+    if (navigator.share) {
+      navigator.share({ title: 'MianScan Result', url }).catch(()=>{});
+    } else {
+      navigator.clipboard.writeText(url).then(()=>this.toast('Share link copied!'));
+    }
+  },
   copyCSSVars(colors) {
     const css=`:root {\n${colors.map((c,i)=>`  --color-${i+1}: ${c};`).join('\n')}\n}`;
     navigator.clipboard.writeText(css).then(()=>this.toast('CSS variables copied!'));
+  },
+
+  renderHistory(history, onSelect) {
+    const el = document.getElementById('scanHistory');
+    if (!el) return;
+    if (!history.length) { el.innerHTML = ''; return; }
+    el.innerHTML = `
+      <div class="history-bar">
+        <span class="history-label"><i class="bi bi-clock-history"></i> Recent</span>
+        ${history.map(h => `
+          <button class="history-item" title="${this.e(h.url)}" onclick="(${onSelect.toString()})('${h.url.replace(/'/g,"\\'")}')">
+            <img src="https://www.google.com/s2/favicons?domain=${new URL(h.url).hostname}&sz=32" width="14" height="14" onerror="this.style.display='none'">
+            <span>${new URL(h.url).hostname}</span>
+          </button>`).join('')}
+        <button class="history-clear" onclick="History.clear()" title="Clear history"><i class="bi bi-x-lg"></i></button>
+      </div>`;
   }
 };
