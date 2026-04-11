@@ -54,21 +54,23 @@
     const da = domain?.da !== null && domain?.da !== undefined ? domain.da+'/10' : '—';
     const rank = ranking?.globalRank ? '#'+Number(ranking.globalRank).toLocaleString() : '—';
     const cards = [
-      {icon:'📊', val:seo.score+'/100',       lbl:'SEO Score',   color:'var(--green)'},
+      {icon:'📊', val:seo.score+'/100',       lbl:'SEO Score',   color:'var(--green)',    count:seo.score},
       {icon:'🏆', val:da,                      lbl:'Domain Auth', color:'var(--primary2)'},
       {icon:'🌍', val:rank,                    lbl:'Global Rank', color:'var(--accent)'},
-      {icon:'🔗', val:links.totalInternal,     lbl:'Int. Links',  color:'var(--primary2)'},
-      {icon:'🌐', val:links.totalExternal,     lbl:'Ext. Links',  color:'var(--muted)'},
-      {icon:'🖼️', val:images.total,           lbl:'Images',      color:'var(--yellow)'},
-      {icon:'⚠️', val:images.missingAltCount, lbl:'Missing Alt', color:images.missingAltCount>0?'var(--red)':'var(--green)'},
-      {icon:'🛠️', val:tech.detected.length,   lbl:'Tech Found',  color:'var(--purple)'},
+      {icon:'🔗', val:links.totalInternal,     lbl:'Int. Links',  color:'var(--primary2)', count:links.totalInternal},
+      {icon:'🌐', val:links.totalExternal,     lbl:'Ext. Links',  color:'var(--muted)',    count:links.totalExternal},
+      {icon:'🖼️', val:images.total,           lbl:'Images',      color:'var(--yellow)',   count:images.total},
+      {icon:'⚠️', val:images.missingAltCount, lbl:'Missing Alt', color:images.missingAltCount>0?'var(--red)':'var(--green)', count:images.missingAltCount},
+      {icon:'🛠️', val:tech.detected.length,   lbl:'Tech Found',  color:'var(--purple)',   count:tech.detected.length},
     ];
     document.getElementById('statsRow').innerHTML = cards.map((c,i)=>
       `<div class="stat-card fu" style="animation-delay:${i*.05}s">
         <div class="stat-icon">${c.icon}</div>
-        <div class="stat-val" style="color:${c.color}">${c.val}</div>
+        <div class="stat-val" style="color:${c.color}"${c.count!==undefined?` data-count="${c.count}"`:''}>${c.val}</div>
         <div class="stat-lbl">${c.lbl}</div>
       </div>`).join('');
+    // Trigger counter animation
+    if (typeof window.animateCounters === 'function') setTimeout(window.animateCounters, 80);
   },
 
   renderTab(tab, data) {

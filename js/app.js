@@ -261,3 +261,50 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 });
+
+/* ── Scroll Reveal ── */
+(function initScrollReveal() {
+  const els = document.querySelectorAll(
+    '.feat-card, .step-card, .who-card, .testi-card, .lp-section-head, .compare-mock, .lp-cta-inner'
+  );
+  els.forEach((el, i) => {
+    el.classList.add('reveal');
+    // Stagger siblings in the same grid
+    const delay = (i % 4) * 0.08;
+    el.style.transitionDelay = delay + 's';
+  });
+
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        io.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12 });
+
+  els.forEach(el => io.observe(el));
+})();
+
+/* ── Animated stat counter on results render ── */
+function animateCounters() {
+  document.querySelectorAll('.stat-val[data-count]').forEach(el => {
+    const target = parseFloat(el.dataset.count);
+    if (isNaN(target)) return;
+    const isFloat = el.dataset.count.includes('.');
+    const duration = 900;
+    const start = performance.now();
+    const from = 0;
+    function step(now) {
+      const progress = Math.min((now - start) / duration, 1);
+      const ease = 1 - Math.pow(1 - progress, 3);
+      const val = from + (target - from) * ease;
+      el.textContent = isFloat ? val.toFixed(1) : Math.round(val);
+      if (progress < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  });
+}
+
+// Expose so UI.js can call it after rendering stats
+window.animateCounters = animateCounters;
