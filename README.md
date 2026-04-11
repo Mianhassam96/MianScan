@@ -1,151 +1,296 @@
-# MianScribe Premium - Professional Text Editor
 
-A beautiful, modern text editor with 50+ tools for writers, developers, students, and content creators.
+# 🔎 MianScan — Website SEO & Intelligence Analyzer
 
-## 🚀 Quick Start
+**MianScan** is a fast, powerful website analysis tool that extracts **SEO data, tags, ranking insights, contact info, and technical details** from any website.
+Built for **SEO experts, freelancers, developers, and content creators**.
 
-1. Open `index.html` in your browser
-2. Start typing or upload a file
-3. Use 50+ tools from the sidebar
-4. Export in 7 different formats
+Scan any URL and get **complete website intelligence in seconds.**
 
-**No installation. No signup. Completely free.**
+---
 
-## ✨ Features
+# 🚀 Features
 
-### 📝 Text Transformation (15 tools)
-UPPERCASE, lowercase, Title Case, camelCase, snake_case, kebab-case, PascalCase, remove spaces, remove emojis, reverse text, sort lines, remove duplicates, number lines
+## 1. Website Overview
 
-### 🔍 Extraction Tools (7 tools)
-Extract emails, URLs, hashtags, mentions, phone numbers, numbers, emojis
+Quick snapshot of the site:
 
-### 💻 Developer Tools (12 tools)
-JSON formatter, Base64 encode/decode, URL encode/decode, UUID generator, Lorem ipsum, Password generator, Slug generator
+* Title
+* Meta description
+* Domain
+* Language
+* Page type
+* Word count
 
-### 🤖 AI Features (8 tools)
-Paraphraser, Summarizer, Grammar checker, Translator, Tone analyzer, SEO optimizer, Headline generator
+---
 
-### 📊 Real-time Analysis
-- Word count, character count, sentences, paragraphs
-- Reading time & speaking time
-- Readability score (Flesch-Kincaid)
-- Long sentence detection
-- Passive voice detection
+## 2. SEO Score
 
-### 📤 Export & Import
-**Export (7 formats):** TXT, HTML, PDF, DOC, RTF, JSON, Markdown
-**Import (8 formats):** TXT, HTML, RTF, PDF, DOC, DOCX, JSON, Markdown
+Automatic SEO score based on:
 
-**Full Support:**
-- ✅ TXT - Plain text files
-- ✅ HTML - Web documents
-- ✅ RTF - Rich Text Format (WordPad files)
-- ✅ PDF - Portable Document Format (text extraction)
-- ✅ DOC/DOCX - Microsoft Word files (basic support)
-- ✅ JSON - Data files
-- ✅ Markdown - Markdown files
+* Title
+* Meta description
+* Headings
+* Alt tags
+* Keywords
+* Links
+* Canonical
 
-### ⚡ Special Features
-- Command Palette (Ctrl+K)
-- Focus Mode (Ctrl+/)
-- Dark Mode
-- Auto-save
-- Document management
-- Text comparison
+Shows overall SEO health.
 
-## ⌨️ Keyboard Shortcuts
+---
 
-| Shortcut | Action |
-|----------|--------|
-| `Ctrl+K` | Command palette |
-| `Ctrl+S` | Save document |
-| `Ctrl+/` | Focus mode |
-| `Esc` | Exit focus mode |
+## 3. Domain Authority / Page Authority
 
-## 🎯 How to Use
+Displays:
 
-### Upload Files
-1. Click 📤 Upload button
-2. Select file (.txt, .html, .rtf, .json, .md)
-3. Content loads automatically
+* Domain Authority (DA)
+* Page Authority (PA)
+* Domain strength
 
-### Download Files
-1. Type your text
-2. Click Download dropdown
-3. Choose format (TXT, HTML, PDF, DOC, RTF, JSON, MD)
-4. File downloads instantly
+Useful for competitor analysis.
 
-### Transform Text
-1. Type or paste text
-2. Click Transform tab
-3. Choose transformation
-4. Text updates instantly
+---
 
-### Extract Data
-1. Paste text with emails/URLs/hashtags
-2. Click Extract tab
-3. Choose what to extract
-4. View results in popup
+## 4. Website Ranking Data
 
-## 🎨 Beautiful UI
+Get ranking insights:
 
-- Modern gradient design
-- Smooth animations
-- Glass morphism effects
-- Responsive layout
-- Dark mode support
-- Professional styling
+* Global rank
+* Country rank
+* Category rank
+* Estimated traffic
 
-## 📁 Project Structure
+---
 
-```
-mianscribe/
-├── index.html          # Main application
-├── css/
-│   └── premium.css     # Stylish UI
-├── js/premium/
-│   ├── core.js         # Core functions
-│   ├── tools.js        # 50+ tools
-│   ├── ai.js           # AI features
-│   ├── export.js       # Export/import
-│   ├── compare.js      # Text comparison
-│   ├── commands.js     # Command palette
-│   └── app.js          # Main app
-└── README.md           # This file
-```
+## 5. Keywords & Tags Extractor
 
-## 🔧 Tech Stack
+Extracts:
 
-- HTML5, CSS3, JavaScript (ES6+)
-- Bootstrap 5
-- Bootstrap Icons
-- jsPDF (for PDF export)
-- LocalStorage (for data persistence)
+* Meta keywords
+* Heading keywords
+* Content keywords
+* SEO tags
 
-## 🌟 Why MianScribe?
+Perfect for content research.
 
-- ✅ **50+ Tools** - Most comprehensive text editor
-- ✅ **Beautiful UI** - Modern, stylish design
-- ✅ **Fast** - No loading, instant response
-- ✅ **Private** - Everything stays local
-- ✅ **Free** - No payment, no subscription
-- ✅ **Offline** - Works without internet
-- ✅ **RTF Support** - Import/export WordPad files
+---
 
-## 🎯 Perfect For
+## 6. Headings Structure
 
-- **Writers** - Draft articles, check readability
-- **Developers** - Format JSON, generate UUIDs
-- **Students** - Write essays, check word count
-- **Content Creators** - SEO optimization, hashtag extraction
-- **Everyone** - Quick text transformations
+SEO heading breakdown:
 
-## 📝 License
+* H1 count
+* H2 count
+* H3 count
+* Heading hierarchy
 
-MIT License - Free for personal and commercial use
+---
 
-## 👨‍💻 Author
+## 7. Links Analyzer
 
-**MultiMian** © 2026
+Shows:
 
+* Internal links
+* External links
+* Follow links
+* Nofollow links
 
+Useful for SEO audits.
+
+---
+
+## 8. Images SEO Analyzer
+
+Checks:
+
+* Total images
+* Missing alt tags
+* Optimized images
+* Lazy loading
+
+---
+
+## 9. Contact Information Finder
+
+Extracts:
+
+* Email addresses
+* Phone numbers
+* WhatsApp
+* Social media links
+
+Great for freelancer outreach.
+
+---
+
+## 10. CTA / Buttons Analyzer
+
+Detects:
+
+* Primary CTA
+* Buttons text
+* Anchor links
+
+Helpful for UX & conversion research.
+
+---
+
+## 11. Tech Stack Detector
+
+Detects technologies used:
+
+* CMS
+* Frameworks
+* Libraries
+* Analytics tools
+
+Example:
+
+* WordPress
+* React
+* Next.js
+* Tailwind
+* Google Analytics
+
+---
+
+## 12. Performance Stats
+
+Quick performance info:
+
+* Page size
+* Scripts count
+* CSS files
+* Images count
+
+---
+
+## 13. Meta Tags Analyzer
+
+Extracts:
+
+* Meta title
+* Meta description
+* Open Graph tags
+* Twitter tags
+* Canonical URL
+
+---
+
+## 14. Indexing & Robots Checker
+
+Detects:
+
+* robots.txt
+* noindex / index
+* canonical
+* robots meta tags
+
+Important for SEO indexing.
+
+---
+
+## 15. Compare Two Websites
+
+Compare two domains:
+
+* SEO Score
+* DA / PA
+* Ranking
+* Keywords
+* Links
+* Images
+* Headings
+* Meta tags
+* Tech stack
+
+Perfect for competitor analysis.
+
+---
+
+# 💡 Use Cases
+
+### SEO Experts
+
+* Website audits
+* Competitor analysis
+* Keyword extraction
+* SEO scoring
+
+### Freelancers
+
+* Find contact info
+* Analyze client websites
+* Pitch improvements
+
+### Developers
+
+* Detect tech stack
+* Analyze structure
+* Performance info
+
+### Content Creators
+
+* Extract tags
+* Find keywords
+* Topic research
+
+---
+
+# ⚡ How It Works
+
+1. Enter website URL
+2. Click Scan
+3. MianScan analyzes website
+4. View full report instantly
+5. Compare with competitors
+
+---
+
+# 🧠 Built For
+
+* SEO Experts
+* Freelancers
+* Developers
+* Agencies
+* Content Creators
+* Marketers
+
+---
+
+# 🌐 Live Demo
+
+[https://mianhassam96.github.io/MianScan/](https://mianhassam96.github.io/MianScan/)
+
+---
+
+# 🛠 Tech Used
+
+* Vanilla JavaScript
+* DOM Parser
+* CORS Proxy
+* Regex extraction
+* Client-side analysis
+
+---
+
+# 🎯 Goal
+
+Provide a **simple, fast, and powerful website analysis tool**
+without heavy APIs or complex setup.
+
+---
+
+# 🔥 Future Features
+
+* Bulk URL scan
+* Export PDF report
+* Chrome extension
+* Backlink checker
+* Keyword difficulty
+
+---
+
+# 🏷 Brand
+
+Built with ❤️ by **MultiMian**
