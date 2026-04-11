@@ -69,7 +69,7 @@ img{display:block;max-width:100%}
 
 /* ===== NAV ===== */
 .topnav{position:sticky;top:0;z-index:200;background:rgba(7,16,31,.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--border);transition:background .25s,box-shadow .25s}
-[data-theme="light"] .topnav{background:rgba(255,255,255,.92);box-shadow:0 1px 0 rgba(80,96,238,.1)}
+[data-theme="light"] .topnav{background:rgba(255,255,255,.96);border-bottom:1px solid rgba(80,96,238,.1);box-shadow:0 1px 12px rgba(80,96,238,.08)}
 .topnav.scrolled{box-shadow:0 4px 24px rgba(0,0,0,.35)}
 [data-theme="light"] .topnav.scrolled{box-shadow:0 4px 24px rgba(80,96,238,.15)}
 .nav-row{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.5rem}
