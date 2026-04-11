@@ -1,0 +1,314 @@
+/* ═══════════════════════════════════════
+   MianScan — Full Responsive Coverage
+   Breakpoints: 1024 · 768 · 640 · 480 · 375 · 320
+═══════════════════════════════════════ */
+
+/* ── 1024px ── */
+@media(max-width:1024px) {
+  .lp-hero { padding: 5rem 0 3.5rem }
+  .lp-h1 { font-size: clamp(2.4rem, 5vw, 4rem) }
+  .lp-footer-inner { grid-template-columns: 1fr 1fr; gap: 2rem }
+}
+
+/* ── 768px ── */
+@media(max-width:768px) {
+  /* Hero */
+  .lp-hero { padding: 4rem 0 3rem; min-height: auto }
+  .lp-hero-inner { text-align: center }
+  .lp-hero-visual { display: none }
+  .lp-h1 { font-size: clamp(2rem, 7vw, 2.8rem); letter-spacing: -.03em }
+  .lp-sub { font-size: 1rem; margin-bottom: 1.5rem; max-width: 100% }
+  .lp-badge { font-size: .7rem; padding: .25rem .875rem }
+  .lp-scan-box { max-width: 100% }
+  .lp-trust { gap: .5rem 1rem; font-size: .78rem; justify-content: center }
+
+  /* Nav */
+  .nav-row { padding: .7rem 1rem }
+
+  /* Features */
+  .features-grid { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem }
+  .feat-card { padding: 1.5rem }
+
+  /* Steps */
+  .steps-grid { gap: 1rem }
+  .step-card { padding: 1.75rem 1.25rem }
+
+  /* Who grid */
+  .who-grid { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem }
+  .who-card { padding: 1.5rem }
+
+  /* Metrics */
+  .metric-item { padding: .75rem 1.5rem }
+  .metric-val { font-size: 1.75rem }
+  .metric-divider { display: none }
+
+  /* Compare mock */
+  .compare-mock-header { flex-direction: column; gap: .75rem; align-items: flex-start }
+  .compare-mock-vs { align-self: center }
+
+  /* Footer */
+  .lp-footer-inner { grid-template-columns: 1fr 1fr; gap: 1.5rem }
+  .lp-footer { padding: 3rem 0 0 }
+
+  /* Sections */
+  .lp-section { padding: 4rem 0 }
+  .lp-section-head { margin-bottom: 2.5rem }
+  .lp-section-head h2 { font-size: clamp(1.6rem, 4vw, 2.2rem) }
+
+  /* CTA */
+  .lp-cta-section { padding: 4rem 0 }
+  .lp-cta-inner h2 { font-size: clamp(1.6rem, 4vw, 2.2rem) }
+
+  /* Scanner */
+  .stats-row { grid-template-columns: repeat(4, 1fr) }
+  .site-banner { padding: 1.25rem }
+  .export-row { flex-wrap: wrap; gap: .35rem; padding: .875rem 1rem }
+  .exp-btn { padding: .32rem .65rem; font-size: .75rem }
+  .scan-again-btn { width: 100%; justify-content: center; margin-bottom: .25rem }
+  .new-scan-bar { top: 52px }
+}
+
+/* ── 640px ── */
+@media(max-width:640px) {
+  /* Hero */
+  .lp-h1 { font-size: clamp(1.9rem, 8vw, 2.4rem) }
+  .lp-sub { font-size: .95rem }
+  .lp-scan-box .url-row { border-radius: 10px }
+  .scan-btn { padding: 0 1.25rem; min-height: 48px; font-size: .88rem }
+  .try-row { gap: .3rem }
+  .try-btn { font-size: .75rem; padding: .18rem .65rem }
+  .stats-ticker-wrap::before,
+  .stats-ticker-wrap::after { width: 40px }
+
+  /* Features */
+  .features-grid { grid-template-columns: 1fr }
+  .feat-card { padding: 1.25rem }
+
+  /* Steps */
+  .steps-grid { flex-direction: column; align-items: stretch }
+  .step-arrow { display: none }
+  .step-card { max-width: 100%; padding: 1.5rem 1.25rem }
+
+  /* Who */
+  .who-grid { grid-template-columns: 1fr 1fr }
+  .who-card { padding: 1.25rem }
+  .who-icon { font-size: 1.75rem; margin-bottom: .75rem }
+
+  /* Compare mock */
+  .compare-mock-body { grid-template-columns: 1fr }
+  .compare-mock-divider { display: none }
+  .compare-mock-col { padding: 1.25rem }
+
+  /* Footer */
+  .lp-footer-inner { grid-template-columns: 1fr }
+  .lp-footer-bottom .wrap { flex-direction: column; gap: .5rem; text-align: center }
+
+  /* Page hero */
+  .page-hero { padding: 3rem 0 2.5rem }
+  .page-hero-title { font-size: clamp(1.75rem, 6vw, 2.2rem) }
+
+  /* Scanner tabs */
+  .tab { padding: .55rem .65rem; font-size: .76rem }
+  .tab i { display: none }
+
+  /* Stats */
+  .stats-row { grid-template-columns: repeat(2, 1fr) }
+  .stat-val { font-size: 1.35rem }
+
+  /* Cards */
+  .card { padding: 1.1rem }
+  .g2, .g3 { grid-template-columns: 1fr }
+  .authority-grid { grid-template-columns: repeat(2, 1fr) }
+
+  /* Compare inputs */
+  .compare-inputs { flex-direction: column }
+  .compare-vs { display: none }
+  .compare-tab-inputs { grid-template-columns: 1fr }
+  .compare-tab-vs { display: none }
+
+  /* Keyword table */
+  .kw-header, .kw-row { grid-template-columns: 1fr 50px 90px }
+
+  /* OG previews */
+  .og-previews { grid-template-columns: 1fr }
+
+  /* HIW tabs */
+  .hiw-tabs-grid { grid-template-columns: repeat(2, 1fr) }
+
+  /* Compare page */
+  .compare-page-box { padding: 1.25rem }
+
+  /* CMP row */
+  .cmp-row { grid-template-columns: 1fr }
+}
+
+/* ── 480px ── */
+@media(max-width:480px) {
+  /* Hero */
+  .lp-h1 { font-size: 1.85rem; letter-spacing: -.025em }
+  .lp-badge { font-size: .68rem; padding: .22rem .75rem }
+  .lp-sub { font-size: .9rem }
+  .lp-trust { flex-direction: column; align-items: center; gap: .4rem }
+
+  /* Scan box */
+  .url-row input { font-size: .9rem }
+  .scan-btn span { display: none }
+  .scan-btn { padding: 0 1rem }
+
+  /* Who grid */
+  .who-grid { grid-template-columns: 1fr }
+
+  /* Stats */
+  .stats-row { grid-template-columns: repeat(2, 1fr); gap: .6rem }
+  .stat-card { padding: 1rem .75rem }
+
+  /* Keyword table */
+  .kw-header, .kw-row { grid-template-columns: 1fr 45px }
+  .kw-density { display: none }
+
+  /* Health gauge */
+  .health-gauge { flex-direction: column; text-align: center; padding: 1rem }
+  .health-ring { width: 70px; height: 70px; font-size: 1.2rem }
+
+  /* Site banner */
+  .sb-favicon-wrap { flex-direction: column; gap: .75rem }
+  .sb-favicon { width: 44px; height: 44px }
+  .sb-title { font-size: 1.05rem }
+  .sb-url { flex-direction: column; gap: .35rem; align-items: flex-start }
+
+  /* Export */
+  .export-row { flex-direction: column }
+  .exp-btn { width: 100%; justify-content: center }
+
+  /* New scan bar */
+  .new-scan-url { display: none }
+
+  /* Tabs */
+  .tab { padding: .5rem .55rem; font-size: .72rem }
+
+  /* Font row */
+  .font-row { flex-direction: column; gap: .5rem }
+  .font-name { font-size: 1.2rem }
+
+  /* Color grid */
+  .swatch { width: 44px; height: 44px }
+
+  /* HIW tabs */
+  .hiw-tabs-grid { grid-template-columns: 1fr 1fr }
+
+  /* Perf bars */
+  .perf-bar-lbl { min-width: 100px; font-size: .75rem }
+}
+
+/* ── 375px ── */
+@media(max-width:375px) {
+  .wrap { padding: 0 1rem }
+  .lp-h1 { font-size: 1.7rem }
+  .lp-sub { font-size: .875rem }
+  .lp-section-head h2 { font-size: 1.5rem }
+  .feat-card { padding: 1rem }
+  .step-card { padding: 1.25rem 1rem }
+  .who-card { padding: 1rem }
+  .card { padding: .875rem }
+  .stat-card { padding: .875rem .6rem }
+  .stat-val { font-size: 1.2rem }
+  .stat-lbl { font-size: .62rem }
+  .tab { padding: .45rem .5rem; font-size: .7rem }
+  .lp-btn-primary { padding: .875rem 1.5rem; font-size: .9rem }
+  .lp-btn-lg { padding: 1rem 1.75rem; font-size: .95rem }
+  .mock-stats { grid-template-columns: repeat(2, 1fr) }
+  .score-ring { width: 80px; height: 80px; font-size: 1.4rem }
+}
+
+/* ── 320px ── */
+@media(max-width:320px) {
+  .wrap { padding: 0 .75rem }
+  .lp-h1 { font-size: 1.55rem }
+  .nav-row { padding: .6rem .75rem }
+  .logo { font-size: 1.1rem }
+  .stats-row { grid-template-columns: repeat(2, 1fr); gap: .5rem }
+  .stat-card { padding: .75rem .5rem }
+  .tab { padding: .4rem .45rem; font-size: .68rem }
+  .card { padding: .75rem }
+  .lp-section { padding: 3rem 0 }
+  .lp-cta-section { padding: 3rem 0 }
+  .features-grid { gap: .75rem }
+  .who-grid { gap: .75rem }
+  .authority-grid { grid-template-columns: 1fr 1fr }
+  .auth-val { font-size: 1.5rem }
+}
+
+/* ── Scan box responsive ── */
+@media(max-width:640px) {
+  .lp-scan-box { margin: 0 auto 1rem }
+  .url-row { border-radius: 12px }
+  .url-icon { padding: 0 .75rem; font-size: 1rem }
+}
+
+/* ── Compare mock responsive ── */
+@media(max-width:640px) {
+  .compare-mock-header { padding: 1rem }
+  .compare-mock-site { font-size: .875rem; padding: .3rem .65rem }
+}
+
+/* ── Tools grid responsive ── */
+@media(max-width:640px) {
+  .tools-grid { grid-template-columns: 1fr }
+  .tool-card { padding: 1.25rem }
+}
+@media(max-width:480px) {
+  .tools-grid { grid-template-columns: 1fr }
+}
+
+/* ── Scan overlay responsive ── */
+@media(max-width:480px) {
+  .scan-overlay-prog { width: 240px }
+  .scan-overlay-icon { font-size: 2.5rem }
+  .scan-overlay-msg { font-size: 1rem }
+}
+
+/* ── Back to top responsive ── */
+@media(max-width:480px) {
+  .back-to-top { bottom: 1rem; right: 1rem; width: 36px; height: 36px; font-size: .95rem }
+}
+
+/* ── New scan bar responsive ── */
+@media(max-width:640px) {
+  .new-scan-bar { padding: .5rem .75rem; gap: .5rem }
+  #rescanBtn .hide-xs, #shareBtn .hide-xs { display: none }
+}
+
+/* ── Section pill responsive ── */
+@media(max-width:480px) {
+  .lp-section-pill { font-size: .68rem; padding: .28rem .875rem }
+}
+
+/* ── Footer responsive ── */
+@media(max-width:480px) {
+  .lp-footer { padding: 2.5rem 0 0 }
+  .lp-footer-inner { gap: 1.25rem }
+  .lp-footer-col strong { font-size: .75rem }
+  .lp-footer-col a { font-size: .82rem }
+  .lp-footer-brand p { font-size: .82rem }
+  .lp-footer-bottom .wrap { font-size: .78rem }
+}
+
+/* ── What's New section responsive ── */
+@media(max-width:640px) {
+  #testimonials .who-grid,
+  .lp-section .who-grid[style*="200px"] {
+    grid-template-columns: 1fr 1fr !important;
+  }
+}
+@media(max-width:480px) {
+  #testimonials .who-grid,
+  .lp-section .who-grid[style*="200px"] {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ── Ensure no horizontal overflow ── */
+html, body { overflow-x: hidden; max-width: 100vw }
+img, video, iframe { max-width: 100% }
+pre { white-space: pre-wrap; word-break: break-word }
+.lp-dashboard-mock { max-width: 100% }
