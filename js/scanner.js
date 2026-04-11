@@ -1,6 +1,45 @@
 const Scanner = {
   currentData: null,
 
+  // ── Cache config
+  CACHE_KEY:  'ms_cache',
+  CACHE_TTL:  30 * 60 * 1000, // 30 minutes
+  CACHE_MAX:  5,               // max cached URLs
+
+  // ── Save scan result to localStorage
+  _cacheSave(url, data) {
+    try {
+      const store = this._cacheLoad() || {};
+      store[url] = { data, ts: Date.now() };
+      // Evict oldest if over limit
+      const keys = Object.keys(store);
+      if (keys.length > this.CACHE_MAX) {
+        const oldest = keys.sort((a,b) => store[a].ts - store[b].ts)[0];
+        delete store[oldest];
+      }
+      localStorage.setItem(this.CACHE_KEY, JSON.stringify(store));
+    } catch (_) {}
+  },
+
+  // ── Get all cached entries
+  _cacheLoad() {
+    try { return JSON.parse(localStorage.getItem(this.CACHE_KEY) || '{}'); } catch { return {}; }
+  },
+
+  // ── Get cached result for a URL (null if expired/missing)
+  cacheGet(url) {
+    const store = this._cacheLoad();
+    const entry = store[url];
+    if (!entry) return null;
+    if (Date.now() - entry.ts > this.CACHE_TTL) return null;
+    return entry.data;
+  },
+
+  // ── Clear all cache
+  cacheClear() {
+    localStorage.removeItem(this.CACHE_KEY);
+  },
+
   // ── Proxy pool — tried in order, first success wins
   PROXIES: [
     u => `https://corsproxy.io/?${encodeURIComponent(u)}`,
@@ -125,6 +164,8 @@ const Scanner = {
       ranking:  ranking  || { hostname: new URL(url).hostname.replace(/^www\./, ''), globalRank: null, pageRank: null, source: null },
       security: security || { https: url.startsWith('https://'), score: 0, grade: 'F', checks: [] },
     };
+    // Save to cache
+    this._cacheSave(url, this.currentData);
     return this.currentData;
   }
 };

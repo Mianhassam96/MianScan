@@ -214,6 +214,23 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => urlInput.focus(), 600);
   });
 
+  /* ── Rescan button (force fresh) ── */
+  const rescanBtn = document.getElementById('rescanBtn');
+  if (rescanBtn) {
+    rescanBtn.addEventListener('click', () => {
+      if (Scanner.currentData) run(Scanner.currentData.url, true);
+    });
+  }
+
+  /* ── Share button ── */
+  const shareBtn = document.getElementById('shareBtn');
+  if (shareBtn) {
+    shareBtn.addEventListener('click', () => {
+      const link = location.href;
+      navigator.clipboard.writeText(link).then(() => UI.toast('Share link copied!'));
+    });
+  }
+
   /* ── Tab scroll arrows ── */
   const tabsBar = document.getElementById('tabsBar');
   document.getElementById('tabScrollLeft').addEventListener('click', () => {
@@ -224,57 +241,52 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   /* ── Main scan ── */
-  async function run(urlOverride) {
+  async function run(urlOverride, forceRescan = false) {
     let url = (urlOverride || urlInput.value).trim();
     if (!url) { UI.toast('Enter a URL first'); return; }
     if (!url.startsWith('http')) url = 'https://' + url;
     try { new URL(url); } catch { UI.toast('Invalid URL'); return; }
     urlInput.value = url;
 
-    // Update browser URL for shareability
+    // Update browser URL
     const shareParam = new URL(location.href);
     shareParam.searchParams.set('url', url);
     window.history.replaceState(null, '', shareParam.toString());
+
+    // ── Cache hit — instant load
+    if (!forceRescan) {
+      const cached = Scanner.cacheGet(url);
+      if (cached) {
+        Scanner.currentData = cached;
+        const age = Math.round((Date.now() - new Date(cached.scannedAt).getTime()) / 60000);
+        _showResults(cached);
+        UI.toast(`Loaded from cache · ${age}m ago · click ↺ to rescan`);
+        return;
+      }
+    }
 
     // Hide compare mode if active
     if (compareMode) {
       compareMode = false;
       cmpSection.classList.add('hidden');
-      compareToggle.classList.remove('active-btn');
+      const ct = document.getElementById('compareToggle');
+      if (ct) ct.classList.remove('active-btn');
     }
 
     scanBtn.disabled = true;
     scanBtn.innerHTML = '<i class="bi bi-radar spin"></i><span>Scanning…</span>';
     progBox.classList.remove('hidden');
-    results.classList.add('hidden');
     progBar.style.width = '0%';
     overlayUrl.textContent = url;
     overlayMsg.textContent = 'Initializing scan…';
     overlayFill.style.width = '0%';
     overlay.classList.add('active');
 
-    // Show skeleton while scanning
+    // Show skeleton
     results.classList.remove('hidden');
     document.getElementById('siteBanner').innerHTML = `<div class="skeleton-wrap"><div class="skeleton skeleton-banner"></div></div>`;
     document.getElementById('statsRow').innerHTML = `<div class="skeleton-stats">${Array(8).fill('<div class="skeleton skeleton-stat"></div>').join('')}</div>`;
-    document.getElementById('tabContent').innerHTML = `<div class="skeleton-wrap"><div class="skeleton skeleton-tabs"></div><div class="skeleton-grid"><div class="skeleton skeleton-card"></div><div class="skeleton skeleton-card"></div></div><div class="skeleton skeleton-card-sm" style="margin-top:1.25rem"></div></div>`;
-
-    // Show skeleton while scanning
-    results.classList.remove('hidden');
-    document.getElementById('siteBanner').innerHTML = `
-      <div class="skeleton-banner">
-        <div class="skeleton-line lg"></div>
-        <div class="skeleton-line md"></div>
-        <div class="skeleton-line sm"></div>
-      </div>`;
-    document.getElementById('statsRow').innerHTML = `
-      <div class="skeleton-stats">
-        <div class="skeleton-stat"></div><div class="skeleton-stat"></div>
-        <div class="skeleton-stat"></div><div class="skeleton-stat"></div>
-        <div class="skeleton-stat"></div><div class="skeleton-stat"></div>
-        <div class="skeleton-stat"></div><div class="skeleton-stat"></div>
-      </div>`;
-    document.getElementById('tabContent').innerHTML = '';
+    document.getElementById('tabContent').innerHTML = `<div class="skeleton-wrap"><div class="skeleton skeleton-tabs"></div><div class="skeleton-grid"><div class="skeleton skeleton-card"></div><div class="skeleton skeleton-card"></div></div></div>`;
 
     try {
       const data = await Scanner.scan(url, (msg, pct) => {
@@ -283,24 +295,8 @@ document.addEventListener('DOMContentLoaded', () => {
         overlayMsg.textContent = msg;
         overlayFill.style.width = pct + '%';
       });
-
       overlay.classList.remove('active');
-      // Clear skeletons and render real data
-      document.getElementById('siteBanner').innerHTML = '';
-      document.getElementById('statsRow').innerHTML = '';
-      document.getElementById('tabContent').innerHTML = '';
-      results.classList.remove('hidden');
-      UI.renderBanner(data);
-      UI.renderStats(data);
-      // Update sticky new-scan bar
-      const newScanUrl = document.getElementById('newScanUrl');
-      if (newScanUrl) newScanUrl.textContent = new URL(url).hostname;
-
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      document.querySelector('[data-tab="overview"]').classList.add('active');
-      UI.renderTab('overview', data);
-
-      document.getElementById('scanner-app').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      _showResults(data);
 
     } catch (err) {
       overlay.classList.remove('active');
@@ -308,16 +304,20 @@ document.addEventListener('DOMContentLoaded', () => {
       if (/timeout|abort/i.test(msg))       msg = 'The site took too long to respond.';
       else if (/proxies failed/i.test(msg)) msg = 'This site blocks external requests. Try a different URL.';
       else if (/empty response/i.test(msg)) msg = 'No content returned. The site may require login.';
-      // Show error with retry button
       results.classList.remove('hidden');
       document.getElementById('siteBanner').innerHTML = `
         <div style="text-align:center;padding:2.5rem 1rem">
           <div style="font-size:2.5rem;margin-bottom:.75rem">⚠️</div>
           <div style="font-size:1.1rem;font-weight:700;color:var(--red);margin-bottom:.5rem">Scan Failed</div>
           <div style="color:var(--muted);font-size:.9rem;margin-bottom:1.25rem">${msg}</div>
-          <button class="scan-btn" onclick="document.getElementById('scanAgainBtn').click()" style="display:inline-flex;min-height:40px;padding:0 1.5rem;font-size:.9rem">
-            <i class="bi bi-arrow-repeat"></i><span>Try Again</span>
-          </button>
+          <div style="display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap">
+            <button class="scan-btn" onclick="_run('${url.replace(/'/g,"\\'")}', true)" style="display:inline-flex;min-height:40px;padding:0 1.5rem;font-size:.9rem">
+              <i class="bi bi-arrow-repeat"></i><span>Retry</span>
+            </button>
+            <button class="exp-btn" onclick="document.getElementById('scanAgainBtn').click()" style="min-height:40px">
+              <i class="bi bi-search"></i> Try Another URL
+            </button>
+          </div>
         </div>`;
       document.getElementById('statsRow').innerHTML = '';
       document.getElementById('tabContent').innerHTML = '';
@@ -330,12 +330,30 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  function _showResults(data) {
+    document.getElementById('siteBanner').innerHTML = '';
+    document.getElementById('statsRow').innerHTML = '';
+    document.getElementById('tabContent').innerHTML = '';
+    results.classList.remove('hidden');
+    UI.renderBanner(data);
+    UI.renderStats(data);
+    const newScanUrl = document.getElementById('newScanUrl');
+    if (newScanUrl) newScanUrl.textContent = new URL(data.url).hostname;
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelector('[data-tab="overview"]').classList.add('active');
+    UI.renderTab('overview', data);
+    document.getElementById('scanner-app').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
   // ── Auto-scan from ?url= query param ──
   const autoUrl = new URLSearchParams(location.search).get('url');
   if (autoUrl) {
     urlInput.value = autoUrl;
     setTimeout(() => run(autoUrl), 400);
   }
+
+  // Expose run globally for inline onclick retry buttons
+  window._run = (url, force) => run(url, force);
 });
 
 /* ── Animated hero mock counter ── */

@@ -1288,3 +1288,6 @@ button:focus-visible, input:focus-visible {
 .skeleton-grid {
   display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;
 }
+
+/* ===== HIDE ON SMALL SCREENS ===== */
+@media(max-width:480px) { .hide-xs { display: none } }

@@ -574,9 +574,17 @@
       <!-- Sticky new-scan bar -->
       <div class="new-scan-bar" id="newScanBar">
         <span class="new-scan-url" id="newScanUrl"></span>
-        <button class="scan-btn" id="newScanBtn" style="min-height:36px;padding:0 1.1rem;font-size:.82rem">
-          <i class="bi bi-radar"></i><span>New Scan</span>
-        </button>
+        <div style="display:flex;gap:.5rem;flex-shrink:0">
+          <button class="exp-btn" id="rescanBtn" title="Force fresh scan" style="min-height:36px;padding:0 .875rem;font-size:.8rem">
+            <i class="bi bi-arrow-repeat"></i><span class="hide-xs"> Rescan</span>
+          </button>
+          <button class="exp-btn" id="shareBtn" title="Copy share link" style="min-height:36px;padding:0 .875rem;font-size:.8rem">
+            <i class="bi bi-share-fill"></i><span class="hide-xs"> Share</span>
+          </button>
+          <button class="scan-btn" id="newScanBtn" style="min-height:36px;padding:0 1.1rem;font-size:.82rem">
+            <i class="bi bi-radar"></i><span>New Scan</span>
+          </button>
+        </div>
       </div>
 
       <!-- Site Banner with favicon -->
