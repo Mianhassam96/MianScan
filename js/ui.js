@@ -79,10 +79,10 @@
       {icon:'📊', val:seo.score+'/100',       lbl:'SEO Score',   color:'var(--green)',    count:seo.score},
       {icon:'🏆', val:da,                      lbl:'Domain Auth', color:'var(--primary2)'},
       {icon:'🌍', val:rank,                    lbl:'Global Rank', color:'var(--accent)'},
+      {icon:'⚡', val:(data.performance?.score??'—'),lbl:'Perf Score',color:data.performance?.score>=80?'var(--green)':data.performance?.score>=50?'var(--yellow)':'var(--red)',count:data.performance?.score},
       {icon:'🔗', val:links.totalInternal,     lbl:'Int. Links',  color:'var(--primary2)', count:links.totalInternal},
       {icon:'🌐', val:links.totalExternal,     lbl:'Ext. Links',  color:'var(--muted)',    count:links.totalExternal},
       {icon:'🖼️', val:images.total,           lbl:'Images',      color:'var(--yellow)',   count:images.total},
-      {icon:'⚠️', val:images.missingAltCount, lbl:'Missing Alt', color:images.missingAltCount>0?'var(--red)':'var(--green)', count:images.missingAltCount},
       {icon:'🛠️', val:tech.detected.length,   lbl:'Tech Found',  color:'var(--purple)',   count:tech.detected.length},
     ];
     document.getElementById('statsRow').innerHTML = cards.map((c,i)=>
@@ -627,19 +627,35 @@
         <span class="perf-bar-val" style="color:${barColor}">${val}${unit}</span>
       </div>`;
     };
-    return `<div class="g2">
+    const score = p.score ?? null;
+    const grade = p.grade ?? null;
+    const gradeColor = score >= 80 ? 'var(--green)' : score >= 65 ? 'var(--primary2)' : score >= 50 ? 'var(--yellow)' : 'var(--red)';
+    const scoreCard = score !== null ? `
+      <div class="card" style="margin-bottom:1.25rem">
+        <div class="card-head"><i class="bi bi-speedometer2"></i> Performance Score</div>
+        <div style="display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap">
+          <div class="score-ring" style="border-color:${gradeColor};color:${gradeColor};flex-shrink:0">${score}</div>
+          <div>
+            <div style="font-size:1.1rem;font-weight:700;color:${gradeColor}">Grade ${grade}</div>
+            <div style="color:var(--muted);font-size:.85rem;margin-top:.25rem">${score>=80?'Fast page':score>=65?'Moderate performance':'Needs improvement'}</div>
+          </div>
+        </div>
+        <div style="margin-top:1rem">${(p.checks||[]).map(c=>this.warnRow(c)).join('')}</div>
+      </div>` : '';
+    return scoreCard + `<div class="g2">
       <div class="card">
-        <div class="card-head"><i class="bi bi-speedometer2"></i> Page Metrics</div>
+        <div class="card-head"><i class="bi bi-bar-chart-fill"></i> Page Metrics</div>
         ${bar('HTML Size',    parseFloat(p.htmlSizeKB), 500, ' KB', 'var(--primary2)')}
         ${bar('Scripts',      p.scriptsCount,  30, '', 'var(--primary2)')}
         ${bar('Stylesheets',  p.stylesCount,   10, '', 'var(--accent)')}
         ${bar('Images',       p.imagesCount,   50, '', 'var(--yellow)')}
         ${bar('Iframes',      p.iframesCount,  5,  '', 'var(--purple)')}
         ${bar('Inline JS',    parseFloat(p.inlineKB), 100, ' KB', 'var(--muted)')}
+        ${p.lazyImgs !== undefined ? bar('Lazy Images', p.lazyImgs, p.imagesCount||1, '', 'var(--green)') : ''}
       </div>
       <div class="card">
-        <div class="card-head"><i class="bi bi-universal-access"></i> Accessibility</div>
-        ${p.a11y.map(w=>this.warnRow(w)).join('')}
+        <div class="card-head"><i class="bi bi-universal-access"></i> Accessibility Checks</div>
+        ${(p.a11y||[]).map(w=>this.warnRow(w)).join('')}
       </div>
     </div>`;
   },

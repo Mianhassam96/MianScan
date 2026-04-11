@@ -14,47 +14,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const overlayFill= document.getElementById('overlayFill');
   const backToTop  = document.getElementById('backToTop');
 
-  /* ══════════════════════════════════════
-     SCAN HISTORY (localStorage)
-  ══════════════════════════════════════ */
-  const History = {
-    KEY: 'ms_history',
-    MAX: 8,
-    get() {
-      try { return JSON.parse(localStorage.getItem(this.KEY) || '[]'); } catch { return []; }
-    },
-    add(url) {
-      let h = this.get().filter(u => u !== url);
-      h.unshift(url);
-      h = h.slice(0, this.MAX);
-      localStorage.setItem(this.KEY, JSON.stringify(h));
-      this.render();
-    },
-    clear() {
-      localStorage.removeItem(this.KEY);
-      this.render();
-    },
-    render() {
-      const h = this.get();
-      const wrap = document.getElementById('historyBar');
-      if (!wrap) return;
-      if (!h.length) { wrap.classList.add('hidden'); return; }
-      wrap.classList.remove('hidden');
-      wrap.innerHTML = `
-        <span class="history-label"><i class="bi bi-clock-history"></i> Recent</span>
-        ${h.map(u => `<button class="history-item" data-url="${u}" title="${u}">
-          <i class="bi bi-globe2"></i>${new URL(u).hostname}
-        </button>`).join('')}
-        <button class="history-clear" onclick="History.clear()" title="Clear history"><i class="bi bi-x-lg"></i></button>`;
-      wrap.querySelectorAll('.history-item').forEach(btn =>
-        btn.addEventListener('click', () => { urlInput.value = btn.dataset.url; run(btn.dataset.url); })
-      );
-    }
-  };
-  // Expose globally so onclick in template works
-  window.History = History;
-  History.render();
-
   /* ── Feature cards → scroll to scanner + open tab ── */
   document.querySelectorAll('.feat-card[data-goto]').forEach(card => {
     card.style.cursor = 'pointer';
@@ -292,9 +251,6 @@ document.addEventListener('DOMContentLoaded', () => {
       UI.renderBanner(data);
       UI.renderStats(data);
 
-      // Save to history
-      History.add(url);
-
       // Update sticky new-scan bar
       const newScanUrl = document.getElementById('newScanUrl');
       if (newScanUrl) newScanUrl.textContent = new URL(url).hostname;
@@ -308,10 +264,23 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (err) {
       overlay.classList.remove('active');
       let msg = err.message;
-      if (/timeout|abort/i.test(msg))       msg = 'The site took too long to respond. Try again.';
+      if (/timeout|abort/i.test(msg))       msg = 'The site took too long to respond.';
       else if (/proxies failed/i.test(msg)) msg = 'This site blocks external requests. Try a different URL.';
       else if (/empty response/i.test(msg)) msg = 'No content returned. The site may require login.';
-      UI.toast('Scan failed: ' + msg);
+      // Show error with retry button
+      results.classList.remove('hidden');
+      document.getElementById('siteBanner').innerHTML = `
+        <div style="text-align:center;padding:2.5rem 1rem">
+          <div style="font-size:2.5rem;margin-bottom:.75rem">⚠️</div>
+          <div style="font-size:1.1rem;font-weight:700;color:var(--red);margin-bottom:.5rem">Scan Failed</div>
+          <div style="color:var(--muted);font-size:.9rem;margin-bottom:1.25rem">${msg}</div>
+          <button class="scan-btn" onclick="document.getElementById('scanAgainBtn').click()" style="display:inline-flex;min-height:40px;padding:0 1.5rem;font-size:.9rem">
+            <i class="bi bi-arrow-repeat"></i><span>Try Again</span>
+          </button>
+        </div>`;
+      document.getElementById('statsRow').innerHTML = '';
+      document.getElementById('tabContent').innerHTML = '';
+      document.getElementById('scanner-app').scrollIntoView({ behavior: 'smooth', block: 'start' });
       console.error(err);
     } finally {
       scanBtn.disabled = false;

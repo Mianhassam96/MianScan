@@ -199,12 +199,24 @@ const Compare = {
   },
 
   perfBlock(a, b) {
-    const perf = d => `
-      <div class="prow"><span class="plbl">HTML Size</span><span class="pval">${d.performance.htmlSizeKB} KB</span></div>
-      <div class="prow"><span class="plbl">Scripts</span><span class="pval">${d.performance.scriptsCount}</span></div>
-      <div class="prow"><span class="plbl">Images</span><span class="pval">${d.performance.imagesCount}</span></div>
-      <div class="prow"><span class="plbl">Stylesheets</span><span class="pval">${d.performance.stylesCount}</span></div>`;
-    return this.col(`<div class="card" style="margin:0">${perf(a)}</div>`) + this.col(`<div class="card" style="margin:0">${perf(b)}</div>`);
+    const winner = parseFloat(a.performance.htmlSizeKB) < parseFloat(b.performance.htmlSizeKB) ? 'a' : 'b';
+    const perf = (d, side) => {
+      const score = d.performance.score ?? null;
+      const grade = d.performance.grade ?? null;
+      const gradeColor = score >= 80 ? 'var(--green)' : score >= 65 ? 'var(--primary2)' : score >= 50 ? 'var(--yellow)' : 'var(--red)';
+      return `
+        ${score !== null ? `<div style="text-align:center;margin-bottom:.75rem">
+          ${winner===side?`<div style="font-size:.72rem;font-weight:700;color:var(--green);margin-bottom:.3rem"><i class="bi bi-trophy-fill"></i> FASTER</div>`:''}
+          <div class="score-ring" style="width:64px;height:64px;font-size:1.1rem;border-color:${gradeColor};color:${gradeColor};margin:0 auto .4rem">${score}</div>
+          <div style="font-size:.78rem;color:var(--muted)">Grade ${grade}</div>
+        </div>` : ''}
+        <div class="prow"><span class="plbl">HTML Size</span><span class="pval">${d.performance.htmlSizeKB} KB</span></div>
+        <div class="prow"><span class="plbl">Scripts</span><span class="pval">${d.performance.scriptsCount}</span></div>
+        <div class="prow"><span class="plbl">Images</span><span class="pval">${d.performance.imagesCount}</span></div>
+        <div class="prow"><span class="plbl">Stylesheets</span><span class="pval">${d.performance.stylesCount}</span></div>
+        <div class="prow"><span class="plbl">Lazy Images</span><span class="pval">${d.performance.lazyImgs ?? '—'}</span></div>`;
+    };
+    return this.col(`<div class="card" style="margin:0">${perf(a,'a')}</div>`) + this.col(`<div class="card" style="margin:0">${perf(b,'b')}</div>`);
   },
 
   contactsBlock(a, b) {
