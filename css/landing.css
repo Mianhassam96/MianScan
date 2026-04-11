@@ -1079,3 +1079,17 @@
   border-color: var(--primary);
   box-shadow: 0 0 0 4px rgba(80,96,238,.1);
 }
+
+/* ── Footer social buttons ── */
+.foot-social-btn {
+  display: inline-flex; align-items: center; gap: .35rem;
+  background: var(--bg3); border: 1px solid var(--border);
+  color: var(--muted); border-radius: 8px;
+  padding: .35rem .75rem; font-size: .82rem; font-weight: 600;
+  text-decoration: none; transition: all .2s;
+}
+.foot-social-btn:hover { border-color: var(--border-h); color: var(--text) }
+.foot-star-btn { color: var(--yellow) !important; border-color: rgba(245,158,11,.3) }
+.foot-star-btn:hover { background: rgba(245,158,11,.1) !important; border-color: rgba(245,158,11,.5) !important }
+
+[data-theme="light"] .foot-social-btn { background: #fff; border-color: rgba(80,96,238,.15) }

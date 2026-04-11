@@ -3,26 +3,27 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<meta name="description" content="MianScan — Analyze any website instantly. Get SEO score, tech stack, colors, fonts, contacts, links and more in one scan."/>
-<meta name="keywords" content="website analyzer, SEO checker, tech stack detector, color palette extractor, website audit tool"/>
+<meta name="description" content="MianScan — Free website intelligence scanner. Instant SEO score, security grade, tech stack, colors, fonts, contacts & more. No signup needed."/>
+<meta name="keywords" content="website analyzer, SEO checker, tech stack detector, color palette extractor, website audit tool, free SEO tool, site scanner"/>
 <meta name="author" content="MultiMian"/>
 <meta name="robots" content="index, follow"/>
+<meta name="theme-color" content="#6470ff"/>
 
 <!-- Open Graph -->
 <meta property="og:type"        content="website"/>
 <meta property="og:url"         content="https://mianhassam96.github.io/MianScan/"/>
-<meta property="og:title"       content="MianScan — Website Intelligence Scanner"/>
-<meta property="og:description" content="Analyze any website instantly. SEO score, tech stack, colors, fonts, contacts, links — all in one powerful scan. Free, no signup."/>
+<meta property="og:title"       content="MianScan — Free Website Intelligence Scanner"/>
+<meta property="og:description" content="Instant SEO score, security grade, tech stack, colors, fonts, contacts — 18 analyzers in one free scan. No signup required."/>
 <meta property="og:image"       content="https://mianhassam96.github.io/MianScan/favicon.svg"/>
 <meta property="og:site_name"   content="MianScan"/>
 
 <!-- Twitter Card -->
 <meta name="twitter:card"        content="summary_large_image"/>
-<meta name="twitter:title"       content="MianScan — Website Intelligence Scanner"/>
-<meta name="twitter:description" content="Analyze any website instantly. SEO, tech stack, colors, fonts, contacts — free tool."/>
+<meta name="twitter:title"       content="MianScan — Free Website Intelligence Scanner"/>
+<meta name="twitter:description" content="18 analyzers. One scan. SEO, security, tech stack, colors, fonts, contacts — instant & free."/>
 <meta name="twitter:image"       content="https://mianhassam96.github.io/MianScan/favicon.svg"/>
 
-<title>MianScan — Website Analyzer</title>
+<title>MianScan — Free Website Analyzer & SEO Scanner</title>
 <link rel="manifest" href="manifest.json"/>
 <link rel="icon" type="image/svg+xml" href="favicon.svg"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
@@ -362,7 +363,7 @@
         </div>
       </div>
       <div class="compare-mock-cta">
-        <a href="#scanner-app" class="lp-btn-primary" onclick="event.preventDefault();document.getElementById('scanner-app').scrollIntoView({behavior:'smooth'});setTimeout(()=>{document.getElementById('compareToggle').click();},700);">
+        <a href="#scanner-app" class="lp-btn-primary" onclick="event.preventDefault();document.getElementById('scanner-app').scrollIntoView({behavior:'smooth'});">
           <i class="bi bi-arrow-left-right"></i> Try Compare Mode
         </a>
       </div>
@@ -585,33 +586,48 @@
 <footer class="lp-footer">
   <div class="wrap lp-footer-inner">
     <div class="lp-footer-brand">
-      <span class="logo"><i class="bi bi-radar"></i> MianScan</span>
-      <p>Full website intelligence scanner. Free, fast, and powerful.</p>
+      <a class="logo" href="index.html"><i class="bi bi-radar"></i> MianScan</a>
+      <p>Free website intelligence scanner. SEO, security, tech stack, colors, fonts — 18 analyzers in one scan.</p>
+      <div style="display:flex;gap:.75rem;margin-top:1rem">
+        <a href="https://github.com/Mianhassam96/MianScan" target="_blank" rel="noopener" class="foot-social-btn" title="GitHub">
+          <i class="bi bi-github"></i>
+        </a>
+        <a href="https://github.com/Mianhassam96/MianScan/stargazers" target="_blank" rel="noopener" class="foot-social-btn foot-star-btn" title="Star on GitHub">
+          <i class="bi bi-star-fill"></i> Star
+        </a>
+      </div>
     </div>
     <div class="lp-footer-col">
-      <strong>Features</strong>
-      <a href="#features" class="scroll-link">SEO Analysis</a>
-      <a href="#features" class="scroll-link">Tech Stack</a>
-      <a href="#features" class="scroll-link">Color Palette</a>
-      <a href="#features" class="scroll-link">Compare Mode</a>
+      <strong>Analyzers</strong>
+      <a href="features.html">SEO Score</a>
+      <a href="features.html">Tech Stack</a>
+      <a href="features.html">Color Palette</a>
+      <a href="features.html">Security Grade</a>
+      <a href="features.html">Mobile Score</a>
     </div>
     <div class="lp-footer-col">
-      <strong>Resources</strong>
-      <a href="#how-it-works" class="scroll-link">How It Works</a>
-      <a href="#compare-highlight" class="scroll-link">Compare</a>
-      <a href="index.html#scanner-app" class="scroll-link">Try Now</a>
-      <a href="https://github.com/Mianhassam96/MianScan" target="_blank" rel="noopener">GitHub</a>
+      <strong>Pages</strong>
+      <a href="features.html"><i class="bi bi-grid-3x3-gap-fill"></i> Features</a>
+      <a href="how-it-works.html"><i class="bi bi-info-circle-fill"></i> How It Works</a>
+      <a href="compare.html"><i class="bi bi-arrow-left-right"></i> Compare</a>
+      <a href="tools.html"><i class="bi bi-tools"></i> Tools</a>
+      <a href="index.html#scanner-app"><i class="bi bi-radar"></i> Try Now</a>
     </div>
     <div class="lp-footer-col">
-      <strong>Built by</strong>
-      <a href="https://multimian.com/" target="_blank" rel="noopener">MultiMian</a>
-      <a href="https://multimian.com/" target="_blank" rel="noopener"><i class="bi bi-globe2"></i> multimian.com</a>
+      <strong>Open Source</strong>
+      <a href="https://github.com/Mianhassam96/MianScan" target="_blank" rel="noopener"><i class="bi bi-github"></i> GitHub Repo</a>
+      <a href="https://github.com/Mianhassam96/MianScan/issues" target="_blank" rel="noopener"><i class="bi bi-bug-fill"></i> Report Bug</a>
+      <a href="https://github.com/Mianhassam96/MianScan/fork" target="_blank" rel="noopener"><i class="bi bi-git"></i> Fork It</a>
+      <a href="https://multimian.com/" target="_blank" rel="noopener"><i class="bi bi-globe2"></i> MultiMian</a>
     </div>
   </div>
   <div class="lp-footer-bottom">
     <div class="wrap">
-      <span>© 2026 MianScan — Built by <a href="https://multimian.com/" target="_blank">MultiMian</a></span>
-      <span>Free · Open Source · No Signup</span>
+      <span>© 2025 MianScan — Built by <a href="https://multimian.com/" target="_blank" rel="noopener">MultiMian</a></span>
+      <span style="display:flex;align-items:center;gap:1rem">
+        <span>Free · Open Source · No Signup</span>
+        <a href="https://github.com/Mianhassam96/MianScan" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:.3rem;color:var(--primary2)"><i class="bi bi-github"></i> View on GitHub</a>
+      </span>
     </div>
   </div>
 </footer>

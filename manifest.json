@@ -1,12 +1,33 @@
 {
   "name": "MianScan — Website Intelligence Scanner",
   "short_name": "MianScan",
-  "description": "Analyze any website instantly. SEO score, tech stack, colors, fonts, contacts — free tool.",
+  "description": "Free website analyzer. SEO score, security grade, tech stack, colors, fonts, contacts — 18 analyzers in one scan.",
   "start_url": "/MianScan/",
+  "scope": "/MianScan/",
   "display": "standalone",
+  "orientation": "portrait-primary",
   "background_color": "#07101f",
   "theme_color": "#6470ff",
+  "categories": ["productivity", "utilities"],
   "icons": [
-    { "src": "favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+    { "src": "favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Scan a Website",
+      "short_name": "Scan",
+      "description": "Analyze any website instantly",
+      "url": "/MianScan/#scanner-app",
+      "icons": [{ "src": "favicon.svg", "sizes": "any" }]
+    },
+    {
+      "name": "Compare Sites",
+      "short_name": "Compare",
+      "description": "Compare two websites side by side",
+      "url": "/MianScan/compare.html",
+      "icons": [{ "src": "favicon.svg", "sizes": "any" }]
+    }
   ]
 }
