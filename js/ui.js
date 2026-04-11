@@ -227,27 +227,46 @@
 
   /* ── 3. Domain Authority / PA ── */
   tDomain(d, seo, overview) {
-    const score = seo.score;
-    const paEst = Math.min(100, Math.round(score*0.85+(seo.h1s.length===1?5:0)+(seo.canonical?5:0)));
-    const daVal = d?.da !== null && d?.da !== undefined ? d.da : Math.round(score/15);
-    const daLabel = d?.da !== null && d?.da !== undefined ? 'Open PageRank (0–10)' : 'Estimated';
+    const score  = seo.score;
+    const hasDA  = d?.da !== null && d?.da !== undefined;
+    const daVal  = hasDA ? d.da : '—';
+    const daNote = hasDA ? 'Open PageRank (0–10)' : 'Not available';
+    const daColor= hasDA ? 'var(--primary2)' : 'var(--muted)';
+    const paEst  = Math.min(100, Math.round(score * 0.85 + (seo.h1s.length === 1 ? 5 : 0) + (seo.canonical ? 5 : 0)));
     return `<div class="g2">
       <div class="card">
         <div class="card-head"><i class="bi bi-globe-americas"></i> Domain Info</div>
         ${this.irow('Domain',   `<strong>${this.e(d?.hostname||'—')}</strong>`)}
         ${this.irow('Type',     overview.type)}
         ${this.irow('Language', overview.lang)}
-        ${this.irow('Created',  d?.age||'<em style="color:var(--muted)">Unknown</em>')}
+        ${this.irow('Registered', d?.age || '<em style="color:var(--muted)">Unknown</em>')}
       </div>
       <div class="card">
         <div class="card-head"><i class="bi bi-bar-chart-fill"></i> Authority Metrics</div>
         <div class="authority-grid">
-          <div class="auth-card"><div class="auth-val" style="color:var(--primary2)">${daVal}</div><div class="auth-lbl">Domain Authority</div><div class="auth-note">${daLabel}</div></div>
-          <div class="auth-card"><div class="auth-val" style="color:var(--accent)">${paEst}</div><div class="auth-lbl">Page Authority</div><div class="auth-note">Estimated (0–100)</div></div>
-          <div class="auth-card"><div class="auth-val" style="color:var(--green)">${score}</div><div class="auth-lbl">SEO Score</div><div class="auth-note">On-page analysis</div></div>
-          <div class="auth-card"><div class="auth-val" style="color:var(--yellow);font-size:1rem">${d?.rank?'#'+Number(d.rank).toLocaleString():'N/A'}</div><div class="auth-lbl">OPR Rank</div><div class="auth-note">Open PageRank</div></div>
+          <div class="auth-card">
+            <div class="auth-val" style="color:${daColor}">${daVal}</div>
+            <div class="auth-lbl">Domain Authority</div>
+            <div class="auth-note">${daNote}</div>
+          </div>
+          <div class="auth-card">
+            <div class="auth-val" style="color:var(--accent)">${paEst}</div>
+            <div class="auth-lbl">Page Authority</div>
+            <div class="auth-note">Estimated from SEO score</div>
+          </div>
+          <div class="auth-card">
+            <div class="auth-val" style="color:var(--green)">${score}</div>
+            <div class="auth-lbl">SEO Score</div>
+            <div class="auth-note">On-page analysis</div>
+          </div>
+          <div class="auth-card">
+            <div class="auth-val" style="color:var(--yellow);font-size:1rem">${d?.rank ? '#'+Number(d.rank).toLocaleString() : '—'}</div>
+            <div class="auth-lbl">OPR Rank</div>
+            <div class="auth-note">Open PageRank</div>
+          </div>
         </div>
-        <div class="auth-note-box"><i class="bi bi-info-circle"></i> DA/PA are estimated metrics based on on-page signals and Open PageRank. They are <strong>not</strong> official Moz scores. For exact DA/PA use <a href="https://moz.com/link-explorer" target="_blank" style="color:var(--primary2)">Moz Link Explorer ↗</a> or <a href="https://ahrefs.com" target="_blank" style="color:var(--primary2)">Ahrefs ↗</a></div>
+        ${!hasDA ? `<div class="auth-note-box" style="margin-top:.75rem"><i class="bi bi-info-circle"></i> Domain Authority requires the Open PageRank API. It may not be available for all domains. For exact DA/PA use <a href="https://moz.com/link-explorer" target="_blank" style="color:var(--primary2)">Moz ↗</a> or <a href="https://ahrefs.com" target="_blank" style="color:var(--primary2)">Ahrefs ↗</a></div>` : ''}
+        <div class="auth-note-box" style="margin-top:.75rem"><i class="bi bi-info-circle"></i> Page Authority is estimated from on-page SEO signals. It is <strong>not</strong> an official Moz score.</div>
       </div>
     </div>`;
   },
