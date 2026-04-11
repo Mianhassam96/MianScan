@@ -1093,3 +1093,29 @@
 .foot-star-btn:hover { background: rgba(245,158,11,.1) !important; border-color: rgba(245,158,11,.5) !important }
 
 [data-theme="light"] .foot-social-btn { background: #fff; border-color: rgba(80,96,238,.15) }
+
+/* ── Features toggle button ── */
+.feat-toggle-btn {
+  display: inline-flex; align-items: center; gap: .5rem;
+  background: var(--bg3); border: 1px solid var(--border);
+  color: var(--muted); border-radius: 12px;
+  padding: .65rem 1.5rem; font-size: .875rem; font-weight: 600;
+  cursor: pointer; transition: all .2s;
+}
+.feat-toggle-btn:hover {
+  border-color: var(--primary2); color: var(--primary2);
+  background: var(--bg4);
+}
+[data-theme="light"] .feat-toggle-btn { background: #fff; border-color: rgba(80,96,238,.18) }
+[data-theme="light"] .feat-toggle-btn:hover { background: #f0f3ff }
+
+/* ── Footer grid — 4 equal columns ── */
+.lp-footer-inner {
+  grid-template-columns: 1.4fr 1fr 1fr 1fr !important;
+}
+@media(max-width:1024px) {
+  .lp-footer-inner { grid-template-columns: 1fr 1fr !important }
+}
+@media(max-width:640px) {
+  .lp-footer-inner { grid-template-columns: 1fr !important }
+}

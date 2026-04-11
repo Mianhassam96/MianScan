@@ -1223,3 +1223,68 @@ button:focus-visible, input:focus-visible {
 .tool-card p{font-size:.82rem;color:var(--muted);line-height:1.55}
 .tool-open{display:inline-flex;align-items:center;gap:.3rem;margin-top:.875rem;font-size:.8rem;font-weight:700;color:var(--tc,var(--primary2));opacity:0;transform:translateX(-4px);transition:opacity .2s,transform .2s}
 .tool-card:hover .tool-open{opacity:1;transform:translateX(0)}
+
+/* ===== SCAN SKELETON LOADER ===== */
+.skeleton-banner {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 1.75rem 2rem;
+  margin-bottom: 1.5rem;
+}
+.skeleton-line {
+  height: 14px; border-radius: 6px; margin-bottom: .75rem;
+  background: linear-gradient(90deg, var(--bg3) 25%, var(--bg4) 50%, var(--bg3) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+}
+.skeleton-line.lg { height: 22px; width: 55% }
+.skeleton-line.md { height: 14px; width: 80% }
+.skeleton-line.sm { height: 10px; width: 40% }
+.skeleton-stats {
+  display: grid; grid-template-columns: repeat(auto-fit,minmax(118px,1fr));
+  gap: .875rem; margin-bottom: 1.75rem;
+}
+.skeleton-stat {
+  height: 100px; border-radius: var(--radius);
+  background: linear-gradient(90deg, var(--bg3) 25%, var(--bg4) 50%, var(--bg3) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+}
+.skeleton-stat:nth-child(2) { animation-delay: .1s }
+.skeleton-stat:nth-child(3) { animation-delay: .2s }
+.skeleton-stat:nth-child(4) { animation-delay: .3s }
+
+/* ===== FEAT TOGGLE BUTTON ===== */
+.feat-toggle-btn {
+  display: inline-flex; align-items: center; gap: .5rem;
+  background: var(--bg3); border: 1px solid var(--border);
+  color: var(--primary2); border-radius: 30px;
+  padding: .6rem 1.5rem; font-size: .875rem; font-weight: 700;
+  cursor: pointer; transition: all .25s;
+  font-family: inherit;
+}
+.feat-toggle-btn:hover {
+  background: var(--bg4); border-color: var(--primary2);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(100,112,255,.2);
+}
+[data-theme="light"] .feat-toggle-btn { background: #fff; border-color: rgba(80,96,238,.2) }
+[data-theme="light"] .feat-toggle-btn:hover { background: #f0f3ff }
+
+/* ===== LOADING SKELETON ===== */
+.skeleton-wrap {
+  padding: 2rem 0;
+}
+.skeleton-banner {
+  height: 120px; border-radius: var(--radius); margin-bottom: 1.25rem;
+}
+.skeleton-stats {
+  display: grid; grid-template-columns: repeat(auto-fit,minmax(118px,1fr));
+  gap: .875rem; margin-bottom: 1.75rem;
+}
+.skeleton-stat { height: 90px; border-radius: var(--radius) }
+.skeleton-tabs { height: 44px; border-radius: var(--radius-s); margin-bottom: 1.5rem }
+.skeleton-card { height: 200px; border-radius: var(--radius); margin-bottom: 1.25rem }
+.skeleton-card-sm { height: 120px; border-radius: var(--radius) }
+.skeleton-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;
+}

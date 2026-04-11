@@ -253,6 +253,29 @@ document.addEventListener('DOMContentLoaded', () => {
     overlayFill.style.width = '0%';
     overlay.classList.add('active');
 
+    // Show skeleton while scanning
+    results.classList.remove('hidden');
+    document.getElementById('siteBanner').innerHTML = `<div class="skeleton-wrap"><div class="skeleton skeleton-banner"></div></div>`;
+    document.getElementById('statsRow').innerHTML = `<div class="skeleton-stats">${Array(8).fill('<div class="skeleton skeleton-stat"></div>').join('')}</div>`;
+    document.getElementById('tabContent').innerHTML = `<div class="skeleton-wrap"><div class="skeleton skeleton-tabs"></div><div class="skeleton-grid"><div class="skeleton skeleton-card"></div><div class="skeleton skeleton-card"></div></div><div class="skeleton skeleton-card-sm" style="margin-top:1.25rem"></div></div>`;
+
+    // Show skeleton while scanning
+    results.classList.remove('hidden');
+    document.getElementById('siteBanner').innerHTML = `
+      <div class="skeleton-banner">
+        <div class="skeleton-line lg"></div>
+        <div class="skeleton-line md"></div>
+        <div class="skeleton-line sm"></div>
+      </div>`;
+    document.getElementById('statsRow').innerHTML = `
+      <div class="skeleton-stats">
+        <div class="skeleton-stat"></div><div class="skeleton-stat"></div>
+        <div class="skeleton-stat"></div><div class="skeleton-stat"></div>
+        <div class="skeleton-stat"></div><div class="skeleton-stat"></div>
+        <div class="skeleton-stat"></div><div class="skeleton-stat"></div>
+      </div>`;
+    document.getElementById('tabContent').innerHTML = '';
+
     try {
       const data = await Scanner.scan(url, (msg, pct) => {
         progBar.style.width = pct + '%';
@@ -265,7 +288,6 @@ document.addEventListener('DOMContentLoaded', () => {
       results.classList.remove('hidden');
       UI.renderBanner(data);
       UI.renderStats(data);
-
       // Update sticky new-scan bar
       const newScanUrl = document.getElementById('newScanUrl');
       if (newScanUrl) newScanUrl.textContent = new URL(url).hostname;
