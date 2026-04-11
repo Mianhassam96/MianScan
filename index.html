@@ -370,7 +370,7 @@
   <div class="wrap lp-cta-inner">
     <h2>Start Scanning Now — It's Free</h2>
     <p>No signup. No limits. Just paste a URL and get instant website intelligence.</p>
-    <a href="#scanner-app" class="lp-btn-primary lp-btn-lg">
+    <a href="#scanner-app" class="lp-btn-primary lp-btn-lg" onclick="event.preventDefault();document.getElementById('scanner-app').scrollIntoView({behavior:'smooth'});setTimeout(()=>document.getElementById('urlInput').focus(),600);">
       <i class="bi bi-radar"></i> Analyze a Website
     </a>
     <div class="lp-trust" style="justify-content:center;margin-top:1.25rem">
