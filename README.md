@@ -175,7 +175,7 @@ Extracts:
 * Twitter tags
 * Canonical URL
 
----
+--- 
 
 ## 14. Indexing & Robots Checker
 
