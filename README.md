@@ -277,7 +277,7 @@ Perfect for competitor analysis.
 # 🎯 Goal
 
 Provide a **simple, fast, and powerful website analysis tool**
-without heavy APIs or complex setup.
+Without heavy APIs or complex setup.
 
 ---
 
