@@ -8,7 +8,7 @@ Scan any URL and get **complete website intelligence in seconds.**
 
 ---
 
-# 🚀 Features
+# Features
 
 ## 1. Website Overview
  
