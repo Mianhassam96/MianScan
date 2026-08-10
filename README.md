@@ -281,7 +281,7 @@ Without heavy APIs or complex setup.
 
 ---
 
-# 🔥 Future Features
+# Future Features
 
 * Bulk URL scan
 * Export PDF report
