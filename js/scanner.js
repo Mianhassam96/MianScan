@@ -2,7 +2,19 @@ const Scanner = {
     PROXY: 'https://api.allorigins.win/get?url=',
     currentData: null,
 
+    validateUrl(url) {
+        let parsed;
+        try { parsed = new URL(url); } catch { throw new Error('Invalid URL'); }
+        if (!/^https?:$/.test(parsed.protocol)) throw new Error('Only HTTP/HTTPS URLs are allowed');
+        const host = parsed.hostname.toLowerCase();
+        if (/^(localhost|.*\.local)$/.test(host) ||
+            /^(10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+|192\.168\.\d+\.\d+|127\.\d+\.\d+\.\d+|169\.254\.\d+\.\d+|::1|0\.0\.0\.0)$/.test(host)) {
+            throw new Error('Private/internal addresses are not allowed');
+        }
+    },
+
     async fetch(url) {
+        this.validateUrl(url);
         const res = await fetch(this.PROXY + encodeURIComponent(url));
         if (!res.ok) throw new Error('Network error');
         const json = await res.json();
