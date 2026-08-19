@@ -14,7 +14,7 @@ Scan any URL and get **complete website intelligence in seconds.**
  
 Quick snapshot of the site:
 
-* Title
+* Title 
 * Meta description
 * Domain
 * Language
