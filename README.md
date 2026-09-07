@@ -10,11 +10,11 @@ Scan any URL and get **complete website intelligence in seconds.**
 
 # Features 
  
-## 1. Website Overview
+## 1. Website Overview 
  
 Quick snapshot of the site:
 
-* Title 
+* Title  
 * Meta description
 * Domain
 * Language
