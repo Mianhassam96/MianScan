@@ -42,20 +42,28 @@ const Scanner = {
 
   // ── Proxy pool — tried in order, first success wins
   // Each entry: { url: fn, json: bool, jsonKey: string|null, timeout: ms }
-  PROXIES: [
-    // corsproxy.io — returns raw HTML, reliable as of 2025
-    { url: u => `https://corsproxy.io/?url=${encodeURIComponent(u)}`, json: false, timeout: 12000 },
-    // allorigins — wraps response in { contents, status }
-    { url: u => `https://api.allorigins.win/get?url=${encodeURIComponent(u)}`, json: true, jsonKey: 'contents', timeout: 12000 },
-    // htmldriven cors proxy — simple pass-through
-    { url: u => `https://cors.eu.org/${u}`, json: false, timeout: 12000 },
-    // codetabs
-    { url: u => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`, json: false, timeout: 10000 },
-    // thingproxy — 100KB limit but useful as last resort
-    { url: u => `https://thingproxy.freeboard.io/fetch/${u}`, json: false, timeout: 10000 },
-    // cors-anywhere — requires prior manual activation but keep as last resort
-    { url: u => `https://cors-anywhere.herokuapp.com/${u}`, json: false, timeout: 12000 },
-  ],
+  //
+  // IMPORTANT: Replace MIANSCAN_WORKER_URL with your deployed Cloudflare Worker URL.
+  // See cors-worker/worker.js for a one-time free setup (100k req/day).
+  // Example: https://mianscan-proxy.YOUR-SUBDOMAIN.workers.dev
+  WORKER_URL: 'https://mianscan-proxy.multimian.workers.dev',
+
+  get PROXIES() {
+    return [
+      // 1. Own Cloudflare Worker — fastest, most reliable, no rate limits
+      { url: u => `${this.WORKER_URL}/?url=${encodeURIComponent(u)}`, json: false, timeout: 14000 },
+      // 2. corsproxy.io — free tier, ?url= format
+      { url: u => `https://corsproxy.io/?url=${encodeURIComponent(u)}`, json: false, timeout: 12000 },
+      // 3. allorigins — wraps response in { contents }
+      { url: u => `https://api.allorigins.win/get?url=${encodeURIComponent(u)}`, json: true, jsonKey: 'contents', timeout: 12000 },
+      // 4. cors.eu.org — simple pass-through
+      { url: u => `https://cors.eu.org/${u}`, json: false, timeout: 12000 },
+      // 5. codetabs — GET only, 5 req/sec
+      { url: u => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`, json: false, timeout: 10000 },
+      // 6. cors-anywhere — requires prior manual activation at https://cors-anywhere.herokuapp.com/corsdemo
+      { url: u => `https://cors-anywhere.herokuapp.com/${u}`, json: false, timeout: 12000 },
+    ];
+  },
 
   async fetchHTML(url) {
     const errors = [];
