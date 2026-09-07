@@ -1,52 +1,73 @@
 # MianScan CORS Proxy — Cloudflare Worker
 
-A lightweight, free CORS proxy that powers MianScan's website scanner.
+A lightweight CORS proxy that powers MianScan's website scanner.
+Free forever on Cloudflare's free tier (100,000 requests/day).
 
-## Why this exists
+---
 
-All free public CORS proxies (corsproxy.io, allorigins, codetabs) are either down,
-rate-limited, or require authentication. This worker runs on Cloudflare's free tier:
-**100,000 requests/day, zero cost, zero maintenance.**
+## Deploy via Dashboard (easiest, no CLI needed)
 
-## Deploy in 3 steps (one-time, ~2 minutes)
-
-### Option A — Cloudflare Dashboard (easiest)
-
-1. Sign up at https://dash.cloudflare.com (free account)
-2. Go to **Workers & Pages** → **Create Worker**
-3. Click **Edit code**, paste the contents of `worker.js`, click **Deploy**
-4. Copy the worker URL (e.g. `https://mianscan-proxy.YOUR-NAME.workers.dev`)
-5. Open `js/scanner.js` and update `WORKER_URL`:
+1. Go to **https://dash.cloudflare.com** — sign up free, no credit card
+2. Click **Workers & Pages** → **Create Worker**
+3. Click **Edit code** — delete the placeholder code
+4. Paste the full contents of **`worker.js`** (this folder)
+5. Click **Deploy**
+6. Copy your worker URL, e.g.:
+   `https://mianscan-proxy.YOUR-SUBDOMAIN.workers.dev`
+7. Open `js/scanner.js`, find `WORKER_URL` and replace the value:
    ```js
-   WORKER_URL: 'https://mianscan-proxy.YOUR-NAME.workers.dev',
+   WORKER_URL: 'https://mianscan-proxy.YOUR-SUBDOMAIN.workers.dev',
    ```
+8. Commit and push — scans will work immediately
 
-### Option B — Wrangler CLI
+---
+
+## Deploy via CLI
 
 ```bash
+# Install wrangler (Cloudflare CLI)
 npm install -g wrangler
+
+# Login to your Cloudflare account
 wrangler login
+
+# Deploy from this directory
 cd cors-worker
 wrangler deploy
 ```
 
-## Usage
+The worker will be live at:
+`https://mianscan-proxy.YOUR-SUBDOMAIN.workers.dev`
+
+---
+
+## Test your deployment
+
+Open this URL in a browser — you should see the HTML of example.com:
 
 ```
-GET https://your-worker.workers.dev/?url=https://target-site.com
+https://mianscan-proxy.YOUR-SUBDOMAIN.workers.dev/?url=https://example.com
 ```
 
-Returns the proxied HTML with CORS headers set to `*`.
+---
 
-## Limits (Cloudflare free tier)
+## What the worker does
 
-- 100,000 requests / day
-- 10ms CPU time per request
-- Global edge network (fast worldwide)
+- Accepts `GET /?url=https://target.com`
+- Fetches the target URL from Cloudflare's edge (bypasses CORS)
+- Returns the response with `Access-Control-Allow-Origin: *`
+- Blocks private/internal IPs (SSRF protection)
+- Caps response size at 3MB
+- 15 second upstream timeout
+- Returns proper error JSON on failure
 
-## Security
+---
 
-- Only allows `http://` and `https://` protocols
-- Blocks localhost, 127.0.0.1, and internal IP ranges (SSRF protection)
-- 3MB response size cap
-- 15s upstream timeout
+## Cloudflare free tier limits
+
+| Limit | Value |
+|---|---|
+| Requests per day | 100,000 |
+| CPU time per request | 10ms |
+| Memory | 128MB |
+| Cost | $0 |
