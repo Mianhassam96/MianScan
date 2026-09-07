@@ -41,36 +41,85 @@ const Scanner = {
   },
 
   // ── Proxy pool — tried in order, first success wins
+  // Each entry: { url: fn, json: bool, jsonKey: string|null, timeout: ms }
   PROXIES: [
-    u => `https://corsproxy.io/?${encodeURIComponent(u)}`,
-    u => `https://api.allorigins.win/get?url=${encodeURIComponent(u)}`,
-    u => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
-    u => `https://thingproxy.freeboard.io/fetch/${encodeURIComponent(u)}`,
-    u => `https://cors-anywhere.herokuapp.com/${u}`,
+    // corsproxy.io — returns raw HTML, reliable as of 2025
+    { url: u => `https://corsproxy.io/?url=${encodeURIComponent(u)}`, json: false, timeout: 12000 },
+    // allorigins — wraps response in { contents, status }
+    { url: u => `https://api.allorigins.win/get?url=${encodeURIComponent(u)}`, json: true, jsonKey: 'contents', timeout: 12000 },
+    // htmldriven cors proxy — simple pass-through
+    { url: u => `https://cors.eu.org/${u}`, json: false, timeout: 12000 },
+    // codetabs
+    { url: u => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`, json: false, timeout: 10000 },
+    // thingproxy — 100KB limit but useful as last resort
+    { url: u => `https://thingproxy.freeboard.io/fetch/${u}`, json: false, timeout: 10000 },
+    // cors-anywhere — requires prior manual activation but keep as last resort
+    { url: u => `https://cors-anywhere.herokuapp.com/${u}`, json: false, timeout: 12000 },
   ],
 
   async fetchHTML(url) {
     const errors = [];
-    for (const proxy of this.PROXIES) {
+
+    // ── Stage 1: Race the two most reliable proxies simultaneously
+    const stage1 = this.PROXIES.slice(0, 2);
+    const stage2 = this.PROXIES.slice(2);
+
+    const tryProxy = async (proxy) => {
+      const proxyUrl = proxy.url(url);
+      const label    = proxyUrl.split('?')[0].replace(/^https?:\/\//, '').split('/')[0];
+      const ctrl     = new AbortController();
+      const timer    = setTimeout(() => ctrl.abort(), proxy.timeout);
       try {
-        const ctrl  = new AbortController();
-        const timer = setTimeout(() => ctrl.abort(), 14000);
-        const res   = await fetch(proxy(url), { signal: ctrl.signal });
+        const res = await fetch(proxyUrl, { signal: ctrl.signal });
         clearTimeout(timer);
-        if (!res.ok) { errors.push(`${proxy(url).split('?')[0]} → HTTP ${res.status}`); continue; }
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const raw = await res.text();
-        // allorigins wraps in JSON
+
+        // Handle JSON-wrapped responses (allorigins format)
+        if (proxy.json && proxy.jsonKey) {
+          try {
+            const j = JSON.parse(raw);
+            const content = j[proxy.jsonKey];
+            if (content && content.length > 200) return content;
+          } catch (_) {}
+        }
+
+        // Try JSON unwrap for any proxy that might wrap
         try {
           const j = JSON.parse(raw);
           if (j.contents && j.contents.length > 200) return j.contents;
         } catch (_) {}
+
         if (raw.length > 200) return raw;
-        errors.push(`${proxy(url).split('?')[0]} → empty response`);
+        throw new Error(`empty response (${raw.length} chars)`);
       } catch (e) {
-        errors.push(`${proxy(url).split('?')[0]} → ${e.message}`);
+        clearTimeout(timer);
+        const msg = e.name === 'AbortError' ? 'timeout' : e.message;
+        errors.push(`${label} → ${msg}`);
+        throw e;
+      }
+    };
+
+    // Try stage 1 in parallel — return first success
+    try {
+      return await Promise.any(stage1.map(p => tryProxy(p)));
+    } catch (_) {
+      // Both stage 1 proxies failed — fall through to stage 2
+    }
+
+    // Try stage 2 proxies sequentially
+    for (const proxy of stage2) {
+      try {
+        return await tryProxy(proxy);
+      } catch (_) {
+        // continue to next
       }
     }
-    throw new Error('All proxies failed. The site may block external requests.\n' + errors.join('\n'));
+
+    throw new Error(
+      'All proxies failed. The site may block external requests.\n' +
+      errors.map(e => `  • ${e}`).join('\n')
+    );
   },
 
   parse(html) {

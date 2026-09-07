@@ -301,9 +301,9 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (err) {
       overlay.classList.remove('active');
       let msg = err.message;
-      if (/timeout|abort/i.test(msg))       msg = 'The site took too long to respond.';
-      else if (/proxies failed/i.test(msg)) msg = 'This site blocks external requests. Try a different URL.';
-      else if (/empty response/i.test(msg)) msg = 'No content returned. The site may require login.';
+      if (/timeout|abort/i.test(msg))       msg = 'The site took too long to respond. This can happen with sites that block external requests. Try a different URL or try again in a moment.';
+      else if (/proxies failed/i.test(msg)) msg = 'This site blocks external requests. Some sites (Cloudflare, login-protected pages) cannot be scanned this way. Try a different URL.';
+      else if (/empty response/i.test(msg)) msg = 'No content returned. The site may require login or JavaScript rendering.';
       results.classList.remove('hidden');
       document.getElementById('siteBanner').innerHTML = `
         <div style="text-align:center;padding:2.5rem 1rem">
