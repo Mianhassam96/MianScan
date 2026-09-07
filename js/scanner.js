@@ -150,7 +150,10 @@ const Scanner = {
       SecurityAnalyzer.analyze(url, doc, html),
     ]).then(results => results.map(r => r.status === 'fulfilled' ? r.value : null));
 
-    p('Done!', 100);
+    p('Computing growth score…', 92);
+
+    // ── Conversion analyzer (synchronous, uses raw HTML)
+    const conversion = ConversionAnalyzer.analyze(doc, html);
 
     const desc = this._extractDesc(doc);
 
@@ -159,11 +162,18 @@ const Scanner = {
       overview: this._overview(doc, url, structure, content, desc),
       colors, fonts, structure, content, cta, seo,
       media, links, images, contacts, tech, performance, mobile,
+      conversion,
       indexing: indexing || { indexStatus: 'Unknown', robotsTxt: 'Not checked', noindex: false, nofollow: false },
       domain:   domain   || { hostname: new URL(url).hostname.replace(/^www\./, ''), da: null, rank: null, age: null },
       ranking:  ranking  || { hostname: new URL(url).hostname.replace(/^www\./, ''), globalRank: null, pageRank: null, source: null },
       security: security || { https: url.startsWith('https://'), score: 0, grade: 'F', checks: [] },
     };
+
+    // ── Growth Score (computed last, depends on all other data including security/ranking)
+    this.currentData.growth = GrowthEngine.compute(this.currentData);
+
+    p('Done!', 100);
+
     // Save to cache
     this._cacheSave(url, this.currentData);
     return this.currentData;

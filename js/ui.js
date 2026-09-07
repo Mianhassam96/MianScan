@@ -75,18 +75,25 @@
     const {colors,fonts,contacts,tech,seo,links,images,domain,ranking} = data;
     const da = domain?.da !== null && domain?.da !== undefined ? domain.da+'/10' : '—';
     const rank = ranking?.globalRank ? '#'+Number(ranking.globalRank).toLocaleString() : '—';
+    const growth = data.growth;
+    const growthVal   = growth ? growth.overall : '—';
+    const growthColor = !growth ? 'var(--muted)'
+      : growth.overall >= 80 ? 'var(--green)'
+      : growth.overall >= 65 ? 'var(--primary2)'
+      : growth.overall >= 50 ? 'var(--yellow)'
+      : 'var(--red)';
     const cards = [
-      {icon:'📊', val:seo.score+'/100',       lbl:'SEO Score',   color:'var(--green)',    count:seo.score},
-      {icon:'🏆', val:da,                      lbl:'Domain Auth', color:'var(--primary2)'},
-      {icon:'🌍', val:rank,                    lbl:'Global Rank', color:'var(--accent)'},
+      {icon:'🚀', val:growthVal,               lbl:'Growth Score', color:growthColor,       count:growth?.overall, highlight:true},
+      {icon:'📊', val:seo.score+'/100',         lbl:'SEO Score',    color:'var(--green)',    count:seo.score},
+      {icon:'🏆', val:da,                       lbl:'Domain Auth',  color:'var(--primary2)'},
+      {icon:'🌍', val:rank,                     lbl:'Global Rank',  color:'var(--accent)'},
       {icon:'⚡', val:(data.performance?.score??'—'),lbl:'Perf Score',color:data.performance?.score>=80?'var(--green)':data.performance?.score>=50?'var(--yellow)':'var(--red)',count:data.performance?.score},
-      {icon:'🔗', val:links.totalInternal,     lbl:'Int. Links',  color:'var(--primary2)', count:links.totalInternal},
-      {icon:'🌐', val:links.totalExternal,     lbl:'Ext. Links',  color:'var(--muted)',    count:links.totalExternal},
-      {icon:'🖼️', val:images.total,           lbl:'Images',      color:'var(--yellow)',   count:images.total},
-      {icon:'🛠️', val:tech.detected.length,   lbl:'Tech Found',  color:'var(--purple)',   count:tech.detected.length},
+      {icon:'🔗', val:links.totalInternal,      lbl:'Int. Links',   color:'var(--primary2)', count:links.totalInternal},
+      {icon:'🌐', val:links.totalExternal,      lbl:'Ext. Links',   color:'var(--muted)',    count:links.totalExternal},
+      {icon:'🛠️', val:tech.detected.length,    lbl:'Tech Found',   color:'var(--purple)',   count:tech.detected.length},
     ];
     document.getElementById('statsRow').innerHTML = cards.map((c,i)=>
-      `<div class="stat-card fu" style="animation-delay:${i*.05}s">
+      `<div class="stat-card fu${c.highlight?' stat-card-growth':''}" style="animation-delay:${i*.05}s${c.highlight?';order:-1':''}"${c.highlight?` onclick="document.querySelector('[data-tab=growth]').click()" title="View Growth Score" style="cursor:pointer"`:''}>
         <div class="stat-icon">${c.icon}</div>
         <div class="stat-val" style="color:${c.color}"${c.count!==undefined?` data-count="${c.count}"`:''}>${c.val}</div>
         <div class="stat-lbl">${c.lbl}</div>
@@ -102,6 +109,7 @@
       return;
     }
     const map = {
+      growth:      ()=>this.tGrowth(data),
       overview:    ()=>this.tOverview(data),
       seo:         ()=>this.tSEO(data.seo),
       domain:      ()=>this.tDomain(data.domain, data.seo, data.overview),
@@ -112,6 +120,7 @@
       images:      ()=>this.tImages(data.images),
       contacts:    ()=>this.tContacts(data.contacts),
       cta:         ()=>this.tCTA(data.cta),
+      conversion:  ()=>this.tConversion(data),
       tech:        ()=>this.tTech(data.tech),
       performance: ()=>this.tPerf(data.performance),
       metatags:    ()=>this.tMetaTags(data.seo),
@@ -1072,5 +1081,245 @@
   copyCSSVars(colors) {
     const css=`:root {\n${colors.map((c,i)=>`  --color-${i+1}: ${c};`).join('\n')}\n}`;
     navigator.clipboard.writeText(css).then(()=>this.toast('CSS variables copied!'));
-  }
+  },
+
+  /* ══════════════════════════════════════════════════════════════════════════
+   * v2.2 — Growth Score Tab
+   * ══════════════════════════════════════════════════════════════════════════ */
+
+  tGrowth(data) {
+    const g = data.growth;
+    if (!g) return this.empty('Growth score not available — rescan to generate.');
+
+    const catMeta = {
+      seo:           { label: 'SEO',           icon: 'graph-up-arrow',       color: 'var(--green)' },
+      performance:   { label: 'Performance',   icon: 'speedometer2',         color: 'var(--yellow)' },
+      mobile:        { label: 'Mobile',         icon: 'phone-fill',           color: 'var(--primary2)' },
+      security:      { label: 'Security',       icon: 'shield-lock-fill',     color: 'var(--red)' },
+      accessibility: { label: 'Accessibility', icon: 'universal-access',     color: 'var(--accent)' },
+      content:       { label: 'Content',        icon: 'file-text-fill',       color: 'var(--purple)' },
+      conversion:    { label: 'Conversion',     icon: 'cursor-fill',          color: '#f59e0b' },
+      ux:            { label: 'UX',             icon: 'layout-text-window',   color: '#ec4899' },
+    };
+
+    const priorityMeta = {
+      critical: { label: 'Fix Today',    color: 'var(--red)',     bg: 'rgba(240,68,68,.09)',     border: 'rgba(240,68,68,.25)',     icon: 'exclamation-octagon-fill' },
+      high:     { label: 'Fix This Week',color: '#f59e0b',        bg: 'rgba(245,158,11,.09)',    border: 'rgba(245,158,11,.25)',    icon: 'exclamation-triangle-fill' },
+      medium:   { label: 'Improve Next', color: 'var(--primary2)',bg: 'rgba(139,150,255,.09)',   border: 'rgba(139,150,255,.25)',   icon: 'info-circle-fill' },
+      low:      { label: 'Consider',     color: 'var(--muted)',   bg: 'rgba(122,143,168,.06)',   border: 'rgba(122,143,168,.15)',   icon: 'dot' },
+      good:     { label: 'Passing',      color: 'var(--green)',   bg: 'rgba(34,197,94,.07)',     border: 'rgba(34,197,94,.2)',      icon: 'check-circle-fill' },
+    };
+
+    const overallColor = g.overall >= 80 ? 'var(--green)' : g.overall >= 65 ? 'var(--primary2)' : g.overall >= 50 ? 'var(--yellow)' : 'var(--red)';
+
+    // ── Overall score hero ─────────────────────────────────────────────────
+    const heroSection = `
+    <div class="growth-hero" style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1.75rem;margin-bottom:1.25rem;display:flex;align-items:center;gap:2rem;flex-wrap:wrap">
+      <div style="flex-shrink:0;text-align:center">
+        <div class="score-ring" style="width:96px;height:96px;font-size:2rem;font-weight:900;border-color:${overallColor};color:${overallColor};border-width:5px">${g.overall}</div>
+        <div style="margin-top:.5rem;font-weight:800;font-size:1.05rem;color:${overallColor}">${g.label}</div>
+        <div style="font-size:.82rem;color:var(--muted);margin-top:.1rem">Grade ${g.grade}</div>
+      </div>
+      <div style="flex:1;min-width:220px">
+        <div style="font-size:1.1rem;font-weight:700;margin-bottom:.4rem">
+          <i class="bi bi-graph-up-arrow" style="color:${overallColor}"></i> MianScan Growth Score
+          <span style="font-size:.7rem;color:var(--muted);font-weight:400;margin-left:.4rem;background:var(--bg4);border-radius:20px;padding:.1rem .55rem">v2.2</span>
+        </div>
+        <div style="color:var(--muted);font-size:.88rem;line-height:1.6">${g.summary}</div>
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.9rem">
+          <span style="background:rgba(240,68,68,.1);color:var(--red);border-radius:6px;padding:.2rem .65rem;font-size:.75rem;font-weight:700">
+            ${g.findings.filter(f=>f.priority==='critical').length} Critical
+          </span>
+          <span style="background:rgba(245,158,11,.1);color:#f59e0b;border-radius:6px;padding:.2rem .65rem;font-size:.75rem;font-weight:700">
+            ${g.findings.filter(f=>f.priority==='high').length} High
+          </span>
+          <span style="background:rgba(139,150,255,.1);color:var(--primary2);border-radius:6px;padding:.2rem .65rem;font-size:.75rem;font-weight:700">
+            ${g.findings.filter(f=>f.priority==='medium').length} Medium
+          </span>
+          <span style="background:rgba(34,197,94,.1);color:var(--green);border-radius:6px;padding:.2rem .65rem;font-size:.75rem;font-weight:700">
+            ${g.findings.filter(f=>f.priority==='good').length} Passing
+          </span>
+        </div>
+      </div>
+    </div>`;
+
+    // ── Category scores grid ───────────────────────────────────────────────
+    const catGrid = `
+    <div class="card" style="margin-bottom:1.25rem">
+      <div class="card-head"><i class="bi bi-bar-chart-fill"></i> Category Scores</div>
+      <div class="growth-cat-grid">
+        ${Object.entries(g.categories).map(([key, score]) => {
+          const m = catMeta[key];
+          const c = score >= 80 ? 'var(--green)' : score >= 65 ? 'var(--primary2)' : score >= 50 ? 'var(--yellow)' : 'var(--red)';
+          const barPct = score;
+          return `
+          <div class="growth-cat-card">
+            <div class="growth-cat-top">
+              <span class="growth-cat-icon" style="background:${m.color}18;color:${m.color}"><i class="bi bi-${m.icon}"></i></span>
+              <span class="growth-cat-label">${m.label}</span>
+              <span class="growth-cat-score" style="color:${c}">${score}</span>
+            </div>
+            <div class="growth-cat-bar-wrap">
+              <div class="growth-cat-bar-fill" style="width:${barPct}%;background:${c}"></div>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+
+    // ── Priority findings ──────────────────────────────────────────────────
+    const groupedFindings = {};
+    ['critical','high','medium','low','good'].forEach(p => {
+      const items = g.findings.filter(f => f.priority === p);
+      if (items.length) groupedFindings[p] = items;
+    });
+
+    const findingsHtml = Object.entries(groupedFindings).map(([priority, items]) => {
+      const pm = priorityMeta[priority];
+      return `
+      <div class="growth-priority-group" style="margin-bottom:1rem">
+        <div class="growth-priority-label" style="color:${pm.color};display:flex;align-items:center;gap:.4rem;font-size:.75rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.5rem">
+          <i class="bi bi-${pm.icon}"></i> ${pm.label}
+          <span style="background:${pm.bg};border:1px solid ${pm.border};border-radius:30px;padding:.05rem .5rem;font-size:.7rem">${items.length}</span>
+        </div>
+        ${items.map(f => `
+        <div class="growth-finding" style="background:${pm.bg};border:1px solid ${pm.border};border-radius:10px;padding:1rem;margin-bottom:.5rem">
+          <div style="display:flex;align-items:flex-start;gap:.6rem;flex-wrap:wrap">
+            <span style="background:${pm.bg};border:1px solid ${pm.border};border-radius:6px;padding:.15rem .5rem;font-size:.68rem;font-weight:700;color:${pm.color};flex-shrink:0">${f.category}</span>
+            <div style="flex:1;min-width:180px">
+              <div style="font-weight:700;font-size:.9rem;margin-bottom:.25rem">${this.e(f.title)}</div>
+              <div style="font-size:.82rem;color:var(--muted);line-height:1.5">${this.e(f.detail)}</div>
+              ${f.action && f.priority !== 'good' ? `
+              <div style="margin-top:.5rem;padding:.4rem .65rem;background:var(--bg);border-radius:6px;border-left:2px solid ${pm.color};font-size:.78rem;color:var(--text)">
+                <strong>Action:</strong> ${this.e(f.action)}
+              </div>` : ''}
+            </div>
+            ${f.impact && f.priority !== 'good' ? `<span style="font-size:.68rem;font-weight:700;padding:.15rem .5rem;border-radius:6px;background:var(--bg4);color:var(--muted);flex-shrink:0;align-self:flex-start">Impact: ${f.impact}</span>` : ''}
+          </div>
+        </div>`).join('')}
+      </div>`;
+    }).join('');
+
+    const findingsSection = `
+    <div class="card" style="margin-bottom:1.25rem">
+      <div class="card-head"><i class="bi bi-clipboard2-pulse-fill"></i> Priority Findings
+        <span style="margin-left:.4rem;font-size:.72rem;font-weight:400;color:var(--muted)">${g.findings.filter(f=>f.priority!=='good').length} issues · ${g.findings.filter(f=>f.priority==='good').length} passing</span>
+      </div>
+      ${findingsHtml || this.empty('No findings — run a scan first')}
+    </div>`;
+
+    // ── Action plan ────────────────────────────────────────────────────────
+    const ap = g.actionPlan;
+    const apSection = (ap.today.length || ap.thisWeek.length || ap.thisMonth.length) ? `
+    <div class="card">
+      <div class="card-head"><i class="bi bi-calendar-check-fill"></i> Action Plan</div>
+      <div class="growth-action-plan">
+        ${ap.today.length ? `
+        <div class="growth-ap-group">
+          <div class="growth-ap-label" style="color:var(--red)"><i class="bi bi-lightning-charge-fill"></i> Today</div>
+          ${ap.today.map(t => `<div class="growth-ap-item"><i class="bi bi-exclamation-octagon-fill" style="color:var(--red)"></i><span>${this.e(t)}</span></div>`).join('')}
+        </div>` : ''}
+        ${ap.thisWeek.length ? `
+        <div class="growth-ap-group">
+          <div class="growth-ap-label" style="color:#f59e0b"><i class="bi bi-calendar-week-fill"></i> This Week</div>
+          ${ap.thisWeek.map(t => `<div class="growth-ap-item"><i class="bi bi-exclamation-triangle-fill" style="color:#f59e0b"></i><span>${this.e(t)}</span></div>`).join('')}
+        </div>` : ''}
+        ${ap.thisMonth.length ? `
+        <div class="growth-ap-group">
+          <div class="growth-ap-label" style="color:var(--primary2)"><i class="bi bi-calendar-month-fill"></i> This Month</div>
+          ${ap.thisMonth.map(t => `<div class="growth-ap-item"><i class="bi bi-info-circle-fill" style="color:var(--primary2)"></i><span>${this.e(t)}</span></div>`).join('')}
+        </div>` : ''}
+      </div>
+    </div>` : '';
+
+    // ── MultiMian CTA (Phase 7 foundation) ────────────────────────────────
+    const mmCTA = (g.findings.filter(f => f.priority === 'critical' || f.priority === 'high').length >= 2) ? `
+    <div style="background:var(--gradient-primary);border-radius:var(--radius);padding:1.5rem;margin-top:1.25rem;display:flex;align-items:center;gap:1.25rem;flex-wrap:wrap">
+      <div style="flex:1;min-width:200px">
+        <div style="font-weight:800;font-size:1rem;color:#fff;margin-bottom:.3rem"><i class="bi bi-stars"></i> Want these fixed by professionals?</div>
+        <div style="font-size:.85rem;color:rgba(255,255,255,.8)">MultiMian builds and improves websites — SEO, performance, design, and conversion.</div>
+      </div>
+      <a href="https://multimian.com" target="_blank" rel="noopener" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;padding:.6rem 1.3rem;border-radius:var(--radius-s);font-weight:700;font-size:.88rem;white-space:nowrap;text-decoration:none;display:inline-flex;align-items:center;gap:.4rem">
+        <i class="bi bi-arrow-right-circle-fill"></i> Get a MultiMian Growth Plan
+      </a>
+    </div>` : '';
+
+    return heroSection + catGrid + findingsSection + apSection + mmCTA;
+  },
+
+  /* ── Conversion Intelligence Tab ── */
+  tConversion(data) {
+    const cv = data.conversion;
+    if (!cv) return this.empty('Conversion data not available — rescan to generate.');
+
+    const gradeColor = cv.score >= 80 ? 'var(--green)' : cv.score >= 65 ? 'var(--primary2)' : cv.score >= 50 ? 'var(--yellow)' : 'var(--red)';
+
+    const scoreCard = `
+    <div class="g2" style="align-items:start;margin-bottom:1.25rem">
+      <div class="card">
+        <div class="card-head"><i class="bi bi-cursor-fill"></i> Conversion Score</div>
+        <div class="score-box">
+          <div class="score-ring" style="border-color:${gradeColor};color:${gradeColor}">${cv.score}</div>
+          <div class="score-grade" style="color:${gradeColor}">Grade ${cv.grade}</div>
+          <div class="score-sub">${cv.score >= 80 ? 'Conversion-optimised' : cv.score >= 50 ? 'Needs improvement' : 'Low conversion potential'}</div>
+        </div>
+        <div style="margin-top:1rem">
+          <div class="authority-grid" style="grid-template-columns:repeat(2,1fr);gap:.5rem">
+            <div class="auth-card">
+              <div class="auth-val" style="color:${cv.contactScore >= 50 ? 'var(--green)' : 'var(--red)'}">${cv.contactScore}</div>
+              <div class="auth-lbl">Contact Score</div>
+            </div>
+            <div class="auth-card">
+              <div class="auth-val" style="color:${cv.trustScore >= 50 ? 'var(--green)' : 'var(--yellow)'}">${cv.trustScore}</div>
+              <div class="auth-lbl">Trust Score</div>
+            </div>
+            <div class="auth-card">
+              <div class="auth-val" style="color:${cv.hasPrimaryCTA ? 'var(--green)' : 'var(--red)'}">${cv.hasPrimaryCTA ? 'Yes' : 'No'}</div>
+              <div class="auth-lbl">Primary CTA</div>
+            </div>
+            <div class="auth-card">
+              <div class="auth-val" style="color:${cv.ctaAboveFold ? 'var(--green)' : 'var(--yellow)'}">${cv.ctaAboveFold ? 'Yes' : 'No'}</div>
+              <div class="auth-lbl">CTA Above Fold</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><i class="bi bi-list-check"></i> Conversion Checks</div>
+        ${(cv.checks || []).map(c => {
+          const icon = c.type === 'ok' ? 'check-circle-fill' : c.type === 'warn' ? 'exclamation-triangle-fill' : 'x-circle-fill';
+          const cls  = c.type === 'ok' ? 'a11y-ok' : 'a11y-warn';
+          return `<div class="a11y-row ${cls}">
+            <i class="bi bi-${icon}"></i>
+            <div style="flex:1">
+              <div style="font-weight:600;font-size:.85rem">${c.label}</div>
+              <div style="font-size:.78rem;opacity:.85">${c.msg}</div>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+
+    const signals = `
+    <div class="g2">
+      <div class="card">
+        <div class="card-head"><i class="bi bi-shield-check"></i> Trust Signals</div>
+        ${this.crow('Testimonials / Reviews', cv.hasTestimonials)}
+        ${this.crow('Social Proof Numbers',   cv.hasSocialProof)}
+        ${this.crow('Pricing Information',    cv.hasPricing)}
+        ${this.crow('Lead Capture Form',      cv.hasLeadCapture)}
+        ${this.crow('Newsletter Form',        cv.hasNewsletterForm)}
+      </div>
+      <div class="card">
+        <div class="card-head"><i class="bi bi-cursor-fill"></i> CTA & Navigation</div>
+        ${this.crow('Primary CTA Present',    cv.hasPrimaryCTA)}
+        ${this.crow('CTA Visible Above Fold', cv.ctaAboveFold)}
+        ${this.crow('CTA Count Reasonable',   !cv.ctaCrowded)}
+        ${this.crow('Navigation Not Cluttered', !cv.hasExcessiveNav)}
+        <div style="margin-top:.5rem;font-size:.78rem;color:var(--muted)">${cv.navCount} navigation link(s) found</div>
+      </div>
+    </div>`;
+
+    return scoreCard + signals;
+  },
 };

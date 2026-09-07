@@ -1099,6 +1099,25 @@ button:focus-visible, input:focus-visible {
 .tab.active { color: var(--primary2); border-bottom-color: var(--primary) }
 .tab-compare { color: var(--purple) !important }
 .tab-compare.active { border-bottom-color: var(--purple) !important }
+
+/* Growth tab highlight */
+.tab-growth { color: var(--green) !important; font-weight: 700 !important }
+.tab-growth.active { border-bottom-color: var(--green) !important; color: var(--green) !important }
+.tab-growth i { color: var(--green) }
+.tab-new-badge {
+  display: inline-block; background: var(--green); color: #fff;
+  font-size: .58rem; font-weight: 800; border-radius: 4px;
+  padding: .05rem .3rem; margin-left: .25rem; vertical-align: middle;
+  letter-spacing: .04em; line-height: 1.4;
+}
+
+/* Growth score stat card highlight */
+.stat-card-growth {
+  border-color: rgba(34,197,94,.35) !important;
+  background: rgba(34,197,94,.05) !important;
+  cursor: pointer;
+}
+.stat-card-growth:hover { border-color: rgba(34,197,94,.6) !important }
 .tab-divider { width: 1px; background: var(--border); margin: 0 .4rem; height: 24px; align-self: center; flex-shrink: 0 }
 
 /* Scroll buttons always visible on mobile */
@@ -1291,3 +1310,99 @@ button:focus-visible, input:focus-visible {
 
 /* ===== HIDE ON SMALL SCREENS ===== */
 @media(max-width:480px) { .hide-xs { display: none } }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   v2.2 — GROWTH SCORE COMPONENTS
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Category grid ── */
+.growth-cat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: .75rem;
+  margin-top: .25rem;
+}
+.growth-cat-card {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-s);
+  padding: .875rem 1rem;
+}
+.growth-cat-top {
+  display: flex;
+  align-items: center;
+  gap: .55rem;
+  margin-bottom: .6rem;
+}
+.growth-cat-icon {
+  width: 28px; height: 28px;
+  border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .85rem; flex-shrink: 0;
+}
+.growth-cat-label {
+  flex: 1;
+  font-size: .82rem;
+  font-weight: 600;
+  color: var(--text);
+}
+.growth-cat-score {
+  font-size: 1.15rem;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+}
+.growth-cat-bar-wrap {
+  height: 5px;
+  background: var(--bg4);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.growth-cat-bar-fill {
+  height: 100%;
+  border-radius: 10px;
+  transition: width .5s cubic-bezier(.4,0,.2,1);
+}
+
+/* ── Priority finding groups ── */
+.growth-priority-group { }
+.growth-priority-label { }
+.growth-finding {
+  transition: box-shadow .15s;
+}
+.growth-finding:hover {
+  box-shadow: 0 2px 12px rgba(0,0,0,.12);
+}
+
+/* ── Action plan ── */
+.growth-action-plan {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+.growth-ap-group {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-s);
+  padding: 1rem;
+}
+.growth-ap-label {
+  font-size: .75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  margin-bottom: .75rem;
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+}
+.growth-ap-item {
+  display: flex;
+  align-items: flex-start;
+  gap: .55rem;
+  font-size: .83rem;
+  color: var(--text);
+  padding: .35rem 0;
+  border-bottom: 1px solid var(--border);
+}
+.growth-ap-item:last-child { border-bottom: none }
+.growth-ap-item i { margin-top: .1rem; flex-shrink: 0 }

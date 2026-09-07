@@ -340,8 +340,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const newScanUrl = document.getElementById('newScanUrl');
     if (newScanUrl) newScanUrl.textContent = new URL(data.url).hostname;
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.querySelector('[data-tab="overview"]').classList.add('active');
-    UI.renderTab('overview', data);
+    document.querySelector('[data-tab="growth"]').classList.add('active');
+    UI.renderTab('growth', data);
     document.getElementById('scanner-app').scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
