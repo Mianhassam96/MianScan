@@ -111,12 +111,13 @@ const Scanner = {
       }
     };
 
-    // ── Wave 1: race CF Worker + cors.lol simultaneously (fastest)
+    // ── Wave 1: race CF Worker + 0xhorizon + cors.lol simultaneously (fastest)
     const wave1 = [];
     if (this._workerReady()) {
-      wave1.push(tryProxy('worker',   `${this.WORKER_URL}/?url=${encodeURIComponent(url)}`,                    null,       12000));
+      wave1.push(tryProxy('worker',    `${this.WORKER_URL}/?url=${encodeURIComponent(url)}`,           null, 12000));
     }
-    wave1.push(  tryProxy('cors.lol', `https://api.cors.lol/?url=${encodeURIComponent(url)}`,                  null,       10000));
+    wave1.push(  tryProxy('0xhorizon', `https://cors-anywhere.0xhorizon.workers.dev/${url}`,           null, 12000));
+    wave1.push(  tryProxy('cors.lol',  `https://api.cors.lol/?url=${encodeURIComponent(url)}`,         null, 10000));
 
     try { return await Promise.any(wave1); } catch (_) {}
 
@@ -130,9 +131,8 @@ const Scanner = {
 
     // ── Wave 3: sequential last-resort proxies
     const wave3 = [
-      ['crossorigin', `https://crossorigin.me/${url}`,                                          null, 10000],
-      ['allorigins2', `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,          null, 10000],
-      ['htmldriven',  `https://cors-proxy.htmldriven.com/?url=${encodeURIComponent(url)}`,      null, 10000],
+      ['allorigins2', `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,  null, 10000],
+      ['corsproxy',   `https://corsproxy.io/?url=${encodeURIComponent(url)}`,           null, 10000],
     ];
     for (const [label, pUrl, jKey, ms] of wave3) {
       try { return await tryProxy(label, pUrl, jKey, ms); } catch (_) {}
