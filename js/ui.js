@@ -18,7 +18,7 @@
   warnRow(w){
     const icon=w.type==='ok'?'check-circle-fill':w.type==='warn'?'exclamation-triangle-fill':'x-circle-fill';
     const cls=w.type==='ok'?'a11y-ok':'a11y-warn';
-    return `<div class="a11y-row ${cls}"><i class="bi bi-${icon}"></i>${w.msg}</div>`;
+    return `<div class="a11y-row ${cls}"><i class="bi bi-${icon}"></i>${this.e(w.msg)}</div>`;
   },
 
   renderBanner(data) {
@@ -367,10 +367,10 @@
         </div>
       </div>
       <div class="g2" style="gap:.75rem">
-        ${r.fcp ? `<div class="auth-card"><div class="auth-val" style="font-size:1.1rem;color:var(--primary2)">${r.fcp}</div><div class="auth-lbl">First Contentful Paint</div></div>` : ''}
-        ${r.lcp ? `<div class="auth-card"><div class="auth-val" style="font-size:1.1rem;color:var(--accent)">${r.lcp}</div><div class="auth-lbl">Largest Contentful Paint</div></div>` : ''}
-        ${r.cls ? `<div class="auth-card"><div class="auth-val" style="font-size:1.1rem;color:var(--yellow)">${r.cls}</div><div class="auth-lbl">Cumulative Layout Shift</div></div>` : ''}
-        ${r.tbt ? `<div class="auth-card"><div class="auth-val" style="font-size:1.1rem;color:var(--purple)">${r.tbt}</div><div class="auth-lbl">Total Blocking Time</div></div>` : ''}
+        ${r.fcp ? `<div class="auth-card"><div class="auth-val" style="font-size:1.1rem;color:var(--primary2)">${this.e(r.fcp)}</div><div class="auth-lbl">First Contentful Paint</div></div>` : ''}
+        ${r.lcp ? `<div class="auth-card"><div class="auth-val" style="font-size:1.1rem;color:var(--accent)">${this.e(r.lcp)}</div><div class="auth-lbl">Largest Contentful Paint</div></div>` : ''}
+        ${r.cls ? `<div class="auth-card"><div class="auth-val" style="font-size:1.1rem;color:var(--yellow)">${this.e(r.cls)}</div><div class="auth-lbl">Cumulative Layout Shift</div></div>` : ''}
+        ${r.tbt ? `<div class="auth-card"><div class="auth-val" style="font-size:1.1rem;color:var(--purple)">${this.e(r.tbt)}</div><div class="auth-lbl">Total Blocking Time</div></div>` : ''}
       </div>
     </div>` : '';
 
@@ -389,7 +389,7 @@
           <div class="auth-card"><div class="auth-val" style="color:var(--primary2);font-size:1.3rem">${globalRank||'N/A'}</div><div class="auth-lbl">Global Rank</div><div class="auth-note">${r?.source||'Not available'}</div></div>
           <div class="auth-card"><div class="auth-val" style="color:var(--accent);font-size:1.3rem">${pageRank||'N/A'}</div><div class="auth-lbl">PageRank Score</div><div class="auth-note">Open PageRank (0–10)</div></div>
         </div>
-        ${!hasData?`<div class="a11y-row a11y-warn" style="margin-top:.75rem"><i class="bi bi-exclamation-triangle-fill"></i> ${r?.error||'Ranking data not available for this domain'}</div>`:''}
+        ${!hasData?`<div class="a11y-row a11y-warn" style="margin-top:.75rem"><i class="bi bi-exclamation-triangle-fill"></i> ${this.e(r?.error||'Ranking data not available for this domain')}</div>`:''}
         ${manualLinks}
       </div>
       <div class="card">

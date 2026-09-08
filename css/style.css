@@ -1406,3 +1406,19 @@ button:focus-visible, input:focus-visible {
 }
 .growth-ap-item:last-child { border-bottom: none }
 .growth-ap-item i { margin-top: .1rem; flex-shrink: 0 }
+
+/* ── Scanner status badge ── */
+.scanner-status-row {
+  display: flex;
+  align-items: center;
+  margin-top: .6rem;
+}
+.scanner-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  font-size: .75rem;
+  font-weight: 600;
+  color: var(--muted);
+  transition: color .3s;
+}

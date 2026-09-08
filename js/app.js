@@ -300,16 +300,46 @@ document.addEventListener('DOMContentLoaded', () => {
 
     } catch (err) {
       overlay.classList.remove('active');
-      let msg = err.message;
-      if (/timeout|abort/i.test(msg))       msg = 'The site took too long to respond. This can happen with sites that block external requests. Try a different URL or try again in a moment.';
-      else if (/proxies failed/i.test(msg)) msg = 'This site blocks external requests. Some sites (Cloudflare, login-protected pages) cannot be scanned this way. Try a different URL.';
-      else if (/empty response/i.test(msg)) msg = 'No content returned. The site may require login or JavaScript rendering.';
+
+      // Typed error messages — each maps to a real cause
+      const code = err.code || '';
+      let icon = '⚠️';
+      let headline = 'Scan Failed';
+      let msg, hint;
+
+      if (code === Scanner.ERR_TIMEOUT) {
+        icon = '⏱️';
+        headline = 'Website took too long to respond';
+        msg = 'The target server didn\'t reply within MianScan\'s scan window.';
+        hint = 'The site may be slow, down, or blocking automated requests.';
+      } else if (code === Scanner.ERR_BLOCKED) {
+        icon = '🚫';
+        headline = 'Website rejected the scan request';
+        msg = 'This site actively blocks automated requests (Cloudflare protection, login wall, or bot detection).';
+        hint = 'Try a different URL, or check that the site is publicly accessible.';
+      } else if (code === Scanner.ERR_EMPTY) {
+        icon = '📭';
+        headline = 'No content returned';
+        msg = 'The page returned an empty response. It may require JavaScript to render or a login to access.';
+        hint = 'MianScan works on publicly accessible, server-rendered pages.';
+      } else if (code === Scanner.ERR_SCANNER) {
+        icon = '🔧';
+        headline = 'Scanner service temporarily unavailable';
+        msg = 'MianScan\'s scanning proxy is unreachable right now.';
+        hint = 'Please try again in a moment.';
+      } else {
+        // Generic fallback — include raw message for debugging
+        msg = err.message || 'An unexpected error occurred.';
+        hint = 'Try a different URL or try again shortly.';
+      }
+
       results.classList.remove('hidden');
       document.getElementById('siteBanner').innerHTML = `
         <div style="text-align:center;padding:2.5rem 1rem">
-          <div style="font-size:2.5rem;margin-bottom:.75rem">⚠️</div>
-          <div style="font-size:1.1rem;font-weight:700;color:var(--red);margin-bottom:.5rem">Scan Failed</div>
-          <div style="color:var(--muted);font-size:.9rem;margin-bottom:1.25rem">${msg}</div>
+          <div style="font-size:2.5rem;margin-bottom:.75rem">${icon}</div>
+          <div style="font-size:1.1rem;font-weight:700;color:var(--red);margin-bottom:.4rem">${headline}</div>
+          <div style="color:var(--text);font-size:.9rem;margin-bottom:.35rem">${msg}</div>
+          ${hint ? `<div style="color:var(--muted);font-size:.82rem;margin-bottom:1.25rem">${hint}</div>` : '<div style="margin-bottom:1.25rem"></div>'}
           <div style="display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap">
             <button class="scan-btn" onclick="_run('${url.replace(/'/g,"\\'")}', true)" style="display:inline-flex;min-height:40px;padding:0 1.5rem;font-size:.9rem">
               <i class="bi bi-arrow-repeat"></i><span>Retry</span>
@@ -322,7 +352,7 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('statsRow').innerHTML = '';
       document.getElementById('tabContent').innerHTML = '';
       document.getElementById('scanner-app').scrollIntoView({ behavior: 'smooth', block: 'start' });
-      console.error(err);
+      console.error('[MianScan]', code || 'UNKNOWN', err.details || err.message);
     } finally {
       scanBtn.disabled = false;
       scanBtn.innerHTML = '<i class="bi bi-radar"></i><span>Analyze</span>';
@@ -351,6 +381,31 @@ document.addEventListener('DOMContentLoaded', () => {
     urlInput.value = autoUrl;
     setTimeout(() => run(autoUrl), 400);
   }
+
+  // ── Scanner health check ─────────────────────────────────────────────────
+  // Pings the worker with a known fast URL. Shows a subtle status badge
+  // so users immediately know if the scanner is operational.
+  (async function checkHealth() {
+    const badge = document.getElementById('scannerStatusBadge');
+    if (!badge) return;
+
+    badge.innerHTML = `<i class="bi bi-circle-fill" style="font-size:.5rem;opacity:.6"></i> Checking…`;
+    badge.style.color = 'var(--muted)';
+
+    try {
+      const workerUrl = `${Scanner.WORKER_URL}/?url=${encodeURIComponent('https://example.com')}`;
+      const res = await fetch(workerUrl, { signal: AbortSignal.timeout ? AbortSignal.timeout(6000) : AbortSignal.timeout(6000) });
+      const text = await res.text();
+      const ok = res.ok && text.length > 100;
+      badge.innerHTML = ok
+        ? `<i class="bi bi-circle-fill" style="font-size:.5rem"></i> Scanner Ready`
+        : `<i class="bi bi-circle-fill" style="font-size:.5rem"></i> Limited — some sites may fail`;
+      badge.style.color = ok ? 'var(--green)' : 'var(--yellow)';
+    } catch (_) {
+      badge.innerHTML = `<i class="bi bi-circle-fill" style="font-size:.5rem"></i> Scanner Unavailable — trying fallback`;
+      badge.style.color = 'var(--yellow)';
+    }
+  })();
 
   // Expose run globally for inline onclick retry buttons
   window._run = (url, force) => run(url, force);
