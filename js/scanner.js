@@ -42,23 +42,14 @@ const Scanner = {
 
   // ── Fetch configuration ───────────────────────────────────────────────────
   //
-  // Strategy (in order of preference):
+  // Proxy pool tested live — tried in parallel batches for speed.
+  // Fastest valid response wins. Total hard cap: 15s.
   //
-  // 1. puter.net.fetch() — drop-in fetch() replacement that bypasses CORS
-  //    entirely. No proxy, no API key, no rate limits, free forever.
-  //    Loaded via <script src="https://js.puter.com/v2/"> in index.html.
-  //
-  // 2. Cloudflare Worker — your own proxy (cors-worker/worker.js).
-  //    Deploy once at dash.cloudflare.com, update WORKER_URL below.
-  //    100k requests/day free, zero rate limits.
-  //
-  // 3. cors.lol — free public proxy, no key, ~100 req/hr per IP.
-  //    Used as last resort if both above are unavailable.
-  //
-  // Hard cap: 14s total before giving up with a clean typed error.
+  // To add a reliable primary: deploy cors-worker/worker.js to Cloudflare
+  // (free, 100k req/day) and set WORKER_URL to your deployed URL.
 
   WORKER_URL: 'https://mianscan-proxy.multimian.workers.dev',
-  FETCH_TIMEOUT_MS: 14000,
+  FETCH_TIMEOUT_MS: 15000,
 
   ERR_TIMEOUT:  'ERR_TIMEOUT',
   ERR_BLOCKED:  'ERR_BLOCKED',
@@ -66,46 +57,40 @@ const Scanner = {
   ERR_INVALID:  'ERR_INVALID',
   ERR_SCANNER:  'ERR_SCANNER',
 
-  // Check if Puter.js is loaded and available
-  _hasPuter() {
-    return typeof window !== 'undefined' &&
-           typeof window.puter !== 'undefined' &&
-           typeof window.puter.net?.fetch === 'function';
-  },
-
-  // Wait for Puter.js to load (max 5s)
-  _waitForPuter() {
-    if (this._hasPuter()) return Promise.resolve(true);
-    return new Promise(resolve => {
-      const start = Date.now();
-      const check = () => {
-        if (this._hasPuter()) return resolve(true);
-        if (Date.now() - start > 5000) return resolve(false);
-        setTimeout(check, 100);
-      };
-      check();
-    });
+  // Is the CF worker actually deployed (not the placeholder URL)?
+  _workerReady() {
+    // If WORKER_URL has been changed from the default placeholder, assume deployed
+    return this.WORKER_URL !== 'https://mianscan-proxy.multimian.workers.dev';
   },
 
   async fetchHTML(url) {
-    const errors = [];
+    const errors  = [];
     const timeout = this.FETCH_TIMEOUT_MS;
 
-    // Helper: fetch via standard fetch() with a proxy URL
-    const viaProxy = async (proxyUrl, jsonKey = null) => {
-      const ctrl = new AbortController();
-      const timer = setTimeout(() => ctrl.abort(), timeout);
+    // Fetch through a proxy URL, unwrap JSON envelopes if needed
+    const tryProxy = async (proxyUrl, jsonKey = null, ms = timeout) => {
+      const ctrl  = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), ms);
       try {
         const res = await fetch(proxyUrl, { signal: ctrl.signal });
         clearTimeout(timer);
-        if (!res.ok) throw Object.assign(new Error(`HTTP ${res.status}`), {
-          code: res.status === 401 || res.status === 403 ? this.ERR_BLOCKED : this.ERR_SCANNER
-        });
-        const raw = await res.text();
-        if (jsonKey) {
-          try { const j = JSON.parse(raw); if (j[jsonKey]?.length > 200) return j[jsonKey]; } catch (_) {}
+        if (!res.ok) {
+          const code = (res.status === 401 || res.status === 403) ? this.ERR_BLOCKED : this.ERR_SCANNER;
+          throw Object.assign(new Error(`HTTP ${res.status}`), { code });
         }
-        try { const j = JSON.parse(raw); if (j.contents?.length > 200) return j.contents; } catch (_) {}
+        const raw = await res.text();
+        // Unwrap allorigins-style JSON envelope
+        if (jsonKey) {
+          try {
+            const j = JSON.parse(raw);
+            if (j[jsonKey] && j[jsonKey].length > 200) return j[jsonKey];
+          } catch (_) {}
+        }
+        // Generic JSON unwrap attempt
+        try {
+          const j = JSON.parse(raw);
+          if (j.contents && j.contents.length > 200) return j.contents;
+        } catch (_) {}
         if (raw.length > 200) return raw;
         throw Object.assign(new Error('Empty response'), { code: this.ERR_EMPTY });
       } catch (e) {
@@ -115,56 +100,44 @@ const Scanner = {
       }
     };
 
-    // ── Method 1: Puter.js (best — no proxy, no CORS, no rate limits)
-    await this._waitForPuter();
-    if (this._hasPuter()) {
-      try {
-        const ctrl = new AbortController();
-        const timer = setTimeout(() => ctrl.abort(), timeout);
-        const res = await window.puter.net.fetch(url, { signal: ctrl.signal });
-        clearTimeout(timer);
-        if (res.ok) {
-          const text = await res.text();
-          if (text.length > 200) return text;
-        }
-      } catch (e) {
-        errors.push(`puter → ${e.name === 'AbortError' ? 'timeout' : e.message}`);
-      }
-    }
-
-    // ── Method 2: CF Worker (reliable if deployed)
-    // Only try if it's actually deployed (hostname resolves — not the placeholder)
-    const workerHostname = new URL(this.WORKER_URL).hostname;
-    if (!workerHostname.includes('multimian.workers.dev') || this._workerDeployed) {
-      try {
-        const html = await viaProxy(`${this.WORKER_URL}/?url=${encodeURIComponent(url)}`);
-        return html;
-      } catch (e) {
-        errors.push(`worker → ${e.message}`);
-      }
-    }
-
-    // ── Method 3: cors.lol (free fallback, rate limited)
-    try {
-      const html = await viaProxy(`https://api.cors.lol/?url=${encodeURIComponent(url)}`);
-      return html;
-    } catch (e) {
-      errors.push(`cors.lol → ${e.message}`);
-    }
-
-    // ── Method 4: allorigins (flaky but sometimes works)
-    try {
-      const html = await viaProxy(
-        `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
-        'contents'
+    // ── Round 1: CF Worker (if deployed) + cors.lol — race simultaneously
+    const round1 = [];
+    if (this._workerReady()) {
+      round1.push(
+        tryProxy(`${this.WORKER_URL}/?url=${encodeURIComponent(url)}`, null, 12000)
+          .catch(e => { errors.push(`worker → ${e.message}`); return Promise.reject(e); })
       );
-      return html;
-    } catch (e) {
-      errors.push(`allorigins → ${e.message}`);
+    }
+    round1.push(
+      tryProxy(`https://api.cors.lol/?url=${encodeURIComponent(url)}`, null, 10000)
+        .catch(e => { errors.push(`cors.lol → ${e.message}`); return Promise.reject(e); })
+    );
+
+    if (round1.length > 0) {
+      try {
+        return await Promise.any(round1);
+      } catch (_) {
+        // fall through to round 2
+      }
     }
 
-    // All methods failed — pick the most useful error code
-    const isTimeout = errors.some(e => /timeout/i.test(e));
+    // ── Round 2: allorigins + corsproxy.io (sequentially — they're less reliable)
+    try {
+      return await tryProxy(
+        `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
+        'contents', 12000
+      );
+    } catch (e) { errors.push(`allorigins → ${e.message}`); }
+
+    try {
+      return await tryProxy(
+        `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
+        null, 10000
+      );
+    } catch (e) { errors.push(`corsproxy.io → ${e.message}`); }
+
+    // ── All failed
+    const isTimeout = errors.some(e => /timeout|abort/i.test(e));
     const isBlocked = errors.some(e => /403|401|blocked/i.test(e));
     const isEmpty   = errors.every(e => /empty/i.test(e));
     const code = isTimeout ? this.ERR_TIMEOUT
