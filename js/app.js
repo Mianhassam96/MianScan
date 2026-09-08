@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
           // No scan yet — focus URL input with a hint
           urlInput.focus();
           urlInput.placeholder = `Scan a site first, then see ${tab} data`;
-          setTimeout(() => urlInput.placeholder = 'https://stripe.com', 3000);
+          setTimeout(() => urlInput.placeholder = 'https://multimian.com', 3000);
         }
       }, 600);
     });
