@@ -42,108 +42,113 @@ const Scanner = {
 
   // ── Fetch configuration ───────────────────────────────────────────────────
   //
-  // Proxy pool tested live — tried in parallel batches for speed.
-  // Fastest valid response wins. Total hard cap: 15s.
+  // All public CORS proxies are unreliable — they go down, rate-limit, or
+  // require API keys without notice. The ONLY permanent fix is deploying
+  // the Cloudflare Worker in cors-worker/worker.js (free, 100k req/day).
   //
-  // To add a reliable primary: deploy cors-worker/worker.js to Cloudflare
-  // (free, 100k req/day) and set WORKER_URL to your deployed URL.
+  // Until the Worker is deployed, the scanner uses a wide proxy pool and
+  // tries all of them. If every proxy is down simultaneously, scans fail.
+  //
+  // To fix permanently:
+  //   1. Go to https://dash.cloudflare.com → Workers & Pages → Create Worker
+  //   2. Paste cors-worker/worker.js → Deploy
+  //   3. Set WORKER_URL below to your deployed URL
 
   WORKER_URL: 'https://mianscan-proxy.multimian.workers.dev',
   FETCH_TIMEOUT_MS: 15000,
 
-  ERR_TIMEOUT:  'ERR_TIMEOUT',
-  ERR_BLOCKED:  'ERR_BLOCKED',
-  ERR_EMPTY:    'ERR_EMPTY',
-  ERR_INVALID:  'ERR_INVALID',
-  ERR_SCANNER:  'ERR_SCANNER',
+  ERR_TIMEOUT: 'ERR_TIMEOUT',
+  ERR_BLOCKED: 'ERR_BLOCKED',
+  ERR_EMPTY:   'ERR_EMPTY',
+  ERR_SCANNER: 'ERR_SCANNER',
 
-  // Is the CF worker actually deployed (not the placeholder URL)?
   _workerReady() {
-    // If WORKER_URL has been changed from the default placeholder, assume deployed
     return this.WORKER_URL !== 'https://mianscan-proxy.multimian.workers.dev';
   },
 
   async fetchHTML(url) {
-    const errors  = [];
-    const timeout = this.FETCH_TIMEOUT_MS;
+    const errors = [];
 
-    // Fetch through a proxy URL, unwrap JSON envelopes if needed
-    const tryProxy = async (proxyUrl, jsonKey = null, ms = timeout) => {
+    const tryProxy = async (label, proxyUrl, jsonKey, ms) => {
       const ctrl  = new AbortController();
       const timer = setTimeout(() => ctrl.abort(), ms);
       try {
         const res = await fetch(proxyUrl, { signal: ctrl.signal });
         clearTimeout(timer);
+
+        // 429 = rate limited (proxy issue, not site blocking)
+        // 401/403 = auth required (could be proxy or site)
+        // 5xx = proxy/server error
         if (!res.ok) {
-          const code = (res.status === 401 || res.status === 403) ? this.ERR_BLOCKED : this.ERR_SCANNER;
+          const isProxyErr = res.status === 429 || res.status >= 500;
+          const code = isProxyErr ? this.ERR_SCANNER : this.ERR_BLOCKED;
           throw Object.assign(new Error(`HTTP ${res.status}`), { code });
         }
+
         const raw = await res.text();
-        // Unwrap allorigins-style JSON envelope
+
+        // Unwrap allorigins/similar JSON envelope
         if (jsonKey) {
           try {
             const j = JSON.parse(raw);
             if (j[jsonKey] && j[jsonKey].length > 200) return j[jsonKey];
           } catch (_) {}
         }
-        // Generic JSON unwrap attempt
+        // Generic JSON unwrap
         try {
           const j = JSON.parse(raw);
           if (j.contents && j.contents.length > 200) return j.contents;
         } catch (_) {}
+
         if (raw.length > 200) return raw;
         throw Object.assign(new Error('Empty response'), { code: this.ERR_EMPTY });
+
       } catch (e) {
         clearTimeout(timer);
+        errors.push(`${label} → ${e.message}`);
         const code = e.name === 'AbortError' ? this.ERR_TIMEOUT : (e.code || this.ERR_SCANNER);
         throw Object.assign(e, { code });
       }
     };
 
-    // ── Round 1: CF Worker (if deployed) + cors.lol — race simultaneously
-    const round1 = [];
+    // ── Wave 1: race CF Worker + cors.lol simultaneously (fastest)
+    const wave1 = [];
     if (this._workerReady()) {
-      round1.push(
-        tryProxy(`${this.WORKER_URL}/?url=${encodeURIComponent(url)}`, null, 12000)
-          .catch(e => { errors.push(`worker → ${e.message}`); return Promise.reject(e); })
-      );
+      wave1.push(tryProxy('worker',   `${this.WORKER_URL}/?url=${encodeURIComponent(url)}`,                    null,       12000));
     }
-    round1.push(
-      tryProxy(`https://api.cors.lol/?url=${encodeURIComponent(url)}`, null, 10000)
-        .catch(e => { errors.push(`cors.lol → ${e.message}`); return Promise.reject(e); })
-    );
+    wave1.push(  tryProxy('cors.lol', `https://api.cors.lol/?url=${encodeURIComponent(url)}`,                  null,       10000));
 
-    if (round1.length > 0) {
-      try {
-        return await Promise.any(round1);
-      } catch (_) {
-        // fall through to round 2
-      }
+    try { return await Promise.any(wave1); } catch (_) {}
+
+    // ── Wave 2: race allorigins + codetabs simultaneously
+    try {
+      return await Promise.any([
+        tryProxy('allorigins', `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`, 'contents', 12000),
+        tryProxy('codetabs',   `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`, null,  10000),
+      ]);
+    } catch (_) {}
+
+    // ── Wave 3: sequential last-resort proxies
+    const wave3 = [
+      ['crossorigin', `https://crossorigin.me/${url}`,                                          null, 10000],
+      ['allorigins2', `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,          null, 10000],
+      ['htmldriven',  `https://cors-proxy.htmldriven.com/?url=${encodeURIComponent(url)}`,      null, 10000],
+    ];
+    for (const [label, pUrl, jKey, ms] of wave3) {
+      try { return await tryProxy(label, pUrl, jKey, ms); } catch (_) {}
     }
 
-    // ── Round 2: allorigins + corsproxy.io (sequentially — they're less reliable)
-    try {
-      return await tryProxy(
-        `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
-        'contents', 12000
-      );
-    } catch (e) { errors.push(`allorigins → ${e.message}`); }
+    // ── All waves failed — determine the most meaningful error to show
+    const allBlocked = errors.every(e => /401|403/.test(e));
+    const anyTimeout = errors.some(e => /timeout|abort/i.test(e));
+    const allEmpty   = errors.every(e => /empty/i.test(e));
 
-    try {
-      return await tryProxy(
-        `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
-        null, 10000
-      );
-    } catch (e) { errors.push(`corsproxy.io → ${e.message}`); }
-
-    // ── All failed
-    const isTimeout = errors.some(e => /timeout|abort/i.test(e));
-    const isBlocked = errors.some(e => /403|401|blocked/i.test(e));
-    const isEmpty   = errors.every(e => /empty/i.test(e));
-    const code = isTimeout ? this.ERR_TIMEOUT
-               : isEmpty   ? this.ERR_EMPTY
-               : isBlocked ? this.ERR_BLOCKED
-                           : this.ERR_SCANNER;
+    // If EVERY proxy returned a non-auth error, it's a proxy infrastructure
+    // problem — not the target site blocking us. Show ERR_SCANNER.
+    const code = anyTimeout  ? this.ERR_TIMEOUT
+               : allEmpty    ? this.ERR_EMPTY
+               : allBlocked  ? this.ERR_BLOCKED  // only if ALL proxies got 401/403
+                             : this.ERR_SCANNER; // most common: proxies down/rate-limited
 
     throw Object.assign(new Error(code), { code, details: errors.join(' | ') });
   },

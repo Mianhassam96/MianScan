@@ -324,9 +324,9 @@ document.addEventListener('DOMContentLoaded', () => {
         hint = 'MianScan works on publicly accessible, server-rendered pages.';
       } else if (code === Scanner.ERR_SCANNER) {
         icon = '🔧';
-        headline = 'Scanner service temporarily unavailable';
-        msg = 'MianScan\'s scanning proxy is unreachable right now.';
-        hint = 'Please try again in a moment.';
+        headline = 'Scanning proxy temporarily unavailable';
+        msg = 'All fetch proxies are currently rate-limited or down. This is a temporary infrastructure issue — not a problem with the URL you entered.';
+        hint = 'Wait 30 seconds and retry. The scanner will recover automatically when the proxies come back online.';
       } else {
         // Generic fallback — include raw message for debugging
         msg = err.message || 'An unexpected error occurred.';

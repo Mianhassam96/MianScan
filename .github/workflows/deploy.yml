@@ -5,13 +5,15 @@ on:
     branches: [main]
   workflow_dispatch:
 
+# Required for GitHub Pages deployment via Actions
 permissions:
   contents: read
   pages: write
   id-token: write
 
+# Only one deployment at a time; cancel older in-progress runs
 concurrency:
-  group: pages
+  group: "pages"
   cancel-in-progress: true
 
 jobs:
@@ -22,16 +24,17 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Pages
+      - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
 
-      - name: Upload artifact
+      - name: Upload site as Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: '.'
+          # Upload entire repo root (index.html, css/, js/, etc.)
+          path: "."
 
       - name: Deploy to GitHub Pages
         id: deployment
