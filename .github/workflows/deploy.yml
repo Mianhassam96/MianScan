@@ -5,37 +5,47 @@ on:
     branches: [main]
   workflow_dispatch:
 
-# Required for GitHub Pages deployment via Actions
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
-# Only one deployment at a time; cancel older in-progress runs
 concurrency:
   group: "pages"
   cancel-in-progress: true
 
 jobs:
-  deploy:
+  # Job 1: Deploy via GitHub Actions environment (works when Source = GitHub Actions)
+  deploy-actions:
     runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Configure GitHub Pages
-        uses: actions/configure-pages@v5
-
-      - name: Upload site as Pages artifact
-        uses: actions/upload-pages-artifact@v3
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
         with:
-          # Upload entire repo root (index.html, css/, js/, etc.)
           path: "."
-
-      - name: Deploy to GitHub Pages
-        id: deployment
+      - id: deployment
         uses: actions/deploy-pages@v4
+        continue-on-error: true   # Don't fail the whole workflow if pages not configured
+
+  # Job 2: Also push to gh-pages branch directly (works when Source = Deploy from branch)
+  deploy-ghpages:
+    runs-on: ubuntu-latest
+    needs: []   # Run independently, not waiting for deploy-actions
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Deploy to gh-pages branch
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./
+          publish_branch: gh-pages
+          exclude_assets: '.github,*.md,.kiro,.vscode,.git'
+          force_orphan: true
+          commit_message: "deploy: ${{ github.sha }}"
