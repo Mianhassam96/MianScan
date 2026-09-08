@@ -392,18 +392,36 @@ document.addEventListener('DOMContentLoaded', () => {
     badge.innerHTML = `<i class="bi bi-circle-fill" style="font-size:.5rem;opacity:.6"></i> Checking…`;
     badge.style.color = 'var(--muted)';
 
-    try {
-      const workerUrl = `${Scanner.WORKER_URL}/?url=${encodeURIComponent('https://example.com')}`;
-      const res = await fetch(workerUrl, { signal: AbortSignal.timeout ? AbortSignal.timeout(6000) : AbortSignal.timeout(6000) });
-      const text = await res.text();
-      const ok = res.ok && text.length > 100;
-      badge.innerHTML = ok
-        ? `<i class="bi bi-circle-fill" style="font-size:.5rem"></i> Scanner Ready`
-        : `<i class="bi bi-circle-fill" style="font-size:.5rem"></i> Limited — some sites may fail`;
-      badge.style.color = ok ? 'var(--green)' : 'var(--yellow)';
-    } catch (_) {
-      badge.innerHTML = `<i class="bi bi-circle-fill" style="font-size:.5rem"></i> Scanner Unavailable — trying fallback`;
-      badge.style.color = 'var(--yellow)';
+    // Wait up to 5s for Puter.js to load
+    await Scanner._waitForPuter();
+
+    if (Scanner._hasPuter()) {
+      // Puter.js loaded — best case, verify it can actually fetch
+      try {
+        const res = await window.puter.net.fetch('https://example.com');
+        const ok  = res.ok;
+        badge.innerHTML = ok
+          ? `<i class="bi bi-circle-fill" style="font-size:.5rem"></i> Scanner Ready`
+          : `<i class="bi bi-circle-fill" style="font-size:.5rem"></i> Limited`;
+        badge.style.color = ok ? 'var(--green)' : 'var(--yellow)';
+      } catch (_) {
+        badge.innerHTML = `<i class="bi bi-circle-fill" style="font-size:.5rem"></i> Limited — some sites may fail`;
+        badge.style.color = 'var(--yellow)';
+      }
+    } else {
+      // Puter.js not available — try cors.lol as fallback indicator
+      try {
+        const res = await fetch(`https://api.cors.lol/?url=${encodeURIComponent('https://example.com')}`,
+          { signal: AbortSignal.timeout ? AbortSignal.timeout(6000) : AbortSignal.timeout(6000) });
+        const ok = res.ok;
+        badge.innerHTML = ok
+          ? `<i class="bi bi-circle-fill" style="font-size:.5rem"></i> Scanner Ready (limited)`
+          : `<i class="bi bi-circle-fill" style="font-size:.5rem"></i> Scanner Unavailable`;
+        badge.style.color = ok ? 'var(--yellow)' : 'var(--red)';
+      } catch (_) {
+        badge.innerHTML = `<i class="bi bi-circle-fill" style="font-size:.5rem"></i> Scanner Unavailable`;
+        badge.style.color = 'var(--red)';
+      }
     }
   })();
 

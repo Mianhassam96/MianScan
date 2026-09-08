@@ -42,77 +42,137 @@ const Scanner = {
 
   // ── Fetch configuration ───────────────────────────────────────────────────
   //
-  // Primary:  Your deployed Cloudflare Worker (cors-worker/worker.js)
-  //           Free, 100k req/day, no rate limits. Deploy once at:
-  //           https://dash.cloudflare.com → Workers & Pages → Create Worker
-  //           Then update WORKER_URL below with your worker's URL.
+  // Strategy (in order of preference):
   //
-  // Fallback: cors.lol — confirmed working public proxy (no key needed)
+  // 1. puter.net.fetch() — drop-in fetch() replacement that bypasses CORS
+  //    entirely. No proxy, no API key, no rate limits, free forever.
+  //    Loaded via <script src="https://js.puter.com/v2/"> in index.html.
   //
-  // Hard cap: FETCH_TIMEOUT_MS covers the entire fetch attempt.
-  //           If both worker and fallback fail within this window → clean error.
+  // 2. Cloudflare Worker — your own proxy (cors-worker/worker.js).
+  //    Deploy once at dash.cloudflare.com, update WORKER_URL below.
+  //    100k requests/day free, zero rate limits.
+  //
+  // 3. cors.lol — free public proxy, no key, ~100 req/hr per IP.
+  //    Used as last resort if both above are unavailable.
+  //
+  // Hard cap: 14s total before giving up with a clean typed error.
 
   WORKER_URL: 'https://mianscan-proxy.multimian.workers.dev',
-  FETCH_TIMEOUT_MS: 12000,  // 12 seconds total — hard cap across all attempts
+  FETCH_TIMEOUT_MS: 14000,
 
-  // Error type codes — used by app.js to show the right message
   ERR_TIMEOUT:  'ERR_TIMEOUT',
   ERR_BLOCKED:  'ERR_BLOCKED',
   ERR_EMPTY:    'ERR_EMPTY',
   ERR_INVALID:  'ERR_INVALID',
   ERR_SCANNER:  'ERR_SCANNER',
 
+  // Check if Puter.js is loaded and available
+  _hasPuter() {
+    return typeof window !== 'undefined' &&
+           typeof window.puter !== 'undefined' &&
+           typeof window.puter.net?.fetch === 'function';
+  },
+
+  // Wait for Puter.js to load (max 5s)
+  _waitForPuter() {
+    if (this._hasPuter()) return Promise.resolve(true);
+    return new Promise(resolve => {
+      const start = Date.now();
+      const check = () => {
+        if (this._hasPuter()) return resolve(true);
+        if (Date.now() - start > 5000) return resolve(false);
+        setTimeout(check, 100);
+      };
+      check();
+    });
+  },
+
   async fetchHTML(url) {
-    // Race: worker (primary) vs cors.lol (fallback) — first valid response wins
-    // Both fire simultaneously; we take whichever replies first with real HTML.
-    // If both fail → throw a typed error.
+    const errors = [];
+    const timeout = this.FETCH_TIMEOUT_MS;
 
-    const deadline = AbortSignal.timeout
-      ? AbortSignal.timeout(this.FETCH_TIMEOUT_MS)
-      : (() => { const c = new AbortController(); setTimeout(() => c.abort(), this.FETCH_TIMEOUT_MS); return c.signal; })();
-
-    const tryFetch = async (proxyUrl, jsonKey = null) => {
-      const res = await fetch(proxyUrl, { signal: deadline });
-      if (!res.ok) throw Object.assign(new Error(`HTTP ${res.status}`), { code: res.status >= 500 ? this.ERR_SCANNER : this.ERR_BLOCKED });
-      const raw = await res.text();
-
-      // Unwrap JSON-envelope format (allorigins-style)
-      if (jsonKey) {
-        try { const j = JSON.parse(raw); if (j[jsonKey]?.length > 200) return j[jsonKey]; } catch (_) {}
+    // Helper: fetch via standard fetch() with a proxy URL
+    const viaProxy = async (proxyUrl, jsonKey = null) => {
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), timeout);
+      try {
+        const res = await fetch(proxyUrl, { signal: ctrl.signal });
+        clearTimeout(timer);
+        if (!res.ok) throw Object.assign(new Error(`HTTP ${res.status}`), {
+          code: res.status === 401 || res.status === 403 ? this.ERR_BLOCKED : this.ERR_SCANNER
+        });
+        const raw = await res.text();
+        if (jsonKey) {
+          try { const j = JSON.parse(raw); if (j[jsonKey]?.length > 200) return j[jsonKey]; } catch (_) {}
+        }
+        try { const j = JSON.parse(raw); if (j.contents?.length > 200) return j.contents; } catch (_) {}
+        if (raw.length > 200) return raw;
+        throw Object.assign(new Error('Empty response'), { code: this.ERR_EMPTY });
+      } catch (e) {
+        clearTimeout(timer);
+        const code = e.name === 'AbortError' ? this.ERR_TIMEOUT : (e.code || this.ERR_SCANNER);
+        throw Object.assign(e, { code });
       }
-      // Any proxy may return JSON with a contents key
-      try { const j = JSON.parse(raw); if (j.contents?.length > 200) return j.contents; } catch (_) {}
-
-      if (raw.length > 200) return raw;
-      throw Object.assign(new Error('Empty response'), { code: this.ERR_EMPTY });
     };
 
-    const workerUrl  = `${this.WORKER_URL}/?url=${encodeURIComponent(url)}`;
-    const fallbackUrl = `https://api.cors.lol/?url=${encodeURIComponent(url)}`;
-
-    try {
-      // Fire both simultaneously — settle as soon as one succeeds
-      return await Promise.any([
-        tryFetch(workerUrl),
-        tryFetch(fallbackUrl),
-      ]);
-    } catch (aggErr) {
-      // Both failed — determine the most informative error code
-      const errors = aggErr.errors || [];
-      const isTimeout = deadline.aborted || errors.some(e => e.name === 'AbortError' || e.name === 'TimeoutError');
-      const isBlocked = errors.some(e => e.code === this.ERR_BLOCKED);
-      const isEmpty   = errors.every(e => e.code === this.ERR_EMPTY);
-
-      const code = isTimeout ? this.ERR_TIMEOUT
-                 : isEmpty   ? this.ERR_EMPTY
-                 : isBlocked ? this.ERR_BLOCKED
-                              : this.ERR_SCANNER;
-
-      throw Object.assign(
-        new Error(code),
-        { code, details: errors.map(e => e.message).join(' | ') }
-      );
+    // ── Method 1: Puter.js (best — no proxy, no CORS, no rate limits)
+    await this._waitForPuter();
+    if (this._hasPuter()) {
+      try {
+        const ctrl = new AbortController();
+        const timer = setTimeout(() => ctrl.abort(), timeout);
+        const res = await window.puter.net.fetch(url, { signal: ctrl.signal });
+        clearTimeout(timer);
+        if (res.ok) {
+          const text = await res.text();
+          if (text.length > 200) return text;
+        }
+      } catch (e) {
+        errors.push(`puter → ${e.name === 'AbortError' ? 'timeout' : e.message}`);
+      }
     }
+
+    // ── Method 2: CF Worker (reliable if deployed)
+    // Only try if it's actually deployed (hostname resolves — not the placeholder)
+    const workerHostname = new URL(this.WORKER_URL).hostname;
+    if (!workerHostname.includes('multimian.workers.dev') || this._workerDeployed) {
+      try {
+        const html = await viaProxy(`${this.WORKER_URL}/?url=${encodeURIComponent(url)}`);
+        return html;
+      } catch (e) {
+        errors.push(`worker → ${e.message}`);
+      }
+    }
+
+    // ── Method 3: cors.lol (free fallback, rate limited)
+    try {
+      const html = await viaProxy(`https://api.cors.lol/?url=${encodeURIComponent(url)}`);
+      return html;
+    } catch (e) {
+      errors.push(`cors.lol → ${e.message}`);
+    }
+
+    // ── Method 4: allorigins (flaky but sometimes works)
+    try {
+      const html = await viaProxy(
+        `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
+        'contents'
+      );
+      return html;
+    } catch (e) {
+      errors.push(`allorigins → ${e.message}`);
+    }
+
+    // All methods failed — pick the most useful error code
+    const isTimeout = errors.some(e => /timeout/i.test(e));
+    const isBlocked = errors.some(e => /403|401|blocked/i.test(e));
+    const isEmpty   = errors.every(e => /empty/i.test(e));
+    const code = isTimeout ? this.ERR_TIMEOUT
+               : isEmpty   ? this.ERR_EMPTY
+               : isBlocked ? this.ERR_BLOCKED
+                           : this.ERR_SCANNER;
+
+    throw Object.assign(new Error(code), { code, details: errors.join(' | ') });
   },
 
   parse(html) {
