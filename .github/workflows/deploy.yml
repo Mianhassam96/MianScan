@@ -7,36 +7,13 @@ on:
 
 permissions:
   contents: write
-  pages: write
-  id-token: write
-
-concurrency:
-  group: "pages"
-  cancel-in-progress: true
 
 jobs:
-  # Job 1: Deploy via GitHub Actions environment (works when Source = GitHub Actions)
-  deploy-actions:
+  deploy:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: "."
-      - id: deployment
-        uses: actions/deploy-pages@v4
-        continue-on-error: true   # Don't fail the whole workflow if pages not configured
-
-  # Job 2: Also push to gh-pages branch directly (works when Source = Deploy from branch)
-  deploy-ghpages:
-    runs-on: ubuntu-latest
-    needs: []   # Run independently, not waiting for deploy-actions
-    steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
