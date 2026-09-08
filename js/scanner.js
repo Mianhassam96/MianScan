@@ -50,17 +50,17 @@ const Scanner = {
 
   get PROXIES() {
     return [
-      // 1. Own Cloudflare Worker — fastest, most reliable, no rate limits
+      // 1. Own Cloudflare Worker — fastest, most reliable, zero rate limits (deploy: cors-worker/)
       { url: u => `${this.WORKER_URL}/?url=${encodeURIComponent(u)}`, json: false, timeout: 14000 },
-      // 2. corsproxy.io — free tier, ?url= format
-      { url: u => `https://corsproxy.io/?url=${encodeURIComponent(u)}`, json: false, timeout: 12000 },
+      // 2. cors.lol — confirmed working 2025, no key needed
+      { url: u => `https://api.cors.lol/?url=${encodeURIComponent(u)}`, json: false, timeout: 12000 },
       // 3. allorigins — wraps response in { contents }
       { url: u => `https://api.allorigins.win/get?url=${encodeURIComponent(u)}`, json: true, jsonKey: 'contents', timeout: 12000 },
-      // 4. cors.eu.org — simple pass-through
-      { url: u => `https://cors.eu.org/${u}`, json: false, timeout: 12000 },
-      // 5. codetabs — GET only, 5 req/sec
+      // 4. corsproxy.io — now requires API key, keep as last resort (may work unauthenticated on some IPs)
+      { url: u => `https://corsproxy.io/?url=${encodeURIComponent(u)}`, json: false, timeout: 10000 },
+      // 5. codetabs
       { url: u => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`, json: false, timeout: 10000 },
-      // 6. cors-anywhere — requires prior manual activation at https://cors-anywhere.herokuapp.com/corsdemo
+      // 6. cors-anywhere — activate at https://cors-anywhere.herokuapp.com/corsdemo
       { url: u => `https://cors-anywhere.herokuapp.com/${u}`, json: false, timeout: 12000 },
     ];
   },
@@ -68,7 +68,7 @@ const Scanner = {
   async fetchHTML(url) {
     const errors = [];
 
-    // ── Stage 1: Race the two most reliable proxies simultaneously
+    // ── Stage 1: Race top 2 proxies simultaneously (worker + cors.lol)
     const stage1 = this.PROXIES.slice(0, 2);
     const stage2 = this.PROXIES.slice(2);
 
