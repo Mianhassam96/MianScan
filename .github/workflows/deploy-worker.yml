@@ -7,7 +7,7 @@ on:
       - 'cors-worker/worker.js'
       - 'cors-worker/wrangler.toml'
       - '.github/workflows/deploy-worker.yml'
-  workflow_dispatch:   # allow manual trigger from Actions tab
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -15,13 +15,47 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    name: Deploy CORS proxy worker to Cloudflare
+    name: Deploy CORS proxy to Cloudflare Workers
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Deploy Worker via Wrangler
+      - name: Check required secrets
+        run: |
+          if [ -z "${{ secrets.CLOUDFLARE_API_TOKEN }}" ]; then
+            echo "ERROR: CLOUDFLARE_API_TOKEN secret is not set."
+            echo ""
+            echo "To fix:"
+            echo "1. Go to https://dash.cloudflare.com/profile/api-tokens"
+            echo "2. Create Token → Edit Cloudflare Workers template"
+            echo "3. Copy the token"
+            echo "4. Go to https://github.com/Mianhassam96/MianScan/settings/secrets/actions"
+            echo "5. Add secret: CLOUDFLARE_API_TOKEN = <your token>"
+            echo ""
+            echo "Also add: CLOUDFLARE_ACCOUNT_ID"
+            echo "Get it from: https://dash.cloudflare.com → Account ID in right sidebar"
+            exit 1
+          fi
+          if [ -z "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}" ]; then
+            echo "ERROR: CLOUDFLARE_ACCOUNT_ID secret is not set."
+            echo "Get it from: https://dash.cloudflare.com → Account ID in right sidebar"
+            exit 1
+          fi
+
+      - name: Deploy Worker
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: cors-worker
+
+      - name: Show deployed URL
+        run: |
+          echo ""
+          echo "✅ Worker deployed successfully!"
+          echo ""
+          echo "Your worker URL is:"
+          echo "  https://mianscan-proxy.${{ secrets.CLOUDFLARE_ACCOUNT_ID }}.workers.dev"
+          echo ""
+          echo "Now update WORKER_URL in js/scanner.js with this URL."

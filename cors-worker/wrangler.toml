@@ -2,6 +2,6 @@ name = "mianscan-proxy"
 main = "worker.js"
 compatibility_date = "2024-01-01"
 
-# ES Modules format (export default syntax) — Cloudflare Workers default
-# No KV, Durable Objects, or R2 needed — pure fetch proxy
-# Free tier: 100,000 requests/day
+# account_id is passed via CLOUDFLARE_ACCOUNT_ID environment variable
+# Set it as a GitHub secret: repo → Settings → Secrets → Actions
+# Get it from: https://dash.cloudflare.com → right sidebar → Account ID
