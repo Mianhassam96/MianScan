@@ -12,7 +12,7 @@ Scan any URL and get **complete website intelligence in seconds.**
  
 ## 1. Website Overview 
  
-Quick snapshot of the site:
+Quick snapshot of the site: 
 
 * Title  
 * Meta description
