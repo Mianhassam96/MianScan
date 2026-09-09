@@ -121,6 +121,7 @@
       contacts:    ()=>this.tContacts(data.contacts),
       cta:         ()=>this.tCTA(data.cta),
       conversion:  ()=>this.tConversion(data),
+      business:    ()=>this.tBusiness(data),
       tech:        ()=>this.tTech(data.tech),
       performance: ()=>this.tPerf(data.performance),
       metatags:    ()=>this.tMetaTags(data.seo),
@@ -1092,14 +1093,15 @@
     if (!g) return this.empty('Growth score not available — rescan to generate.');
 
     const catMeta = {
-      seo:           { label: 'SEO',           icon: 'graph-up-arrow',       color: 'var(--green)' },
-      performance:   { label: 'Performance',   icon: 'speedometer2',         color: 'var(--yellow)' },
-      mobile:        { label: 'Mobile',         icon: 'phone-fill',           color: 'var(--primary2)' },
-      security:      { label: 'Security',       icon: 'shield-lock-fill',     color: 'var(--red)' },
-      accessibility: { label: 'Accessibility', icon: 'universal-access',     color: 'var(--accent)' },
-      content:       { label: 'Content',        icon: 'file-text-fill',       color: 'var(--purple)' },
-      conversion:    { label: 'Conversion',     icon: 'cursor-fill',          color: '#f59e0b' },
-      ux:            { label: 'UX',             icon: 'layout-text-window',   color: '#ec4899' },
+      seo:           { label: 'SEO',              icon: 'graph-up-arrow',       color: 'var(--green)' },
+      performance:   { label: 'Performance',      icon: 'speedometer2',         color: 'var(--yellow)' },
+      mobile:        { label: 'Mobile',            icon: 'phone-fill',           color: 'var(--primary2)' },
+      security:      { label: 'Security',          icon: 'shield-lock-fill',     color: 'var(--red)' },
+      accessibility: { label: 'Accessibility',    icon: 'universal-access',     color: 'var(--accent)' },
+      content:       { label: 'Content',           icon: 'file-text-fill',       color: 'var(--purple)' },
+      conversion:    { label: 'Conversion',        icon: 'cursor-fill',          color: '#f59e0b' },
+      ux:            { label: 'UX',                icon: 'layout-text-window',   color: '#ec4899' },
+      business:      { label: 'Business Readiness',icon: 'building',             color: 'var(--accent)' },
     };
 
     const priorityMeta = {
@@ -1191,10 +1193,13 @@
               <div style="font-size:.82rem;color:var(--muted);line-height:1.5">${this.e(f.detail)}</div>
               ${f.action && f.priority !== 'good' ? `
               <div style="margin-top:.5rem;padding:.4rem .65rem;background:var(--bg);border-radius:6px;border-left:2px solid ${pm.color};font-size:.78rem;color:var(--text)">
-                <strong>Action:</strong> ${this.e(f.action)}
+                <strong>Fix:</strong> ${this.e(f.action)}
               </div>` : ''}
             </div>
-            ${f.impact && f.priority !== 'good' ? `<span style="font-size:.68rem;font-weight:700;padding:.15rem .5rem;border-radius:6px;background:var(--bg4);color:var(--muted);flex-shrink:0;align-self:flex-start">Impact: ${f.impact}</span>` : ''}
+            <div style="display:flex;flex-direction:column;gap:.3rem;align-items:flex-end;flex-shrink:0">
+              ${f.impact && f.priority !== 'good' ? `<span style="font-size:.68rem;font-weight:700;padding:.15rem .5rem;border-radius:6px;background:var(--bg4);color:var(--muted)">Impact: ${f.impact}</span>` : ''}
+              ${f.effort && f.priority !== 'good' ? `<span style="font-size:.68rem;font-weight:700;padding:.15rem .5rem;border-radius:6px;background:var(--bg4);color:var(--accent)">${this.e(f.effort)}</span>` : ''}
+            </div>
           </div>
         </div>`).join('')}
       </div>`;
@@ -1217,17 +1222,17 @@
         ${ap.today.length ? `
         <div class="growth-ap-group">
           <div class="growth-ap-label" style="color:var(--red)"><i class="bi bi-lightning-charge-fill"></i> Today</div>
-          ${ap.today.map(t => `<div class="growth-ap-item"><i class="bi bi-exclamation-octagon-fill" style="color:var(--red)"></i><span>${this.e(t)}</span></div>`).join('')}
+          ${ap.today.map(t => `<div class="growth-ap-item"><i class="bi bi-exclamation-octagon-fill" style="color:var(--red)"></i><span style="flex:1">${this.e(t.title||t)}</span>${t.effort?`<span style="font-size:.68rem;color:var(--accent);flex-shrink:0">${this.e(t.effort)}</span>`:''}</div>`).join('')}
         </div>` : ''}
         ${ap.thisWeek.length ? `
         <div class="growth-ap-group">
           <div class="growth-ap-label" style="color:#f59e0b"><i class="bi bi-calendar-week-fill"></i> This Week</div>
-          ${ap.thisWeek.map(t => `<div class="growth-ap-item"><i class="bi bi-exclamation-triangle-fill" style="color:#f59e0b"></i><span>${this.e(t)}</span></div>`).join('')}
+          ${ap.thisWeek.map(t => `<div class="growth-ap-item"><i class="bi bi-exclamation-triangle-fill" style="color:#f59e0b"></i><span style="flex:1">${this.e(t.title||t)}</span>${t.effort?`<span style="font-size:.68rem;color:var(--accent);flex-shrink:0">${this.e(t.effort)}</span>`:''}</div>`).join('')}
         </div>` : ''}
         ${ap.thisMonth.length ? `
         <div class="growth-ap-group">
           <div class="growth-ap-label" style="color:var(--primary2)"><i class="bi bi-calendar-month-fill"></i> This Month</div>
-          ${ap.thisMonth.map(t => `<div class="growth-ap-item"><i class="bi bi-info-circle-fill" style="color:var(--primary2)"></i><span>${this.e(t)}</span></div>`).join('')}
+          ${ap.thisMonth.map(t => `<div class="growth-ap-item"><i class="bi bi-info-circle-fill" style="color:var(--primary2)"></i><span style="flex:1">${this.e(t.title||t)}</span>${t.effort?`<span style="font-size:.68rem;color:var(--accent);flex-shrink:0">${this.e(t.effort)}</span>`:''}</div>`).join('')}
         </div>` : ''}
       </div>
     </div>` : '';
@@ -1245,6 +1250,65 @@
     </div>` : '';
 
     return heroSection + catGrid + findingsSection + apSection + mmCTA;
+  },
+
+  /* ── Business Readiness Tab ── */
+  tBusiness(data) {
+    const biz = data.business;
+    if (!biz) return this.empty('Business Readiness data not available — rescan to generate.');
+
+    const gradeColor = biz.score >= 80 ? 'var(--green)' : biz.score >= 65 ? 'var(--primary2)' : biz.score >= 50 ? 'var(--yellow)' : 'var(--red)';
+    const gradeLabel = biz.score >= 80 ? 'Business-Ready' : biz.score >= 65 ? 'Nearly There' : biz.score >= 50 ? 'Needs Work' : 'Not Ready';
+
+    // Group checks by section
+    const sections = {};
+    (biz.checks || []).forEach(c => {
+      const s = c.section || 'Other';
+      if (!sections[s]) sections[s] = [];
+      sections[s].push(c);
+    });
+
+    const sectionColors = {
+      Identity: 'var(--primary2)', Contact: 'var(--accent)', Trust: 'var(--green)',
+      Content: 'var(--yellow)', Legal: 'var(--red)', Schema: 'var(--purple)', Social: '#ec4899',
+    };
+
+    const checksHtml = Object.entries(sections).map(([sec, items]) => `
+      <div style="margin-bottom:1rem">
+        <div style="font-size:.7rem;font-weight:700;color:${sectionColors[sec]||'var(--muted)'};text-transform:uppercase;letter-spacing:.08em;margin-bottom:.4rem;display:flex;align-items:center;gap:.4rem">
+          ${sec}<span style="flex:1;height:1px;background:var(--border);display:inline-block"></span>
+        </div>
+        ${items.map(c => {
+          const icon = c.type === 'ok' ? 'check-circle-fill' : 'exclamation-triangle-fill';
+          const cls  = c.type === 'ok' ? 'a11y-ok' : 'a11y-warn';
+          return `<div class="a11y-row ${cls}"><i class="bi bi-${icon}"></i><div style="flex:1"><div style="font-weight:600;font-size:.85rem">${this.e(c.label)}</div><div style="font-size:.78rem;opacity:.85">${this.e(c.msg)}</div></div></div>`;
+        }).join('')}
+      </div>`).join('');
+
+    return `
+    <div class="g2" style="align-items:start;margin-bottom:1.25rem">
+      <div class="card">
+        <div class="card-head"><i class="bi bi-building"></i> Business Readiness Score</div>
+        <div class="score-box">
+          <div class="score-ring" style="border-color:${gradeColor};color:${gradeColor}">${biz.score}</div>
+          <div class="score-grade" style="color:${gradeColor}">Grade ${biz.grade}</div>
+          <div class="score-sub">${gradeLabel}</div>
+        </div>
+        <div style="margin-top:1rem">
+          <div class="authority-grid" style="grid-template-columns:repeat(2,1fr);gap:.5rem">
+            <div class="auth-card"><div class="auth-val" style="color:${biz.hasEmail?'var(--green)':'var(--red)'}">${biz.hasEmail?'Yes':'No'}</div><div class="auth-lbl">Email Contact</div></div>
+            <div class="auth-card"><div class="auth-val" style="color:${biz.hasTestimonials?'var(--green)':'var(--red)'}">${biz.hasTestimonials?'Yes':'No'}</div><div class="auth-lbl">Testimonials</div></div>
+            <div class="auth-card"><div class="auth-val" style="color:${biz.hasPricing?'var(--green)':'var(--yellow)'}">${biz.hasPricing?'Yes':'No'}</div><div class="auth-lbl">Pricing</div></div>
+            <div class="auth-card"><div class="auth-val" style="color:${biz.hasPrivacy?'var(--green)':'var(--red)'}">${biz.hasPrivacy?'Yes':'No'}</div><div class="auth-lbl">Privacy Policy</div></div>
+          </div>
+          ${biz.hasSocial && biz.socialPresence?.length ? `<div style="margin-top:.75rem;font-size:.8rem;color:var(--muted)">Social presence: ${biz.socialPresence.map(s => this.e(s)).join(', ')}</div>` : ''}
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><i class="bi bi-list-check"></i> Business Readiness Checks</div>
+        ${checksHtml || this.empty('No checks available')}
+      </div>
+    </div>`;
   },
 
   /* ── Conversion Intelligence Tab ── */
@@ -1265,38 +1329,35 @@
         </div>
         <div style="margin-top:1rem">
           <div class="authority-grid" style="grid-template-columns:repeat(2,1fr);gap:.5rem">
-            <div class="auth-card">
-              <div class="auth-val" style="color:${cv.contactScore >= 50 ? 'var(--green)' : 'var(--red)'}">${cv.contactScore}</div>
-              <div class="auth-lbl">Contact Score</div>
-            </div>
-            <div class="auth-card">
-              <div class="auth-val" style="color:${cv.trustScore >= 50 ? 'var(--green)' : 'var(--yellow)'}">${cv.trustScore}</div>
-              <div class="auth-lbl">Trust Score</div>
-            </div>
-            <div class="auth-card">
-              <div class="auth-val" style="color:${cv.hasPrimaryCTA ? 'var(--green)' : 'var(--red)'}">${cv.hasPrimaryCTA ? 'Yes' : 'No'}</div>
-              <div class="auth-lbl">Primary CTA</div>
-            </div>
-            <div class="auth-card">
-              <div class="auth-val" style="color:${cv.ctaAboveFold ? 'var(--green)' : 'var(--yellow)'}">${cv.ctaAboveFold ? 'Yes' : 'No'}</div>
-              <div class="auth-lbl">CTA Above Fold</div>
-            </div>
+            <div class="auth-card"><div class="auth-val" style="color:${(cv.ctaSectionScore??0)>=60?'var(--green)':'var(--red)'}">${cv.ctaSectionScore??'—'}</div><div class="auth-lbl">CTA</div></div>
+            <div class="auth-card"><div class="auth-val" style="color:${(cv.leadSectionScore??0)>=50?'var(--green)':'var(--yellow)'}">${cv.leadSectionScore??'—'}</div><div class="auth-lbl">Lead Gen</div></div>
+            <div class="auth-card"><div class="auth-val" style="color:${(cv.contactSectionScore??0)>=50?'var(--green)':'var(--red)'}">${cv.contactSectionScore??'—'}</div><div class="auth-lbl">Contact</div></div>
+            <div class="auth-card"><div class="auth-val" style="color:${(cv.trustSectionScore??0)>=50?'var(--green)':'var(--yellow)'}">${cv.trustSectionScore??'—'}</div><div class="auth-lbl">Trust</div></div>
           </div>
         </div>
       </div>
       <div class="card">
         <div class="card-head"><i class="bi bi-list-check"></i> Conversion Checks</div>
-        ${(cv.checks || []).map(c => {
-          const icon = c.type === 'ok' ? 'check-circle-fill' : c.type === 'warn' ? 'exclamation-triangle-fill' : 'x-circle-fill';
-          const cls  = c.type === 'ok' ? 'a11y-ok' : 'a11y-warn';
-          return `<div class="a11y-row ${cls}">
-            <i class="bi bi-${icon}"></i>
-            <div style="flex:1">
-              <div style="font-weight:600;font-size:.85rem">${c.label}</div>
-              <div style="font-size:.78rem;opacity:.85">${c.msg}</div>
-            </div>
-          </div>`;
-        }).join('')}
+        ${(() => {
+          const sections = {};
+          (cv.checks || []).forEach(c => {
+            const s = c.section || 'Other';
+            if (!sections[s]) sections[s] = [];
+            sections[s].push(c);
+          });
+          const colors = { CTA:'var(--primary2)', 'Lead Gen':'var(--accent)', Contact:'var(--green)', Trust:'#f59e0b', Navigation:'var(--muted)' };
+          return Object.entries(sections).map(([sec, items]) => `
+            <div style="margin-bottom:.75rem">
+              <div style="font-size:.7rem;font-weight:700;color:${colors[sec]||'var(--muted)'};text-transform:uppercase;letter-spacing:.08em;margin-bottom:.35rem;display:flex;align-items:center;gap:.4rem">
+                ${sec}<span style="flex:1;height:1px;background:var(--border);display:inline-block"></span>
+              </div>
+              ${items.map(c => {
+                const icon = c.type === 'ok' ? 'check-circle-fill' : c.type === 'error' ? 'x-circle-fill' : 'exclamation-triangle-fill';
+                const cls  = c.type === 'ok' ? 'a11y-ok' : 'a11y-warn';
+                return `<div class="a11y-row ${cls}"><i class="bi bi-${icon}"></i><div style="flex:1"><div style="font-weight:600;font-size:.85rem">${this.e(c.label)}</div><div style="font-size:.78rem;opacity:.85">${this.e(c.msg)}</div></div></div>`;
+              }).join('')}
+            </div>`).join('');
+        })()}
       </div>
     </div>`;
 
