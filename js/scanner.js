@@ -2,7 +2,25 @@ const Scanner = {
     PROXY: 'https://api.allorigins.win/get?url=',
     currentData: null,
 
+    validateUrl(url) {
+        let parsed;
+        try { parsed = new URL(url); } catch { throw new Error('Invalid URL'); }
+        if (!/^https?:$/.test(parsed.protocol)) throw new Error('Only HTTP/HTTPS URLs are allowed');
+        const host = parsed.hostname.toLowerCase();
+        // Block private/local hostnames
+        const localName = /^(localhost|.*\.local)$/;
+        // Block IPv4: loopback, private (RFC 1918), link-local, unspecified
+        const privateIpv4 = /^(127\.\d+\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+|192\.168\.\d+\.\d+|169\.254\.\d+\.\d+|0\.0\.0\.0)$/;
+        // Block IPv6: loopback (::1), unspecified (::), link-local (fe80::/10),
+        // ULA (fc00::/7), IPv4-mapped (::ffff:), NAT64 (64:ff9b::)
+        const privateIpv6 = /^(::1?|fe[89ab][0-9a-f]:[0-9a-f:]*|f[cd][0-9a-f]{2}:[0-9a-f:]*|::ffff:[0-9a-f:.]+|64:ff9b::[0-9a-f:.]+)$/i;
+        if (localName.test(host) || privateIpv4.test(host) || privateIpv6.test(host)) {
+            throw new Error('Private/internal addresses are not allowed');
+        }
+    },
+
     async fetch(url) {
+        this.validateUrl(url);
         const res = await fetch(this.PROXY + encodeURIComponent(url));
         if (!res.ok) throw new Error('Network error');
         const json = await res.json();
