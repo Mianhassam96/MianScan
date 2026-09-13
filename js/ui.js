@@ -69,7 +69,8 @@
         </div>
       </div>
       ${ogPreview}
-      ${this._growthBannerStrip(data)}`;
+      ${this._growthBannerStrip(data)}
+      ${this._mmMicroCTA(data)}`;
   },
 
   /* ── Growth score summary strip shown in site banner ── */
@@ -95,6 +96,29 @@
         </div>
       </div>
       <div class="gbs-cta"><i class="bi bi-arrow-right-circle-fill"></i> View Full Report</div>
+    </div>`;
+  },
+
+  /* ── MultiMian micro-CTA — shown in banner when issues found ── */
+  _mmMicroCTA(data) {
+    const g = data.growth;
+    if (!g) return '';
+    const critCount = g.findings.filter(f => f.priority === 'critical').length;
+    const highCount = g.findings.filter(f => f.priority === 'high').length;
+    const total     = critCount + highCount;
+    if (total === 0) return '';
+
+    const copy = critCount >= 3
+      ? { msg: `${critCount} critical issues are directly blocking leads and search visibility.`, btn: 'Get a Free Growth Review →' }
+      : critCount > 0
+      ? { msg: `${critCount} critical + ${highCount} high-priority issue${total !== 1 ? 's' : ''} found. MultiMian can fix these for you.`, btn: 'Talk to MultiMian →' }
+      : { msg: `${highCount} high-priority issue${highCount !== 1 ? 's' : ''} are limiting your website's performance.`, btn: 'See How MultiMian Helps →' };
+
+    return `
+    <div class="mm-micro-cta">
+      <i class="bi bi-stars mm-micro-cta-icon"></i>
+      <span class="mm-micro-cta-msg">${copy.msg}</span>
+      <a href="https://multimian.com" target="_blank" rel="noopener" class="mm-micro-cta-btn">${copy.btn}</a>
     </div>`;
   },
 
