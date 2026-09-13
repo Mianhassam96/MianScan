@@ -20,242 +20,356 @@ const Compare = {
     const prog  = document.getElementById('compareProgress');
     prog.classList.remove('hidden');
     bar.style.width = '0%';
-
     const update = (msg, pct) => { bar.style.width = pct + '%'; label.textContent = msg; };
-
-    // Save existing scan so we don't overwrite it
     const savedData = Scanner.currentData;
-
     update('Scanning Site A…', 5);
     this.dataA = await Scanner.scan(urlA, (m, p) => update('Site A — ' + m, p * 0.46));
-
     update('Scanning Site B…', 50);
     this.dataB = await Scanner.scan(urlB, (m, p) => update('Site B — ' + m, 50 + p * 0.46));
-
     update('Building report…', 100);
     setTimeout(() => prog.classList.add('hidden'), 800);
-
-    // Restore previous single scan data
     Scanner.currentData = savedData;
-
     this.render(this.dataA, this.dataB);
   },
 
   render(a, b) {
-    const out = document.getElementById('compareOutput');
-    out.innerHTML = this._buildOutput(a, b);
+    document.getElementById('compareOutput').innerHTML = this._buildOutput(a, b);
   },
 
-  _buildOutput(a, b) {
-    const hostA = new URL(a.url).hostname;
-    const hostB = new URL(b.url).hostname;
+  // ── Helpers ────────────────────────────────────────────────────────────
 
-    // Determine overall winner
-    const scoreA = a.seo.score + (a.mobile?.score||0) + (a.security?.score||0);
-    const scoreB = b.seo.score + (b.mobile?.score||0) + (b.security?.score||0);
-    const winnerHost = scoreA > scoreB ? hostA : scoreB > scoreA ? hostB : null;
-    const winnerBadge = winnerHost
-      ? `<div style="text-align:center;margin-bottom:1.5rem">
-          <div style="display:inline-flex;align-items:center;gap:.5rem;background:linear-gradient(135deg,var(--primary),var(--purple));color:#fff;border-radius:30px;padding:.5rem 1.5rem;font-weight:800;font-size:.95rem;box-shadow:0 4px 20px rgba(100,112,255,.4)">
-            <i class="bi bi-trophy-fill"></i> ${winnerHost} wins overall
-          </div>
-        </div>` : `<div style="text-align:center;margin-bottom:1.5rem"><span style="color:var(--muted);font-size:.9rem">🤝 It's a tie!</span></div>`;
+  _e(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); },
+
+  _scoreColor(s) {
+    return s >= 80 ? 'var(--green)' : s >= 65 ? 'var(--primary2)' : s >= 50 ? 'var(--yellow)' : 'var(--red)';
+  },
+
+  _grade(s) { return s>=90?'A':s>=80?'B':s>=65?'C':s>=50?'D':'F'; },
+
+  // Returns 'a', 'b', or null
+  _winner(va, vb) {
+    if (va == null || vb == null) return null;
+    return va > vb ? 'a' : vb > va ? 'b' : null;
+  },
+
+  // Build the full compare output
+  _buildOutput(a, b) {
+    const hostA = new URL(a.url).hostname.replace(/^www\./, '');
+    const hostB = new URL(b.url).hostname.replace(/^www\./, '');
+    const gA    = a.growth?.overall ?? a.seo.score;
+    const gB    = b.growth?.overall ?? b.seo.score;
+    const winnerSide = this._winner(gA, gB);
+    const winnerHost = winnerSide === 'a' ? hostA : winnerSide === 'b' ? hostB : null;
 
     return `
-      <div class="compare-title-row">
-        <div class="compare-site-label"><i class="bi bi-globe2"></i><a href="${a.url}" target="_blank">${hostA}</a></div>
-        <div class="compare-vs-badge">VS</div>
-        <div class="compare-site-label"><i class="bi bi-globe2"></i><a href="${b.url}" target="_blank">${hostB}</a></div>
-      </div>
-      ${winnerBadge}
-      <div class="cmp-col-headers">
-        <div class="cmp-col-hdr">${hostA}</div>
-        <div class="cmp-col-hdr">${hostB}</div>
-      </div>
-      ${this.section('📊 SEO Score',      this.seoBlock(a,b))}
-      ${this.section('🏆 DA / Authority', this.daBlock(a,b))}
-      ${this.section('🌍 Ranking',        this.rankBlock(a,b))}
-      ${this.section('🔑 Top Keywords',   this.keywordsBlock(a,b))}
-      ${this.section('📝 Headings',       this.headingsBlock(a,b))}
-      ${this.section('🎯 Primary CTAs',   this.ctaBlock(a,b))}
-      ${this.section('🛠️ Tech Stack',     this.techBlock(a,b))}
-      ${this.section('🎨 Colors',         this.colorsBlock(a,b))}
-      ${this.section('🔤 Fonts',          this.fontsBlock(a,b))}
-      ${this.section('⚡ Performance',    this.perfBlock(a,b))}
-      ${this.section('📱 Mobile Score',   this.mobileBlock(a,b))}
-      ${this.section('🔐 Security Score', this.securityBlock(a,b))}
-      ${this.section('📧 Contacts',       this.contactsBlock(a,b))}
+      ${this._headerBlock(a, b, hostA, hostB, gA, gB, winnerHost)}
+      ${this._advantageBlock(a, b, hostA, hostB)}
+      ${this._categoryBars(a, b, hostA, hostB)}
+      ${this._detailSections(a, b, hostA, hostB)}
     `;
   },
 
-  section(title, content) {
-    return `<div class="cmp-section">
-      <div class="cmp-section-title">${title}</div>
-      <div class="cmp-row">${content}</div>
+  // ── 1. HERO HEADER ────────────────────────────────────────────────────
+
+  _headerBlock(a, b, hostA, hostB, gA, gB, winnerHost) {
+    const cA = this._scoreColor(gA);
+    const cB = this._scoreColor(gB);
+    const diff = Math.abs(gA - gB);
+    const winnerBadge = winnerHost
+      ? `<div class="cmp6-winner-banner">
+           <i class="bi bi-trophy-fill"></i>
+           <span>${winnerHost} leads overall</span>
+           <span class="cmp6-winner-diff">+${diff} points</span>
+         </div>`
+      : `<div class="cmp6-winner-banner cmp6-tie">
+           <i class="bi bi-dash-circle-fill"></i>
+           <span>It's a tie</span>
+         </div>`;
+
+    const ringA = this._growthRing(gA, cA, a.growth?.label ?? (gA>=80?'Strong':gA>=65?'Good':'Needs Work'), this._grade(gA), winnerHost ? (winnerHost === hostA) : false);
+    const ringB = this._growthRing(gB, cB, b.growth?.label ?? (gB>=80?'Strong':gB>=65?'Good':'Needs Work'), this._grade(gB), winnerHost ? (winnerHost === hostB) : false);
+
+    return `
+    <div class="cmp6-header">
+      <div class="cmp6-site-col">
+        <div class="cmp6-site-name"><i class="bi bi-globe2"></i> <a href="${this._e(a.url)}" target="_blank" rel="noopener">${this._e(hostA)}</a></div>
+        ${ringA}
+        <div class="cmp6-site-meta">${this._e(a.overview?.type || 'Website')} · ${(a.content?.wordCount||0).toLocaleString()} words</div>
+      </div>
+      <div class="cmp6-vs-col">
+        ${winnerBadge}
+        <div class="cmp6-vs-label">VS</div>
+      </div>
+      <div class="cmp6-site-col cmp6-site-col-b">
+        <div class="cmp6-site-name"><i class="bi bi-globe2"></i> <a href="${this._e(b.url)}" target="_blank" rel="noopener">${this._e(hostB)}</a></div>
+        ${ringB}
+        <div class="cmp6-site-meta">${this._e(b.overview?.type || 'Website')} · ${(b.content?.wordCount||0).toLocaleString()} words</div>
+      </div>
     </div>`;
   },
 
-  col(content) { return `<div class="cmp-col">${content}</div>`; },
-
-  daBlock(a, b) {
-    const da = d => {
-      const val = d.domain?.da !== null && d.domain?.da !== undefined ? d.domain.da : Math.round(d.seo.score/15);
-      const pa  = Math.min(100, Math.round(d.seo.score*0.85));
-      return `<div class="cmp-score-wrap">
-        <div style="display:flex;gap:1rem;justify-content:center;margin-bottom:.5rem">
-          <div><div style="font-size:1.8rem;font-weight:900;color:var(--primary2)">${val}</div><div style="font-size:.72rem;color:var(--muted)">DA</div></div>
-          <div><div style="font-size:1.8rem;font-weight:900;color:var(--accent)">${pa}</div><div style="font-size:.72rem;color:var(--muted)">PA</div></div>
-        </div>
-        <div style="font-size:.78rem;color:var(--muted)">SEO Score: ${d.seo.score}/100</div>
-      </div>`;
-    };
-    return this.col(da(a)) + this.col(da(b));
-  },
-
-  rankBlock(a, b) {
-    const rank = d => {
-      const gr = d.ranking?.globalRank ? '#'+Number(d.ranking.globalRank).toLocaleString() : 'N/A';
-      const tr = d.ranking?.trafficEst || 'N/A';
-      return `<div class="cmp-score-wrap">
-        <div style="font-size:1.5rem;font-weight:900;color:var(--primary2)">${gr}</div>
-        <div style="font-size:.78rem;color:var(--muted);margin-top:.3rem">Global Rank</div>
-        <div style="font-size:1rem;font-weight:700;color:var(--accent);margin-top:.5rem">${tr}</div>
-        <div style="font-size:.72rem;color:var(--muted)">Monthly Traffic</div>
-      </div>`;
-    };
-    return this.col(rank(a)) + this.col(rank(b));
-  },
-
-  headingsBlock(a, b) {
-    const h = d => `
-      <div style="display:flex;gap:1rem;justify-content:center;margin-bottom:.75rem">
-        <div class="auth-card" style="flex:1"><div class="auth-val" style="color:${d.seo.h1s.length===1?'var(--green)':d.seo.h1s.length===0?'var(--red)':'var(--yellow)'}">${d.seo.h1s.length}</div><div class="auth-lbl">H1</div></div>
-        <div class="auth-card" style="flex:1"><div class="auth-val" style="color:var(--primary2)">${(d.seo.h2s||[]).length}</div><div class="auth-lbl">H2</div></div>
-        <div class="auth-card" style="flex:1"><div class="auth-val" style="color:var(--accent)">${(d.seo.h3s||[]).length}</div><div class="auth-lbl">H3</div></div>
+  _growthRing(score, color, label, grade, isWinner) {
+    return `
+    <div class="cmp6-ring-wrap">
+      ${isWinner ? `<div class="cmp6-ring-winner"><i class="bi bi-trophy-fill"></i> Wins</div>` : '<div class="cmp6-ring-winner" style="visibility:hidden">·</div>'}
+      <div class="cmp6-ring" style="border-color:${color};color:${color};box-shadow:0 0 28px ${color}28">
+        <span class="cmp6-ring-val">${score}</span>
+        <span class="cmp6-ring-sub">/ 100</span>
       </div>
-      ${d.seo.h1s.length ? d.seo.h1s.slice(0,2).map(h=>`<div class="litem" style="font-size:.8rem"><i class="bi bi-type-h1" style="color:var(--primary2)"></i>${h}</div>`).join('') : '<div class="a11y-row a11y-warn" style="font-size:.8rem"><i class="bi bi-exclamation-triangle-fill"></i>No H1</div>'}`;
-    return this.col(h(a)) + this.col(h(b));
+      <div class="cmp6-ring-label" style="color:${color}">${label}</div>
+      <div class="cmp6-ring-grade" style="background:${color}18;color:${color}">Grade ${grade}</div>
+    </div>`;
   },
 
-  seoBlock(a, b) {
-    const winner = a.seo.score > b.seo.score ? 'a' : b.seo.score > a.seo.score ? 'b' : null;
-    const ring = (d, side) => {
-      const cls = d.seo.score>=70?'sg':d.seo.score>=50?'so':'sb';
-      const isWinner = winner === side;
-      return `<div class="cmp-score-wrap">
-        ${isWinner ? `<div style="font-size:.72rem;font-weight:700;color:var(--green);margin-bottom:.4rem"><i class="bi bi-trophy-fill"></i> WINNER</div>` : ''}
-        <div class="score-ring ${cls}" style="width:80px;height:80px;font-size:1.4rem">${d.seo.score}</div>
-        <div style="font-size:.82rem;color:var(--muted);margin-top:.5rem">
-          H1: ${d.seo.h1s.length} · H2: ${d.seo.h2s.length}<br>
-          ${d.seo.noAlt} missing alt · ${d.seo.imagesTotal} images
+  // ── 2. ADVANTAGE SUMMARY ──────────────────────────────────────────────
+
+  _advantageBlock(a, b, hostA, hostB) {
+    const winsA = this._computeWins(a, b);
+    const winsB = this._computeWins(b, a);
+    if (!winsA.length && !winsB.length) return '';
+
+    const col = (host, wins, color) => wins.length ? `
+      <div class="cmp6-adv-col">
+        <div class="cmp6-adv-head" style="color:${color}"><i class="bi bi-check-circle-fill"></i> ${this._e(host)} wins</div>
+        ${wins.map(w => `
+        <div class="cmp6-adv-item">
+          <i class="bi bi-${w.icon}" style="color:${color}"></i>
+          <span>${this._e(w.label)}</span>
+        </div>`).join('')}
+      </div>` : '';
+
+    return `
+    <div class="cmp6-adv-block">
+      ${col(hostA, winsA, 'var(--green)')}
+      ${col(hostB, winsB, 'var(--primary2)')}
+    </div>`;
+  },
+
+  _computeWins(winner, loser) {
+    const wins = [];
+    const add  = (label, icon) => wins.push({ label, icon });
+
+    const gW = winner.growth?.overall ?? winner.seo.score;
+    const gL = loser.growth?.overall  ?? loser.seo.score;
+    if (gW > gL + 5)  add(`Better overall Growth Score (+${gW - gL})`, 'graph-up-arrow');
+
+    if (winner.seo.score > loser.seo.score + 5)
+      add(`Higher SEO score (${winner.seo.score} vs ${loser.seo.score})`, 'graph-up-arrow');
+
+    const pW = winner.growth?.categories?.performance ?? winner.performance?.score ?? 0;
+    const pL = loser.growth?.categories?.performance  ?? loser.performance?.score  ?? 0;
+    if (pW > pL + 5)  add('Faster performance score', 'speedometer2');
+
+    const mW = winner.mobile?.score  ?? 0;
+    const mL = loser.mobile?.score   ?? 0;
+    if (mW > mL + 5)  add('Better mobile experience', 'phone-fill');
+
+    const sW = winner.security?.score ?? 0;
+    const sL = loser.security?.score  ?? 0;
+    if (sW > sL + 5)  add('Stronger security score', 'shield-lock-fill');
+
+    const cvW = winner.growth?.categories?.conversion ?? winner.conversion?.score ?? 0;
+    const cvL = loser.growth?.categories?.conversion  ?? loser.conversion?.score  ?? 0;
+    if (cvW > cvL + 5) add('Higher conversion score', 'cursor-fill');
+
+    const bW = winner.growth?.categories?.business ?? winner.business?.score ?? 0;
+    const bL = loser.growth?.categories?.business  ?? loser.business?.score  ?? 0;
+    if (bW > bL + 5)  add('Better business readiness', 'building');
+
+    if ((winner.cta?.primary?.length ?? 0) > 0 && (loser.cta?.primary?.length ?? 0) === 0)
+      add('Has a clear primary CTA', 'cursor-fill');
+
+    if ((winner.contacts?.emails?.length ?? 0) > 0 && (loser.contacts?.emails?.length ?? 0) === 0)
+      add('Visible email contact', 'envelope-fill');
+
+    if (winner.business?.hasTestimonials && !loser.business?.hasTestimonials)
+      add('Testimonials present', 'chat-quote-fill');
+
+    if (winner.security?.https && !loser.security?.https)
+      add('HTTPS secured', 'lock-fill');
+
+    if ((winner.tech?.detected?.length ?? 0) > (loser.tech?.detected?.length ?? 0))
+      add(`Richer tech stack (${winner.tech.detected.length} detected)`, 'cpu-fill');
+
+    if ((winner.content?.wordCount ?? 0) > (loser.content?.wordCount ?? 0) + 200)
+      add('More content depth', 'file-text-fill');
+
+    return wins.slice(0, 5);
+  },
+
+  // ── 3. CATEGORY BARS ──────────────────────────────────────────────────
+
+  _categoryBars(a, b, hostA, hostB) {
+    const cats = a.growth?.categories && b.growth?.categories ? [
+      { key: 'seo',           label: 'SEO',               icon: 'graph-up-arrow',     color: 'var(--green)' },
+      { key: 'performance',   label: 'Performance',       icon: 'speedometer2',        color: 'var(--yellow)' },
+      { key: 'mobile',        label: 'Mobile',             icon: 'phone-fill',          color: 'var(--primary2)' },
+      { key: 'security',      label: 'Security',           icon: 'shield-lock-fill',    color: 'var(--red)' },
+      { key: 'conversion',    label: 'Conversion',         icon: 'cursor-fill',         color: '#f59e0b' },
+      { key: 'business',      label: 'Business',           icon: 'building',            color: 'var(--accent)' },
+      { key: 'content',       label: 'Content',            icon: 'file-text-fill',      color: 'var(--purple)' },
+      { key: 'accessibility', label: 'Accessibility',      icon: 'universal-access',    color: '#ec4899' },
+    ] : [
+      { key: 'seo',        label: 'SEO',         icon: 'graph-up-arrow',  color: 'var(--green)',    va: a.seo.score,             vb: b.seo.score },
+      { key: 'mobile',     label: 'Mobile',      icon: 'phone-fill',      color: 'var(--primary2)', va: a.mobile?.score ?? 0,    vb: b.mobile?.score ?? 0 },
+      { key: 'security',   label: 'Security',    icon: 'shield-lock-fill',color: 'var(--red)',      va: a.security?.score ?? 0,  vb: b.security?.score ?? 0 },
+      { key: 'performance',label: 'Performance', icon: 'speedometer2',    color: 'var(--yellow)',   va: a.performance?.score??0, vb: b.performance?.score??0 },
+    ];
+
+    const rows = cats.map(c => {
+      const va = a.growth?.categories ? (a.growth.categories[c.key] ?? 0) : (c.va ?? 0);
+      const vb = b.growth?.categories ? (b.growth.categories[c.key] ?? 0) : (c.vb ?? 0);
+      const diff = va - vb;
+      const wA = diff > 0, wB = diff < 0;
+      const ca = this._scoreColor(va), cb = this._scoreColor(vb);
+
+      return `
+      <div class="cmp6-cat-row">
+        <div class="cmp6-cat-score-a" style="color:${ca}">
+          ${va}
+          ${wA ? `<span class="cmp6-cat-badge" style="color:var(--green)">+${diff}</span>` : ''}
         </div>
-        <div style="margin-top:.75rem;font-size:.82rem">
-          <div class="${d.seo.title?'pass':'fail'}" style="margin-bottom:.25rem"><i class="bi bi-${d.seo.title?'check-circle-fill':'x-circle-fill'}"></i> Meta Title</div>
-          <div class="${d.seo.metaDesc?'pass':'fail'}" style="margin-bottom:.25rem"><i class="bi bi-${d.seo.metaDesc?'check-circle-fill':'x-circle-fill'}"></i> Meta Description</div>
-          <div class="${d.seo.ogTitle?'pass':'fail'}"><i class="bi bi-${d.seo.ogTitle?'check-circle-fill':'x-circle-fill'}"></i> OG Tags</div>
+        <div class="cmp6-cat-bars">
+          <div class="cmp6-cat-bar-wrap cmp6-bar-left">
+            <div class="cmp6-cat-bar-fill" style="width:${va}%;background:${ca};border-radius:4px 0 0 4px"></div>
+          </div>
+          <div class="cmp6-cat-label">
+            <i class="bi bi-${c.icon}" style="color:${c.color}"></i>
+            ${c.label}
+          </div>
+          <div class="cmp6-cat-bar-wrap cmp6-bar-right">
+            <div class="cmp6-cat-bar-fill" style="width:${vb}%;background:${cb};border-radius:0 4px 4px 0"></div>
+          </div>
+        </div>
+        <div class="cmp6-cat-score-b" style="color:${cb}">
+          ${wB ? `<span class="cmp6-cat-badge" style="color:var(--green)">+${Math.abs(diff)}</span>` : ''}
+          ${vb}
         </div>
       </div>`;
-    };
-    return this.col(ring(a,'a')) + this.col(ring(b,'b'));
+    }).join('');
+
+    return `
+    <div class="cmp6-section">
+      <div class="cmp6-section-head">
+        <i class="bi bi-bar-chart-fill"></i> Score Comparison
+        <div class="cmp6-section-cols">
+          <span>${this._e(hostA)}</span>
+          <span></span>
+          <span>${this._e(hostB)}</span>
+        </div>
+      </div>
+      <div class="cmp6-cat-rows">${rows}</div>
+    </div>`;
   },
 
-  keywordsBlock(a, b) {
-    const kws = d => d.content.keywords.slice(0,8).map(k=>
-      `<span class="tag" style="margin:.2rem">${k.word} <em style="opacity:.6;font-style:normal">${k.density}%</em></span>`
-    ).join('');
-    return this.col(`<div class="tags">${kws(a)}</div>`) + this.col(`<div class="tags">${kws(b)}</div>`);
-  },
+  // ── 4. DETAIL SECTIONS ────────────────────────────────────────────────
 
-  ctaBlock(a, b) {
-    const ctas = d => d.cta.primary.concat(d.cta.secondary).slice(0,5).map(t=>
-      `<div class="cta-row"><span class="cta-badge">CTA</span>${t}</div>`
-    ).join('') || '<span style="color:var(--muted);font-size:.85rem">None detected</span>';
-    return this.col(ctas(a)) + this.col(ctas(b));
-  },
+  _detailSections(a, b, hostA, hostB) {
+    const sec = (title, icon, color, content) => `
+    <div class="cmp6-section">
+      <div class="cmp6-section-head" style="border-left-color:${color}">
+        <i class="bi bi-${icon}" style="color:${color}"></i> ${title}
+      </div>
+      <div class="cmp6-two-col">${content}</div>
+    </div>`;
 
-  techBlock(a, b) {
-    const chips = d => d.tech.detected.length
-      ? `<div class="tech-wrap">${d.tech.detected.map(t=>`<span class="tech-chip"><span class="tdot"></span>${t}</span>`).join('')}</div>`
-      : '<span style="color:var(--muted);font-size:.85rem">None detected</span>';
-    return this.col(chips(a)) + this.col(chips(b));
-  },
+    const col = content => `<div class="cmp6-detail-col">${content}</div>`;
 
-  colorsBlock(a, b) {
-    const swatches = d => `<div class="color-grid" style="gap:.5rem">
-      ${d.colors.colors.slice(0,12).map(hex=>`
-        <div class="color-item" onclick="UI.copy('${hex}')" title="${hex}" style="gap:.2rem">
-          <div class="swatch" style="background:${hex};width:40px;height:40px;border-radius:8px"></div>
-          <span class="chex">${hex}</span>
+    const checkRow = (label, pass) => `
+      <div class="cmp6-check"><i class="bi bi-${pass?'check-circle-fill':'x-circle-fill'}" style="color:${pass?'var(--green)':'var(--red)'}"></i>${label}</div>`;
+
+    const kv = (label, val) => `
+      <div class="cmp6-kv"><span class="cmp6-kv-label">${label}</span><span class="cmp6-kv-val">${this._e(String(val??'—'))}</span></div>`;
+
+    // SEO detail
+    const seoDetail = col(`
+      ${kv('Score', a.seo.score + '/100')}
+      ${kv('Title', a.seo.title ? a.seo.title.slice(0,50)+'…' : '—')}
+      ${kv('Description', a.seo.metaDesc ? '✓ Set' : '✗ Missing')}
+      ${kv('H1 / H2 / H3', `${a.seo.h1s.length} / ${(a.seo.h2s||[]).length} / ${(a.seo.h3s||[]).length}`)}
+      ${kv('Missing alt', a.seo.noAlt)}
+      ${checkRow('Meta Title',    !!a.seo.title)}
+      ${checkRow('Meta Desc',     !!a.seo.metaDesc)}
+      ${checkRow('OG Tags',       !!a.seo.ogTitle)}
+      ${checkRow('Canonical',     !!a.seo.canonical)}
+    `) + col(`
+      ${kv('Score', b.seo.score + '/100')}
+      ${kv('Title', b.seo.title ? b.seo.title.slice(0,50)+'…' : '—')}
+      ${kv('Description', b.seo.metaDesc ? '✓ Set' : '✗ Missing')}
+      ${kv('H1 / H2 / H3', `${b.seo.h1s.length} / ${(b.seo.h2s||[]).length} / ${(b.seo.h3s||[]).length}`)}
+      ${kv('Missing alt', b.seo.noAlt)}
+      ${checkRow('Meta Title',    !!b.seo.title)}
+      ${checkRow('Meta Desc',     !!b.seo.metaDesc)}
+      ${checkRow('OG Tags',       !!b.seo.ogTitle)}
+      ${checkRow('Canonical',     !!b.seo.canonical)}
+    `);
+
+    // Keywords
+    const kwBlock = d => `<div class="cmp6-tags">${
+      (d.content?.keywords||[]).slice(0,10).map(k =>
+        `<span class="cmp6-tag">${this._e(k.word)} <em>${k.density}%</em></span>`
+      ).join('')||'<span style="color:var(--muted)">None</span>'
+    }</div>`;
+
+    // CTAs
+    const ctaBlock = d => (d.cta?.primary||[]).concat(d.cta?.secondary||[]).slice(0,6).map(t =>
+      `<div class="cmp6-cta-row"><span class="cmp6-cta-badge">CTA</span>${this._e(t)}</div>`
+    ).join('') || `<span style="color:var(--muted);font-size:.85rem">None detected</span>`;
+
+    // Tech
+    const techBlock = d => d.tech?.detected?.length
+      ? `<div class="cmp6-tags">${d.tech.detected.map(t=>`<span class="cmp6-tag cmp6-tag-tech"><span class="tdot"></span>${this._e(t)}</span>`).join('')}</div>`
+      : `<span style="color:var(--muted);font-size:.85rem">None detected</span>`;
+
+    // Colors
+    const colorBlock = d => `<div class="cmp6-swatches">
+      ${(d.colors?.colors||[]).slice(0,10).map(hex=>`
+        <div class="cmp6-swatch" title="${hex}" onclick="UI.copy('${hex}')">
+          <div style="background:${hex}"></div>
+          <span>${hex}</span>
         </div>`).join('')}
     </div>`;
-    return this.col(swatches(a)) + this.col(swatches(b));
-  },
 
-  fontsBlock(a, b) {
-    const fonts = d => d.fonts.fonts.length
-      ? d.fonts.fonts.map(f=>`<div class="litem"><i class="bi bi-type"></i><span style="font-family:'${f.name}',sans-serif;font-weight:700">${f.name}</span><span style="color:var(--muted);font-size:.75rem;margin-left:.5rem">${f.weights}</span></div>`).join('')
-      : '<span style="color:var(--muted);font-size:.85rem">None detected</span>';
-    return this.col(fonts(a)) + this.col(fonts(b));
-  },
+    // Fonts
+    const fontBlock = d => d.fonts?.fonts?.length
+      ? d.fonts.fonts.map(f=>`
+        <div class="cmp6-font-row">
+          <span class="cmp6-font-name" style="font-family:'${this._e(f.name)}',sans-serif">${this._e(f.name)}</span>
+          <span class="cmp6-font-weight">${this._e(f.weights||'')}</span>
+        </div>`).join('')
+      : `<span style="color:var(--muted);font-size:.85rem">None detected</span>`;
 
-  perfBlock(a, b) {
-    const winner = parseFloat(a.performance.htmlSizeKB) < parseFloat(b.performance.htmlSizeKB) ? 'a' : 'b';
-    const perf = (d, side) => {
-      const score = d.performance.score ?? null;
-      const grade = d.performance.grade ?? null;
-      const gradeColor = score >= 80 ? 'var(--green)' : score >= 65 ? 'var(--primary2)' : score >= 50 ? 'var(--yellow)' : 'var(--red)';
+    // Contacts
+    const contactBlock = d => {
+      const emails  = (d.contacts?.emails||[]).slice(0,3).map(e=>`<div class="cmp6-kv"><i class="bi bi-envelope-fill" style="color:var(--primary2)"></i><span>${this._e(e)}</span></div>`).join('');
+      const phones  = (d.contacts?.phones||[]).slice(0,2).map(p=>`<div class="cmp6-kv"><i class="bi bi-telephone-fill" style="color:var(--green)"></i><span>${this._e(p)}</span></div>`).join('');
+      const socials = Object.keys(d.contacts?.social||{}).slice(0,5).map(k=>`<span class="cmp6-tag">${this._e(k)}</span>`).join('');
+      return (emails||`<div class="cmp6-kv" style="color:var(--muted)">No emails</div>`) + phones +
+             (socials ? `<div class="cmp6-tags" style="margin-top:.5rem">${socials}</div>` : '');
+    };
+
+    // Performance detail
+    const perfDetail = d => {
+      const s = d.performance?.score ?? null;
+      const c = s != null ? this._scoreColor(s) : 'var(--muted)';
       return `
-        ${score !== null ? `<div style="text-align:center;margin-bottom:.75rem">
-          ${winner===side?`<div style="font-size:.72rem;font-weight:700;color:var(--green);margin-bottom:.3rem"><i class="bi bi-trophy-fill"></i> FASTER</div>`:''}
-          <div class="score-ring" style="width:64px;height:64px;font-size:1.1rem;border-color:${gradeColor};color:${gradeColor};margin:0 auto .4rem">${score}</div>
-          <div style="font-size:.78rem;color:var(--muted)">Grade ${grade}</div>
-        </div>` : ''}
-        <div class="prow"><span class="plbl">HTML Size</span><span class="pval">${d.performance.htmlSizeKB} KB</span></div>
-        <div class="prow"><span class="plbl">Scripts</span><span class="pval">${d.performance.scriptsCount}</span></div>
-        <div class="prow"><span class="plbl">Images</span><span class="pval">${d.performance.imagesCount}</span></div>
-        <div class="prow"><span class="plbl">Stylesheets</span><span class="pval">${d.performance.stylesCount}</span></div>
-        <div class="prow"><span class="plbl">Lazy Images</span><span class="pval">${d.performance.lazyImgs ?? '—'}</span></div>`;
+        ${s != null ? `<div class="cmp6-score-mini" style="border-color:${c};color:${c}">${s}</div>` : ''}
+        ${kv('HTML Size', d.performance?.htmlSizeKB + ' KB')}
+        ${kv('Scripts',   d.performance?.scriptsCount)}
+        ${kv('Images',    d.performance?.imagesCount)}
+        ${kv('Lazy imgs', d.performance?.lazyImgs ?? '—')}
+      `;
     };
-    return this.col(`<div class="card" style="margin:0">${perf(a,'a')}</div>`) + this.col(`<div class="card" style="margin:0">${perf(b,'b')}</div>`);
-  },
 
-  contactsBlock(a, b) {
-    const info = d => {
-      const emails = d.contacts.emails.slice(0,3).map(e=>`<div class="litem" style="font-size:.82rem"><i class="bi bi-envelope-fill"></i>${e}</div>`).join('');
-      const socials = Object.keys(d.contacts.social).slice(0,4).map(k=>`<span class="tag">${k}</span>`).join('');
-      return (emails||'<span style="color:var(--muted);font-size:.82rem">No emails</span>') +
-             (socials ? `<div class="tags" style="margin-top:.5rem">${socials}</div>` : '');
-    };
-    return this.col(info(a)) + this.col(info(b));
+    return `
+      ${sec('SEO Analysis',    'graph-up-arrow',    'var(--green)',    seoDetail)}
+      ${sec('Top Keywords',    'tags-fill',          'var(--primary2)', col(kwBlock(a)) + col(kwBlock(b)))}
+      ${sec('Primary CTAs',   'cursor-fill',        '#f59e0b',        col(ctaBlock(a)) + col(ctaBlock(b)))}
+      ${sec('Tech Stack',     'cpu-fill',           'var(--purple)',   col(techBlock(a)) + col(techBlock(b)))}
+      ${sec('Color Palette',  'palette-fill',       '#ec4899',        col(colorBlock(a)) + col(colorBlock(b)))}
+      ${sec('Typography',     'type',               'var(--accent)',   col(fontBlock(a)) + col(fontBlock(b)))}
+      ${sec('Performance',    'speedometer2',       'var(--yellow)',   col(perfDetail(a)) + col(perfDetail(b)))}
+      ${sec('Contact Info',   'person-lines-fill',  'var(--cyan,#00d4ff)', col(contactBlock(a)) + col(contactBlock(b)))}
+    `;
   },
-
-  mobileBlock(a, b) {
-    const mob = d => {
-      const s = d.mobile?.score ?? '—';
-      const g = d.mobile?.grade ?? '?';
-      const c = s >= 80 ? 'var(--green)' : s >= 50 ? 'var(--yellow)' : 'var(--red)';
-      return `<div class="cmp-score-wrap">
-        <div class="score-ring" style="width:72px;height:72px;font-size:1.3rem;border-color:${c};color:${c}">${s}</div>
-        <div style="font-size:.82rem;color:var(--muted);margin-top:.5rem">Grade ${g}</div>
-        ${(d.mobile?.checks||[]).slice(0,4).map(c=>`<div class="${c.type==='ok'?'pass':'fail'}" style="font-size:.78rem;margin-top:.3rem"><i class="bi bi-${c.type==='ok'?'check-circle-fill':'x-circle-fill'}"></i> ${c.label}</div>`).join('')}
-      </div>`;
-    };
-    return this.col(mob(a)) + this.col(mob(b));
-  },
-
-  securityBlock(a, b) {
-    const sec = d => {
-      const s = d.security?.score ?? '—';
-      const g = d.security?.grade ?? '?';
-      const c = s >= 80 ? 'var(--green)' : s >= 50 ? 'var(--yellow)' : 'var(--red)';
-      return `<div class="cmp-score-wrap">
-        <div class="score-ring" style="width:72px;height:72px;font-size:1.3rem;border-color:${c};color:${c}">${s}</div>
-        <div style="font-size:.82rem;color:var(--muted);margin-top:.5rem">Grade ${g}</div>
-        <div style="margin-top:.5rem;font-size:.82rem;font-weight:700;color:${d.security?.https?'var(--green)':'var(--red)'}">
-          <i class="bi bi-${d.security?.https?'lock-fill':'unlock-fill'}"></i> ${d.security?.https?'HTTPS':'HTTP'}
-        </div>
-      </div>`;
-    };
-    return this.col(sec(a)) + this.col(sec(b));
-  }
 };
