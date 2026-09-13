@@ -120,8 +120,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let urlA = document.getElementById('urlA').value.trim();
     let urlB = document.getElementById('urlB').value.trim();
     if (!urlA || !urlB) { UI.toast('Enter both URLs to compare'); return; }
-    if (!urlA.startsWith('http')) urlA = 'https://' + urlA;
-    if (!urlB.startsWith('http')) urlB = 'https://' + urlB;
+    urlA = Scanner.normalizeUrl(urlA);
+    urlB = Scanner.normalizeUrl(urlB);
 
     const btn = document.getElementById('compareBtn');
     btn.disabled = true;
@@ -167,8 +167,8 @@ document.addEventListener('DOMContentLoaded', () => {
             let urlA = document.getElementById('cmpUrlA').value.trim();
             let urlB = document.getElementById('cmpUrlB').value.trim();
             if (!urlA || !urlB) { UI.toast('Enter both URLs'); return; }
-            if (!urlA.startsWith('http')) urlA = 'https://' + urlA;
-            if (!urlB.startsWith('http')) urlB = 'https://' + urlB;
+            urlA = Scanner.normalizeUrl(urlA);
+            urlB = Scanner.normalizeUrl(urlB);
             const bar = document.getElementById('cmpBar');
             const lbl = document.getElementById('cmpLabel');
             const prog = document.getElementById('cmpProgress');
@@ -244,7 +244,7 @@ document.addEventListener('DOMContentLoaded', () => {
   async function run(urlOverride, forceRescan = false) {
     let url = (urlOverride || urlInput.value).trim();
     if (!url) { UI.toast('Enter a URL first'); return; }
-    if (!url.startsWith('http')) url = 'https://' + url;
+    url = Scanner.normalizeUrl(url);
     try { new URL(url); } catch { UI.toast('Invalid URL'); return; }
     urlInput.value = url;
 
@@ -383,8 +383,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ── Scanner health check ─────────────────────────────────────────────────
-  // Pings the worker with a known fast URL. Shows a subtle status badge
-  // so users immediately know if the scanner is operational.
+  // Pings the actual Wave 1 proxies to reflect real scanner status.
+  // Tests 0xhorizon (primary Wave 1) and cors.lol in parallel — if either
+  // responds, the scanner is operational. Shows degraded if both fail.
   (async function checkHealth() {
     const badge = document.getElementById('scannerStatusBadge');
     if (!badge) return;
@@ -392,17 +393,32 @@ document.addEventListener('DOMContentLoaded', () => {
     badge.innerHTML = `<i class="bi bi-circle-fill" style="font-size:.5rem;opacity:.6"></i> Checking…`;
     badge.style.color = 'var(--muted)';
 
-    // Test cors.lol — fastest indicator of whether proxy layer is working
-    try {
+    const testProxy = async (url) => {
       const ctrl = new AbortController();
       setTimeout(() => ctrl.abort(), 6000);
-      const res  = await fetch(`https://api.cors.lol/?url=${encodeURIComponent('https://example.com')}`, { signal: ctrl.signal });
+      const res  = await fetch(url, { signal: ctrl.signal });
       const text = await res.text();
-      const ok   = res.ok && text.length > 100;
-      badge.innerHTML = ok
-        ? `<i class="bi bi-circle-fill" style="font-size:.5rem"></i> Scanner Ready`
-        : `<i class="bi bi-circle-fill" style="font-size:.5rem"></i> Limited`;
-      badge.style.color = ok ? 'var(--green)' : 'var(--yellow)';
+      return res.ok && text.length > 100;
+    };
+
+    try {
+      const testUrl = encodeURIComponent('https://example.com');
+      const [w1, w2] = await Promise.allSettled([
+        testProxy(`https://cors-anywhere.0xhorizon.workers.dev/https://example.com`),
+        testProxy(`https://api.cors.lol/?url=${testUrl}`),
+      ]);
+
+      const anyOk = (w1.status === 'fulfilled' && w1.value) ||
+                    (w2.status === 'fulfilled' && w2.value);
+      const workerReady = Scanner._workerReady();
+
+      if (anyOk || workerReady) {
+        badge.innerHTML = `<i class="bi bi-circle-fill" style="font-size:.5rem"></i> Scanner Ready`;
+        badge.style.color = 'var(--green)';
+      } else {
+        badge.innerHTML = `<i class="bi bi-circle-fill" style="font-size:.5rem"></i> Limited`;
+        badge.style.color = 'var(--yellow)';
+      }
     } catch (_) {
       badge.innerHTML = `<i class="bi bi-circle-fill" style="font-size:.5rem"></i> Limited — deploy Worker for best results`;
       badge.style.color = 'var(--yellow)';

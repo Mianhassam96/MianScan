@@ -1422,3 +1422,146 @@ button:focus-visible, input:focus-visible {
   color: var(--muted);
   transition: color .3s;
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   v2.3 — GROWTH SCORE HERO / RESULTS UX
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Growth Score hero block (top of Growth tab) ── */
+.growth-hero {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 2rem 2rem 1.75rem;
+  margin-bottom: 1.25rem;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2rem;
+  align-items: center;
+}
+
+/* Large ring for the Growth hero */
+.score-ring-hero {
+  width: 128px;
+  height: 128px;
+  border-radius: 50%;
+  border: 7px solid;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  position: relative;
+}
+.score-ring-hero .srh-val {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 2.6rem;
+  font-weight: 900;
+  line-height: 1;
+}
+.score-ring-hero .srh-lbl {
+  font-size: .72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  opacity: .75;
+  margin-top: .2rem;
+}
+
+/* Growth banner strip — shown in site banner after scan */
+.growth-banner-strip {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  padding: .875rem 1.25rem;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-s);
+  margin-top: 1rem;
+  flex-wrap: wrap;
+  cursor: pointer;
+  transition: border-color .2s;
+}
+.growth-banner-strip:hover { border-color: var(--border-h); }
+
+.gbs-score {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 2rem;
+  font-weight: 900;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.gbs-label {
+  font-size: .78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  opacity: .7;
+  margin-top: .1rem;
+}
+.gbs-text {
+  flex: 1;
+  min-width: 180px;
+}
+.gbs-summary {
+  font-size: .85rem;
+  color: var(--muted);
+  line-height: 1.5;
+  margin-bottom: .5rem;
+}
+.gbs-badges {
+  display: flex;
+  gap: .4rem;
+  flex-wrap: wrap;
+}
+.gbs-badge {
+  font-size: .68rem;
+  font-weight: 700;
+  padding: .15rem .55rem;
+  border-radius: 6px;
+}
+.gbs-cta {
+  font-size: .78rem;
+  font-weight: 700;
+  color: var(--primary2);
+  display: flex;
+  align-items: center;
+  gap: .3rem;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+/* Stats row — growth card override for prominence */
+.stat-card-growth {
+  border-color: rgba(34,197,94,.35) !important;
+  background: rgba(34,197,94,.05) !important;
+  cursor: pointer;
+  grid-column: span 2;   /* takes double width in the stats grid */
+}
+.stat-card-growth .stat-val { font-size: 2rem !important; }
+.stat-card-growth .stat-lbl { font-size: .72rem !important; }
+
+/* Responsive: growth hero */
+@media (max-width: 640px) {
+  .growth-hero {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+    padding: 1.25rem;
+    text-align: center;
+  }
+  .score-ring-hero {
+    width: 100px;
+    height: 100px;
+    margin: 0 auto;
+  }
+  .score-ring-hero .srh-val { font-size: 2rem; }
+  .gbs-score { font-size: 1.6rem; }
+  .growth-banner-strip { gap: .875rem; padding: .75rem 1rem; }
+  .stat-card-growth { grid-column: span 1; }
+  .stat-card-growth .stat-val { font-size: 1.55rem !important; }
+}
+
+@media (max-width: 480px) {
+  .score-ring-hero { width: 88px; height: 88px; }
+  .score-ring-hero .srh-val { font-size: 1.75rem; }
+}

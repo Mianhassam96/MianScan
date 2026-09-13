@@ -68,7 +68,34 @@
           </div>
         </div>
       </div>
-      ${ogPreview}`;
+      ${ogPreview}
+      ${this._growthBannerStrip(data)}`;
+  },
+
+  /* ── Growth score summary strip shown in site banner ── */
+  _growthBannerStrip(data) {
+    const g = data.growth;
+    if (!g) return '';
+    const color = g.overall >= 80 ? 'var(--green)' : g.overall >= 65 ? 'var(--primary2)' : g.overall >= 50 ? 'var(--yellow)' : 'var(--red)';
+    const critCount = g.findings.filter(f => f.priority === 'critical').length;
+    const highCount = g.findings.filter(f => f.priority === 'high').length;
+    return `
+    <div class="growth-banner-strip" onclick="document.querySelector('[data-tab=growth]').click()" title="View Growth Score details">
+      <div style="text-align:center;flex-shrink:0">
+        <div class="gbs-score" style="color:${color}">${g.overall}</div>
+        <div class="gbs-label" style="color:${color}">Growth Score</div>
+      </div>
+      <div class="gbs-text">
+        <div class="gbs-summary">${this.e(g.summary)}</div>
+        <div class="gbs-badges">
+          ${critCount > 0 ? `<span class="gbs-badge" style="background:rgba(240,68,68,.12);color:var(--red)">${critCount} Critical</span>` : ''}
+          ${highCount > 0 ? `<span class="gbs-badge" style="background:rgba(245,158,11,.12);color:#f59e0b">${highCount} High Priority</span>` : ''}
+          ${critCount === 0 && highCount === 0 ? `<span class="gbs-badge" style="background:rgba(34,197,94,.12);color:var(--green)">✓ No Critical Issues</span>` : ''}
+          <span class="gbs-badge" style="background:rgba(34,197,94,.1);color:var(--green)">${g.findings.filter(f=>f.priority==='good').length} Passing</span>
+        </div>
+      </div>
+      <div class="gbs-cta"><i class="bi bi-arrow-right-circle-fill"></i> View Full Report</div>
+    </div>`;
   },
 
   renderStats(data) {
@@ -93,7 +120,7 @@
       {icon:'🛠️', val:tech.detected.length,    lbl:'Tech Found',   color:'var(--purple)',   count:tech.detected.length},
     ];
     document.getElementById('statsRow').innerHTML = cards.map((c,i)=>
-      `<div class="stat-card fu${c.highlight?' stat-card-growth':''}" style="animation-delay:${i*.05}s${c.highlight?';order:-1':''}"${c.highlight?` onclick="document.querySelector('[data-tab=growth]').click()" title="View Growth Score" style="cursor:pointer"`:''}>
+      `<div class="stat-card fu${c.highlight?' stat-card-growth':''}" style="animation-delay:${i*.05}s${c.highlight?';order:-1':''}"${c.highlight?` onclick="document.querySelector('[data-tab=growth]').click()" title="View Growth Score"`:''}>
         <div class="stat-icon">${c.icon}</div>
         <div class="stat-val" style="color:${c.color}"${c.count!==undefined?` data-count="${c.count}"`:''}>${c.val}</div>
         <div class="stat-lbl">${c.lbl}</div>
@@ -1114,33 +1141,50 @@
 
     const overallColor = g.overall >= 80 ? 'var(--green)' : g.overall >= 65 ? 'var(--primary2)' : g.overall >= 50 ? 'var(--yellow)' : 'var(--red)';
 
+    // ── Critical issues alert strip (shown FIRST if any exist) ─────────────
+    const criticals = g.findings.filter(f => f.priority === 'critical');
+    const criticalStrip = criticals.length ? `
+    <div style="background:rgba(240,68,68,.08);border:1px solid rgba(240,68,68,.3);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1.25rem">
+      <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.75rem;font-size:.82rem;font-weight:800;color:var(--red);text-transform:uppercase;letter-spacing:.06em">
+        <i class="bi bi-exclamation-octagon-fill"></i> ${criticals.length} Critical Issue${criticals.length > 1 ? 's' : ''} — Fix Today
+      </div>
+      ${criticals.map(f => `
+      <div style="display:flex;align-items:flex-start;gap:.75rem;padding:.6rem 0;border-bottom:1px solid rgba(240,68,68,.15)">
+        <i class="bi bi-x-circle-fill" style="color:var(--red);margin-top:.1rem;flex-shrink:0"></i>
+        <div style="flex:1">
+          <div style="font-weight:700;font-size:.88rem;margin-bottom:.2rem">${this.e(f.title)}</div>
+          <div style="font-size:.78rem;color:var(--muted)">${this.e(f.action)}</div>
+        </div>
+        ${f.effort ? `<span style="font-size:.65rem;font-weight:700;background:rgba(240,68,68,.12);color:var(--red);padding:.15rem .45rem;border-radius:5px;flex-shrink:0;align-self:flex-start">${this.e(f.effort)}</span>` : ''}
+      </div>`).join('')}
+    </div>` : '';
+
     // ── Overall score hero ─────────────────────────────────────────────────
     const heroSection = `
-    <div class="growth-hero" style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1.75rem;margin-bottom:1.25rem;display:flex;align-items:center;gap:2rem;flex-wrap:wrap">
-      <div style="flex-shrink:0;text-align:center">
-        <div class="score-ring" style="width:96px;height:96px;font-size:2rem;font-weight:900;border-color:${overallColor};color:${overallColor};border-width:5px">${g.overall}</div>
-        <div style="margin-top:.5rem;font-weight:800;font-size:1.05rem;color:${overallColor}">${g.label}</div>
-        <div style="font-size:.82rem;color:var(--muted);margin-top:.1rem">Grade ${g.grade}</div>
-      </div>
-      <div style="flex:1;min-width:220px">
-        <div style="font-size:1.1rem;font-weight:700;margin-bottom:.4rem">
-          <i class="bi bi-graph-up-arrow" style="color:${overallColor}"></i> MianScan Growth Score
-          <span style="font-size:.7rem;color:var(--muted);font-weight:400;margin-left:.4rem;background:var(--bg4);border-radius:20px;padding:.1rem .55rem">v2.2</span>
+    ${criticalStrip}
+    <div class="growth-hero">
+      <div style="text-align:center">
+        <div class="score-ring-hero" style="border-color:${overallColor};color:${overallColor};box-shadow:0 0 32px ${overallColor}30">
+          <span class="srh-val">${g.overall}</span>
+          <span class="srh-lbl">/ 100</span>
         </div>
-        <div style="color:var(--muted);font-size:.88rem;line-height:1.6">${g.summary}</div>
-        <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.9rem">
-          <span style="background:rgba(240,68,68,.1);color:var(--red);border-radius:6px;padding:.2rem .65rem;font-size:.75rem;font-weight:700">
-            ${g.findings.filter(f=>f.priority==='critical').length} Critical
-          </span>
-          <span style="background:rgba(245,158,11,.1);color:#f59e0b;border-radius:6px;padding:.2rem .65rem;font-size:.75rem;font-weight:700">
-            ${g.findings.filter(f=>f.priority==='high').length} High
-          </span>
-          <span style="background:rgba(139,150,255,.1);color:var(--primary2);border-radius:6px;padding:.2rem .65rem;font-size:.75rem;font-weight:700">
-            ${g.findings.filter(f=>f.priority==='medium').length} Medium
-          </span>
-          <span style="background:rgba(34,197,94,.1);color:var(--green);border-radius:6px;padding:.2rem .65rem;font-size:.75rem;font-weight:700">
-            ${g.findings.filter(f=>f.priority==='good').length} Passing
-          </span>
+        <div style="margin-top:.65rem;font-weight:800;font-size:1rem;color:${overallColor}">${g.label}</div>
+        <div style="font-size:.75rem;color:var(--muted);margin-top:.15rem">Grade ${g.grade}</div>
+      </div>
+      <div>
+        <div style="font-size:1.15rem;font-weight:800;margin-bottom:.35rem;display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
+          <span><i class="bi bi-graph-up-arrow" style="color:${overallColor}"></i> Growth Score</span>
+          <span style="font-size:.65rem;font-weight:600;background:var(--bg4);color:var(--muted);border-radius:20px;padding:.1rem .55rem">v2.3</span>
+        </div>
+        <div style="color:var(--muted);font-size:.88rem;line-height:1.6;margin-bottom:.9rem">${g.summary}</div>
+        <div style="display:flex;gap:.4rem;flex-wrap:wrap">
+          ${g.findings.filter(f=>f.priority==='critical').length > 0
+            ? `<span style="background:rgba(240,68,68,.12);color:var(--red);border-radius:7px;padding:.2rem .65rem;font-size:.73rem;font-weight:700">${g.findings.filter(f=>f.priority==='critical').length} Critical</span>` : ''}
+          ${g.findings.filter(f=>f.priority==='high').length > 0
+            ? `<span style="background:rgba(245,158,11,.12);color:#f59e0b;border-radius:7px;padding:.2rem .65rem;font-size:.73rem;font-weight:700">${g.findings.filter(f=>f.priority==='high').length} High</span>` : ''}
+          ${g.findings.filter(f=>f.priority==='medium').length > 0
+            ? `<span style="background:rgba(139,150,255,.12);color:var(--primary2);border-radius:7px;padding:.2rem .65rem;font-size:.73rem;font-weight:700">${g.findings.filter(f=>f.priority==='medium').length} Medium</span>` : ''}
+          <span style="background:rgba(34,197,94,.1);color:var(--green);border-radius:7px;padding:.2rem .65rem;font-size:.73rem;font-weight:700">${g.findings.filter(f=>f.priority==='good').length} Passing</span>
         </div>
       </div>
     </div>`;

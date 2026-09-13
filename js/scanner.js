@@ -56,19 +56,64 @@ const Scanner = {
 
   WORKER_URL: 'https://mianscan-proxy.multimian.workers.dev',
   FETCH_TIMEOUT_MS: 15000,
+  GLOBAL_SCAN_TIMEOUT_MS: 22000,  // hard cap across all proxy waves
 
   ERR_TIMEOUT: 'ERR_TIMEOUT',
   ERR_BLOCKED: 'ERR_BLOCKED',
   ERR_EMPTY:   'ERR_EMPTY',
   ERR_SCANNER: 'ERR_SCANNER',
 
+  // Returns true when WORKER_URL is a real deployed worker (not the placeholder)
   _workerReady() {
-    return this.WORKER_URL !== 'https://mianscan-proxy.multimian.workers.dev';
+    const url = this.WORKER_URL || '';
+    return url.length > 0 && !url.includes('YOUR_WORKER') && !url.includes('example');
+  },
+
+  // Normalise URL for consistent cache keys and scanning:
+  //   - ensure https:// prefix
+  //   - lowercase hostname
+  //   - remove default ports (:80, :443)
+  //   - strip trailing slash from bare origin (https://example.com/ → https://example.com)
+  normalizeUrl(raw) {
+    let url = raw.trim();
+    if (!url.startsWith('http')) url = 'https://' + url;
+    try {
+      const u = new URL(url);
+      u.hostname = u.hostname.toLowerCase();
+      if (u.port === '80' || u.port === '443') u.port = '';
+      // Strip trailing slash only on bare-origin URLs (no path beyond /)
+      let out = u.toString();
+      if (u.pathname === '/' && !u.search && !u.hash) {
+        out = out.replace(/\/$/, '');
+      }
+      return out;
+    } catch {
+      return url;
+    }
   },
 
   async fetchHTML(url) {
     const errors = [];
 
+    // Hard global cap — if all waves haven't resolved within this window,
+    // abort everything and surface ERR_TIMEOUT immediately.
+    let _globalReject;
+    const globalTimeout = new Promise((_, reject) => {
+      const t = setTimeout(() => {
+        reject(Object.assign(new Error(this.ERR_TIMEOUT), { code: this.ERR_TIMEOUT }));
+      }, this.GLOBAL_SCAN_TIMEOUT_MS);
+      _globalReject = () => clearTimeout(t); // called on success to cancel the timer
+    });
+
+    const result = await Promise.race([
+      this._fetchHTMLInner(url, errors),
+      globalTimeout,
+    ]);
+    if (_globalReject) _globalReject();
+    return result;
+  },
+
+  async _fetchHTMLInner(url, errors) {
     const tryProxy = async (label, proxyUrl, jsonKey, ms) => {
       const ctrl  = new AbortController();
       const timer = setTimeout(() => ctrl.abort(), ms);
@@ -194,6 +239,7 @@ const Scanner = {
   },
 
   async scan(url, onProgress) {
+    url = this.normalizeUrl(url);
     const p = (msg, pct) => onProgress && onProgress(msg, pct);
 
     p('Connecting to website…', 5);
