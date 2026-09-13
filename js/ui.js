@@ -1355,56 +1355,168 @@
     const biz = data.business;
     if (!biz) return this.empty('Business Readiness data not available — rescan to generate.');
 
-    const gradeColor = biz.score >= 80 ? 'var(--green)' : biz.score >= 65 ? 'var(--primary2)' : biz.score >= 50 ? 'var(--yellow)' : 'var(--red)';
+    const scoreColor = s => s >= 80 ? 'var(--green)' : s >= 65 ? 'var(--primary2)' : s >= 50 ? 'var(--yellow)' : 'var(--red)';
+    const gradeColor = scoreColor(biz.score);
     const gradeLabel = biz.score >= 80 ? 'Business-Ready' : biz.score >= 65 ? 'Nearly There' : biz.score >= 50 ? 'Needs Work' : 'Not Ready';
+    const gradeDesc  = biz.score >= 80
+      ? 'This website presents a credible, well-rounded business presence.'
+      : biz.score >= 65
+      ? 'Good foundations — a few gaps are reducing visitor confidence.'
+      : biz.score >= 50
+      ? 'Several important trust and contact elements are missing.'
+      : 'This website is missing most signals visitors need to trust and contact you.';
 
-    // Group checks by section
-    const sections = {};
-    (biz.checks || []).forEach(c => {
-      const s = c.section || 'Other';
-      if (!sections[s]) sections[s] = [];
-      sections[s].push(c);
-    });
-
-    const sectionColors = {
-      Identity: 'var(--primary2)', Contact: 'var(--accent)', Trust: 'var(--green)',
-      Content: 'var(--yellow)', Legal: 'var(--red)', Schema: 'var(--purple)', Social: '#ec4899',
+    // ── Audit item definitions: label → why + impact + fix ────────────────
+    const auditDefs = {
+      // Identity
+      'Brand / Business Name':     { why: 'Your brand name is the first thing visitors notice. Without a clear identity, visitors can\'t remember or recommend you.', impact: 'Low', fix: 'Ensure your business name is in the page <title> and visible in the header logo or text.' },
+      'Services / Products':       { why: 'Visitors need to know within 5 seconds what you do. Unclear offerings drive people straight to competitors.', impact: 'High', fix: 'Add a clear "What we do" or services section near the top of the page.' },
+      'About / Team':              { why: 'Businesses with visible team members or company story convert 33% better. People buy from people.', impact: 'Medium', fix: 'Add an About section or page with your story, values, or team photos.' },
+      // Contact
+      'Email Address':             { why: 'Email is the most trusted contact method. Without it, many visitors won\'t bother looking for another way to reach you.', impact: 'High', fix: 'Add your email address in the header or footer — visible on every page.' },
+      'Phone Number':              { why: 'A phone number builds immediate trust. For service businesses it can double enquiry rates.', impact: 'High', fix: 'Add a clickable phone number (tel: link) to your header or contact section.' },
+      'WhatsApp':                  { why: 'WhatsApp is the #1 contact channel in many markets. A direct link removes friction for mobile visitors.', impact: 'Medium', fix: 'Add a wa.me link to your contact section or footer.' },
+      'Contact Page':              { why: 'A dedicated contact page is expected by professional buyers and agencies. Without it, credibility drops.', impact: 'Medium', fix: 'Create a /contact page and link it in your navigation and footer.' },
+      'Contact Form':              { why: 'Forms convert passive visitors into leads. They\'re lower friction than email for many users.', impact: 'High', fix: 'Add a simple enquiry form: name, email, message. A free tool like Tally or Formspree works instantly.' },
+      // Trust
+      'Testimonials / Reviews':    { why: 'Testimonials are the single most powerful conversion tool on a business website. Removing doubt = more enquiries.', impact: 'High', fix: 'Add 3–5 client testimonials with full names and photos above the fold or on your homepage.' },
+      'Client Logos':              { why: '"Trusted by" sections with client logos provide instant authority — especially for agency and B2B sites.', impact: 'Medium', fix: 'Add a logo grid of past clients or partners with a "Trusted by" heading.' },
+      'Social Proof Numbers':      { why: 'Numbers like "200+ clients" or "4.9 stars" create quantified credibility that copy alone can\'t match.', impact: 'Medium', fix: 'Add a metrics bar: number of clients, projects completed, years in business, or star rating.' },
+      'Case Studies / Portfolio':  { why: 'Demonstrated results are more persuasive than any claim. For service businesses, a case study beats a testimonial.', impact: 'Medium', fix: 'Add at least one case study: client problem → your solution → measurable result.' },
+      // Content
+      'Pricing Information':       { why: 'Hidden pricing forces visitors to enquire before they\'re ready — most won\'t. Transparency increases qualified leads.', impact: 'Medium', fix: 'Add a pricing page or at least starting-from prices. If custom, explain what factors affect the price.' },
+      'FAQ Section':               { why: 'FAQs pre-handle objections and reduce time-wasting enquiries. They also help SEO with long-tail keywords.', impact: 'Low', fix: 'Add 5–8 FAQs your prospects ask most. Structure them with schema markup for rich results.' },
+      'Location / Area Served':    { why: 'For local and regional businesses, location signals drive local SEO and build relevance with nearby customers.', impact: 'Low', fix: 'Mention your city, country, or "serving [region]" in your content or footer.' },
+      // Legal
+      'Privacy Policy':            { why: 'A privacy policy is a legal requirement in most jurisdictions (GDPR, CCPA). Missing one exposes you to legal risk and reduces trust.', impact: 'High', fix: 'Add a privacy policy page and link it in your footer. Generate one free at termly.io.' },
+      'Terms of Service':          { why: 'Terms of service protect both you and your customers and signal a professional, established business.', impact: 'Low', fix: 'Add a terms page and link it in the footer alongside your privacy policy.' },
+      'Organization Schema':       { why: 'Schema markup tells Google exactly what your business does, enabling rich results and improving local search visibility.', impact: 'Medium', fix: 'Add Organization or LocalBusiness JSON-LD schema to your homepage <head>.' },
+      'Social Media Presence':     { why: 'Social links build omnichannel trust and allow visitors to verify your business is active and legitimate.', impact: 'Low', fix: 'Add links to your active social profiles in the footer. Focus on 2–3 platforms your audience uses.' },
     };
 
-    const checksHtml = Object.entries(sections).map(([sec, items]) => `
-      <div style="margin-bottom:1rem">
-        <div style="font-size:.7rem;font-weight:700;color:${sectionColors[sec]||'var(--muted)'};text-transform:uppercase;letter-spacing:.08em;margin-bottom:.4rem;display:flex;align-items:center;gap:.4rem">
-          ${sec}<span style="flex:1;height:1px;background:var(--border);display:inline-block"></span>
+    // ── Section metadata ───────────────────────────────────────────────────
+    const sectionMeta = {
+      Identity: { icon: 'person-badge-fill',    color: 'var(--primary2)', desc: 'How clearly you communicate who you are' },
+      Contact:  { icon: 'telephone-fill',        color: 'var(--accent)',   desc: 'How easy it is for visitors to reach you' },
+      Trust:    { icon: 'shield-check',           color: 'var(--green)',    desc: 'Evidence that backs up your claims' },
+      Content:  { icon: 'file-text-fill',         color: 'var(--yellow)',   desc: 'Information visitors need to decide' },
+      Legal:    { icon: 'file-earmark-lock-fill', color: 'var(--red)',      desc: 'Legal compliance and professional credibility' },
+      Schema:   { icon: 'braces',                 color: 'var(--purple)',   desc: 'Structured data for search engines' },
+      Social:   { icon: 'share-fill',             color: '#ec4899',         desc: 'Presence across platforms' },
+    };
+
+    // ── Group checks by section ────────────────────────────────────────────
+    const grouped = {};
+    (biz.checks || []).forEach(c => {
+      const s = c.section || 'Other';
+      if (!grouped[s]) grouped[s] = [];
+      grouped[s].push(c);
+    });
+
+    // ── Quick signals bar (top overview) ──────────────────────────────────
+    const signals = [
+      { label: 'Email',        ok: biz.hasEmail,        icon: 'envelope-fill' },
+      { label: 'Phone',        ok: biz.hasPhone,        icon: 'telephone-fill' },
+      { label: 'Testimonials', ok: biz.hasTestimonials, icon: 'chat-quote-fill' },
+      { label: 'Pricing',      ok: biz.hasPricing,      icon: 'tag-fill' },
+      { label: 'Privacy',      ok: biz.hasPrivacy,      icon: 'shield-check' },
+      { label: 'Case Studies', ok: biz.hasCaseStudies,  icon: 'briefcase-fill' },
+      { label: 'Schema',       ok: biz.hasOrgSchema,    icon: 'braces' },
+      { label: 'Social',       ok: biz.hasSocial,       icon: 'share-fill' },
+    ];
+
+    const passCount = signals.filter(s => s.ok).length;
+    const failCount = signals.filter(s => !s.ok).length;
+
+    // ── Section audit cards ────────────────────────────────────────────────
+    const impactColor = i => i === 'High' ? 'var(--red)' : i === 'Medium' ? 'var(--yellow)' : 'var(--muted)';
+    const impactBg    = i => i === 'High' ? 'rgba(240,68,68,.1)' : i === 'Medium' ? 'rgba(245,158,11,.1)' : 'rgba(122,143,168,.08)';
+
+    const sectionCards = Object.entries(grouped).map(([sec, items]) => {
+      const sm   = sectionMeta[sec] || { icon: 'list-check', color: 'var(--muted)', desc: '' };
+      const fails = items.filter(c => c.type !== 'ok');
+      const passes = items.filter(c => c.type === 'ok');
+      return `
+      <div class="p3-audit-section">
+        <div class="p3-section-head" style="border-left-color:${sm.color}">
+          <span class="p3-section-icon" style="background:${sm.color}18;color:${sm.color}"><i class="bi bi-${sm.icon}"></i></span>
+          <div class="p3-section-title-col">
+            <span class="p3-section-title">${sec}</span>
+            <span class="p3-section-desc">${sm.desc}</span>
+          </div>
+          <div class="p3-section-tally">
+            <span class="p3-tally-pass">${passes.length} ✓</span>
+            ${fails.length ? `<span class="p3-tally-fail">${fails.length} ✗</span>` : ''}
+          </div>
         </div>
         ${items.map(c => {
-          const icon = c.type === 'ok' ? 'check-circle-fill' : 'exclamation-triangle-fill';
-          const cls  = c.type === 'ok' ? 'a11y-ok' : 'a11y-warn';
-          return `<div class="a11y-row ${cls}"><i class="bi bi-${icon}"></i><div style="flex:1"><div style="font-weight:600;font-size:.85rem">${this.e(c.label)}</div><div style="font-size:.78rem;opacity:.85">${this.e(c.msg)}</div></div></div>`;
+          const def  = auditDefs[c.label] || {};
+          const isOk = c.type === 'ok';
+          return `
+          <div class="p3-audit-item${isOk ? ' p3-audit-ok' : ' p3-audit-fail'}">
+            <div class="p3-audit-item-head">
+              <i class="bi bi-${isOk ? 'check-circle-fill' : 'x-circle-fill'}" style="color:${isOk ? 'var(--green)' : 'var(--red)'}"></i>
+              <span class="p3-audit-label">${this.e(c.label)}</span>
+              ${!isOk && def.impact ? `<span class="p3-impact-badge" style="background:${impactBg(def.impact)};color:${impactColor(def.impact)}">${def.impact} impact</span>` : ''}
+            </div>
+            <div class="p3-audit-status">${this.e(c.msg)}</div>
+            ${!isOk && def.why ? `
+            <div class="p3-audit-why">
+              <span class="p3-audit-why-label">Why it matters</span>
+              ${this.e(def.why)}
+            </div>` : ''}
+            ${!isOk && def.fix ? `
+            <div class="p3-audit-fix">
+              <span class="p3-audit-fix-label">Recommended fix</span>
+              ${this.e(def.fix)}
+            </div>` : ''}
+          </div>`;
         }).join('')}
-      </div>`).join('');
+      </div>`;
+    }).join('');
+
+    // ── MultiMian CTA copy driven by score ────────────────────────────────
+    const ctaCopy = biz.score < 50
+      ? { headline: 'This website is losing potential customers.', sub: `${failCount} business readiness signals are missing. MultiMian can audit, fix, and grow your website.`, btn: 'Get a Free Business Audit →' }
+      : biz.score < 70
+      ? { headline: 'A few fixes could significantly increase enquiries.', sub: 'Your business presence has good bones — targeted improvements to trust and contact signals can make a big difference.', btn: 'Talk to MultiMian →' }
+      : { headline: 'Strong business presence — ready to scale?', sub: 'MultiMian helps growing businesses convert more visitors into clients through SEO, conversion optimisation, and web development.', btn: 'Explore Growth Services →' };
 
     return `
-    <div class="g2" style="align-items:start;margin-bottom:1.25rem">
-      <div class="card">
-        <div class="card-head"><i class="bi bi-building"></i> Business Readiness Score</div>
-        <div class="score-box">
-          <div class="score-ring" style="border-color:${gradeColor};color:${gradeColor}">${biz.score}</div>
-          <div class="score-grade" style="color:${gradeColor}">Grade ${biz.grade}</div>
-          <div class="score-sub">${gradeLabel}</div>
-        </div>
-        <div style="margin-top:1rem">
-          <div class="authority-grid" style="grid-template-columns:repeat(2,1fr);gap:.5rem">
-            <div class="auth-card"><div class="auth-val" style="color:${biz.hasEmail?'var(--green)':'var(--red)'}">${biz.hasEmail?'Yes':'No'}</div><div class="auth-lbl">Email Contact</div></div>
-            <div class="auth-card"><div class="auth-val" style="color:${biz.hasTestimonials?'var(--green)':'var(--red)'}">${biz.hasTestimonials?'Yes':'No'}</div><div class="auth-lbl">Testimonials</div></div>
-            <div class="auth-card"><div class="auth-val" style="color:${biz.hasPricing?'var(--green)':'var(--yellow)'}">${biz.hasPricing?'Yes':'No'}</div><div class="auth-lbl">Pricing</div></div>
-            <div class="auth-card"><div class="auth-val" style="color:${biz.hasPrivacy?'var(--green)':'var(--red)'}">${biz.hasPrivacy?'Yes':'No'}</div><div class="auth-lbl">Privacy Policy</div></div>
-          </div>
-          ${biz.hasSocial && biz.socialPresence?.length ? `<div style="margin-top:.75rem;font-size:.8rem;color:var(--muted)">Social presence: ${biz.socialPresence.map(s => this.e(s)).join(', ')}</div>` : ''}
+    <!-- ── Overview Hero ── -->
+    <div class="p3-biz-hero">
+      <div class="p3-biz-hero-ring-col">
+        <div class="score-ring" style="border-color:${gradeColor};color:${gradeColor};width:96px;height:96px;font-size:1.7rem">${biz.score}</div>
+        <div style="font-weight:800;font-size:.9rem;color:${gradeColor};margin-top:.4rem">${gradeLabel}</div>
+        <div style="font-size:.75rem;color:var(--muted)">Grade ${biz.grade}</div>
+      </div>
+      <div class="p3-biz-hero-body">
+        <div class="p3-biz-hero-title"><i class="bi bi-building" style="color:${gradeColor}"></i> Business Readiness Audit</div>
+        <div class="p3-biz-hero-desc">${this.e(gradeDesc)}</div>
+        <div class="p3-signals-bar">
+          ${signals.map(s => `
+          <div class="p3-signal${s.ok ? ' p3-signal-ok' : ' p3-signal-fail'}">
+            <i class="bi bi-${s.icon}"></i>
+            <span>${s.label}</span>
+          </div>`).join('')}
         </div>
       </div>
-      <div class="card">
-        <div class="card-head"><i class="bi bi-list-check"></i> Business Readiness Checks</div>
-        ${checksHtml || this.empty('No checks available')}
+    </div>
+
+    <!-- ── Section Audit Cards ── -->
+    <div class="p3-audit-cards">
+      ${sectionCards}
+    </div>
+
+    <!-- ── MultiMian CTA ── -->
+    <div class="p3-tab-cta">
+      <div class="p3-tab-cta-inner">
+        <div class="p3-tab-cta-icon"><i class="bi bi-award-fill"></i></div>
+        <div class="p3-tab-cta-body">
+          <div class="p3-tab-cta-headline">${ctaCopy.headline}</div>
+          <div class="p3-tab-cta-sub">${ctaCopy.sub}</div>
+        </div>
+        <a href="https://multimian.com" target="_blank" rel="noopener" class="p3-tab-cta-btn">${ctaCopy.btn}</a>
       </div>
     </div>`;
   },
@@ -1414,71 +1526,160 @@
     const cv = data.conversion;
     if (!cv) return this.empty('Conversion data not available — rescan to generate.');
 
-    const gradeColor = cv.score >= 80 ? 'var(--green)' : cv.score >= 65 ? 'var(--primary2)' : cv.score >= 50 ? 'var(--yellow)' : 'var(--red)';
+    const scoreColor = s => s >= 80 ? 'var(--green)' : s >= 65 ? 'var(--primary2)' : s >= 50 ? 'var(--yellow)' : 'var(--red)';
+    const gradeColor = scoreColor(cv.score);
+    const gradeLabel = cv.score >= 80 ? 'Conversion-Optimised' : cv.score >= 65 ? 'Good Potential' : cv.score >= 50 ? 'Needs Work' : 'Low Conversion';
+    const gradeDesc  = cv.score >= 80
+      ? 'Your website is well-set up to turn visitors into leads and customers.'
+      : cv.score >= 65
+      ? 'Good foundations — targeted improvements could meaningfully increase enquiry rate.'
+      : cv.score >= 50
+      ? 'Several conversion elements are missing or weak. Visitors may not know what to do next.'
+      : 'This website is unlikely to convert most visitors. Core conversion elements need attention urgently.';
 
-    const scoreCard = `
-    <div class="g2" style="align-items:start;margin-bottom:1.25rem">
-      <div class="card">
-        <div class="card-head"><i class="bi bi-cursor-fill"></i> Conversion Score</div>
-        <div class="score-box">
-          <div class="score-ring" style="border-color:${gradeColor};color:${gradeColor}">${cv.score}</div>
-          <div class="score-grade" style="color:${gradeColor}">Grade ${cv.grade}</div>
-          <div class="score-sub">${cv.score >= 80 ? 'Conversion-optimised' : cv.score >= 50 ? 'Needs improvement' : 'Low conversion potential'}</div>
-        </div>
-        <div style="margin-top:1rem">
-          <div class="authority-grid" style="grid-template-columns:repeat(2,1fr);gap:.5rem">
-            <div class="auth-card"><div class="auth-val" style="color:${(cv.ctaSectionScore??0)>=60?'var(--green)':'var(--red)'}">${cv.ctaSectionScore??'—'}</div><div class="auth-lbl">CTA</div></div>
-            <div class="auth-card"><div class="auth-val" style="color:${(cv.leadSectionScore??0)>=50?'var(--green)':'var(--yellow)'}">${cv.leadSectionScore??'—'}</div><div class="auth-lbl">Lead Gen</div></div>
-            <div class="auth-card"><div class="auth-val" style="color:${(cv.contactSectionScore??0)>=50?'var(--green)':'var(--red)'}">${cv.contactSectionScore??'—'}</div><div class="auth-lbl">Contact</div></div>
-            <div class="auth-card"><div class="auth-val" style="color:${(cv.trustSectionScore??0)>=50?'var(--green)':'var(--yellow)'}">${cv.trustSectionScore??'—'}</div><div class="auth-lbl">Trust</div></div>
+    // ── Audit definitions per check label ─────────────────────────────────
+    const auditDefs = {
+      'Primary CTA':              { why: 'Without a clear call-to-action, visitors have no obvious next step. This is the single biggest conversion killer on business websites.', impact: 'High', fix: 'Add one dominant CTA above the fold: "Get Started", "Book a Free Call", or "Request a Quote". Make it visually distinct.' },
+      'CTA Visibility':           { why: 'Most visitors never scroll below the fold on a first visit. If your CTA isn\'t visible immediately, many will leave before seeing it.', impact: 'High', fix: 'Move your primary CTA to the hero section — above the fold on both desktop and mobile.' },
+      'CTA Clarity':              { why: 'Vague CTAs like "Click Here" or "Learn More" convert at a fraction of the rate of action-oriented alternatives.', impact: 'Medium', fix: 'Use action verbs: Get, Start, Book, Request, Download, Join. Be specific about what happens next.' },
+      'CTA Repetition':           { why: 'A CTA appearing only once gets missed by most visitors. Repeating it at logical intervals captures visitors who are ready at different stages.', impact: 'Medium', fix: 'Add your primary CTA in the hero, mid-page (after value section), and at the bottom of the page.' },
+      'CTA Focus':                { why: 'Too many competing CTAs create decision paralysis — visitors take no action when unsure which step to take.', impact: 'Medium', fix: 'Identify your single most important action. Make it visually dominant. Demote or remove secondary CTAs.' },
+      'Contact Form':             { why: 'Forms are the lowest-friction conversion path. They capture leads 24/7 without requiring real-time availability.', impact: 'High', fix: 'Add a simple enquiry form: name, email, message, submit. Free options: Tally, Formspree, or HubSpot Free.' },
+      'Newsletter / Email Opt-in':{ why: 'Email lists convert at 3–5× the rate of social followers. An opt-in captures visitors who are interested but not ready to buy yet.', impact: 'Medium', fix: 'Add a newsletter signup with a value hook: "Get weekly tips on [your topic]" or a free resource offer.' },
+      'Lead Magnet / Free Resource':{ why: 'A free resource (guide, checklist, template) dramatically increases opt-in rates by giving visitors an immediate reason to share their email.', impact: 'Medium', fix: 'Create a simple PDF guide or template relevant to your audience and offer it in exchange for an email.' },
+      'Email Address':            { why: 'An email address is the most trusted contact signal. Many visitors will leave if they can\'t see how to reach you directly.', impact: 'High', fix: 'Display your email visibly in the header or footer. Use a mailto: link for clickability on mobile.' },
+      'Phone Number':             { why: 'A phone number dramatically increases trust for service businesses. Many prospects prefer to call rather than fill a form.', impact: 'High', fix: 'Add a clickable phone number (tel: link) in your header. Keep it visible on mobile.' },
+      'WhatsApp':                 { why: 'WhatsApp is the dominant mobile contact method in many markets. A direct link removes friction for mobile-first audiences.', impact: 'Medium', fix: 'Add a wa.me/YOURNUMBER link in your contact section and consider a floating WhatsApp button.' },
+      'Contact Page':             { why: 'B2B buyers and agencies expect a dedicated contact page. Without it, credibility is reduced and enquiries decrease.', impact: 'Medium', fix: 'Create a /contact page with your email, phone, form, and location. Link it in the nav and footer.' },
+      'Testimonials / Reviews':   { why: 'Testimonials are the most effective trust signal on a website. They reduce buying risk and answer the question "does this actually work?"', impact: 'High', fix: 'Add 3–5 testimonials with real names and ideally photos. Position the best one in the hero section.' },
+      'Social Proof Numbers':     { why: 'Specific numbers ("200+ clients", "4.9/5 stars") create credibility that copy can\'t. They show scale and real adoption.', impact: 'Medium', fix: 'Add a metrics bar with your best numbers: clients served, years in business, projects completed, star rating.' },
+      'Client Logos':             { why: 'A "Trusted by" section with recognisable logos shortens the sales cycle — especially for B2B and agency services.', impact: 'Medium', fix: 'Add a logo strip of 6–12 past clients or brands you\'ve worked with under a "Trusted by" heading.' },
+      'Guarantee / Risk Reversal':{ why: 'Risk-reversal language removes the biggest objection to buying: fear of regret. It dramatically increases conversion for unfamiliar businesses.', impact: 'Medium', fix: 'Add language like "14-day money-back guarantee", "No contract, cancel anytime", or "Risk-free trial".' },
+      'Pricing Transparency':     { why: 'Hidden pricing forces visitors to enquire before they\'re ready. Most won\'t — they\'ll go to a competitor with visible pricing instead.', impact: 'Medium', fix: 'Add pricing or at minimum a "starting from" price. If truly custom, explain what factors affect cost.' },
+      'Navigation Clarity':       { why: 'Cluttered navigation overwhelms visitors and dilutes focus. The more options, the less likely any single path gets taken.', impact: 'Low', fix: 'Reduce navigation to 5–7 core links. Move secondary pages to the footer.' },
+    };
+
+    // ── Section metadata ───────────────────────────────────────────────────
+    const sectionMeta = {
+      CTA:        { icon: 'cursor-fill',     color: 'var(--primary2)', desc: 'How clearly you direct visitors to take action' },
+      'Lead Gen': { icon: 'funnel-fill',     color: 'var(--accent)',   desc: 'How you capture leads and build your list' },
+      Contact:    { icon: 'telephone-fill',  color: 'var(--green)',    desc: 'How easy it is for visitors to reach you' },
+      Trust:      { icon: 'shield-check',    color: '#f59e0b',         desc: 'Evidence that reduces doubt and builds confidence' },
+      Navigation: { icon: 'compass-fill',    color: 'var(--muted)',    desc: 'How clearly visitors can find their way' },
+    };
+
+    const impactColor = i => i === 'High' ? 'var(--red)' : i === 'Medium' ? 'var(--yellow)' : 'var(--muted)';
+    const impactBg    = i => i === 'High' ? 'rgba(240,68,68,.1)' : i === 'Medium' ? 'rgba(245,158,11,.1)' : 'rgba(122,143,168,.08)';
+
+    // ── Sub-scores overview ────────────────────────────────────────────────
+    const subScores = [
+      { label: 'CTA',      score: cv.ctaSectionScore     ?? 0, icon: 'cursor-fill',    color: 'var(--primary2)' },
+      { label: 'Lead Gen', score: cv.leadSectionScore    ?? 0, icon: 'funnel-fill',    color: 'var(--accent)' },
+      { label: 'Contact',  score: cv.contactSectionScore ?? 0, icon: 'telephone-fill', color: 'var(--green)' },
+      { label: 'Trust',    score: cv.trustSectionScore   ?? 0, icon: 'shield-check',   color: '#f59e0b' },
+    ];
+
+    // ── Group checks by section ────────────────────────────────────────────
+    const grouped = {};
+    (cv.checks || []).forEach(c => {
+      const s = c.section || 'Other';
+      if (!grouped[s]) grouped[s] = [];
+      grouped[s].push(c);
+    });
+
+    const sectionCards = Object.entries(grouped).map(([sec, items]) => {
+      const sm    = sectionMeta[sec] || { icon: 'list-check', color: 'var(--muted)', desc: '' };
+      const fails = items.filter(c => c.type !== 'ok');
+      const passes = items.filter(c => c.type === 'ok');
+      return `
+      <div class="p3-audit-section">
+        <div class="p3-section-head" style="border-left-color:${sm.color}">
+          <span class="p3-section-icon" style="background:${sm.color}18;color:${sm.color}"><i class="bi bi-${sm.icon}"></i></span>
+          <div class="p3-section-title-col">
+            <span class="p3-section-title">${sec}</span>
+            <span class="p3-section-desc">${sm.desc}</span>
+          </div>
+          <div class="p3-section-tally">
+            <span class="p3-tally-pass">${passes.length} ✓</span>
+            ${fails.length ? `<span class="p3-tally-fail">${fails.length} ✗</span>` : ''}
           </div>
         </div>
+        ${items.map(c => {
+          const def  = auditDefs[c.label] || {};
+          const isOk = c.type === 'ok';
+          return `
+          <div class="p3-audit-item${isOk ? ' p3-audit-ok' : ' p3-audit-fail'}">
+            <div class="p3-audit-item-head">
+              <i class="bi bi-${isOk ? 'check-circle-fill' : 'x-circle-fill'}" style="color:${isOk ? 'var(--green)' : 'var(--red)'}"></i>
+              <span class="p3-audit-label">${this.e(c.label)}</span>
+              ${!isOk && def.impact ? `<span class="p3-impact-badge" style="background:${impactBg(def.impact)};color:${impactColor(def.impact)}">${def.impact} impact</span>` : ''}
+            </div>
+            <div class="p3-audit-status">${this.e(c.msg)}</div>
+            ${!isOk && def.why ? `
+            <div class="p3-audit-why">
+              <span class="p3-audit-why-label">Why it matters</span>
+              ${this.e(def.why)}
+            </div>` : ''}
+            ${!isOk && def.fix ? `
+            <div class="p3-audit-fix">
+              <span class="p3-audit-fix-label">Recommended fix</span>
+              ${this.e(def.fix)}
+            </div>` : ''}
+          </div>`;
+        }).join('')}
+      </div>`;
+    }).join('');
+
+    // ── MultiMian CTA ──────────────────────────────────────────────────────
+    const hasNoContact = !cv.hasEmail && !cv.hasPhone && !cv.hasContactPg;
+    const ctaCopy = !cv.hasPrimaryCTA || hasNoContact
+      ? { headline: 'Visitors can\'t convert — there\'s nothing to click or contact.', sub: 'Missing CTAs and contact information are directly costing you leads. MultiMian can fix this fast.', btn: 'Get a Free Conversion Review →' }
+      : cv.score < 60
+      ? { headline: 'Your website is leaving money on the table.', sub: 'Conversion improvements can double or triple your enquiry rate without spending more on traffic.', btn: 'Talk to MultiMian →' }
+      : { headline: 'Good conversion setup — want to optimise further?', sub: 'MultiMian specialises in conversion-focused web development and SEO that turns more visitors into clients.', btn: 'Explore Conversion Services →' };
+
+    return `
+    <!-- ── Score Hero ── -->
+    <div class="p3-biz-hero">
+      <div class="p3-biz-hero-ring-col">
+        <div class="score-ring" style="border-color:${gradeColor};color:${gradeColor};width:96px;height:96px;font-size:1.7rem">${cv.score}</div>
+        <div style="font-weight:800;font-size:.9rem;color:${gradeColor};margin-top:.4rem">${gradeLabel}</div>
+        <div style="font-size:.75rem;color:var(--muted)">Grade ${cv.grade}</div>
       </div>
-      <div class="card">
-        <div class="card-head"><i class="bi bi-list-check"></i> Conversion Checks</div>
-        ${(() => {
-          const sections = {};
-          (cv.checks || []).forEach(c => {
-            const s = c.section || 'Other';
-            if (!sections[s]) sections[s] = [];
-            sections[s].push(c);
-          });
-          const colors = { CTA:'var(--primary2)', 'Lead Gen':'var(--accent)', Contact:'var(--green)', Trust:'#f59e0b', Navigation:'var(--muted)' };
-          return Object.entries(sections).map(([sec, items]) => `
-            <div style="margin-bottom:.75rem">
-              <div style="font-size:.7rem;font-weight:700;color:${colors[sec]||'var(--muted)'};text-transform:uppercase;letter-spacing:.08em;margin-bottom:.35rem;display:flex;align-items:center;gap:.4rem">
-                ${sec}<span style="flex:1;height:1px;background:var(--border);display:inline-block"></span>
+      <div class="p3-biz-hero-body">
+        <div class="p3-biz-hero-title"><i class="bi bi-cursor-fill" style="color:${gradeColor}"></i> Conversion Intelligence Audit</div>
+        <div class="p3-biz-hero-desc">${this.e(gradeDesc)}</div>
+        <div class="p3-subscore-bar">
+          ${subScores.map(s => {
+            const sc = scoreColor(s.score);
+            return `
+            <div class="p3-subscore">
+              <div class="p3-subscore-label"><i class="bi bi-${s.icon}" style="color:${s.color}"></i>${s.label}</div>
+              <div class="p3-subscore-track">
+                <div class="p3-subscore-fill" style="width:${s.score}%;background:${sc}"></div>
               </div>
-              ${items.map(c => {
-                const icon = c.type === 'ok' ? 'check-circle-fill' : c.type === 'error' ? 'x-circle-fill' : 'exclamation-triangle-fill';
-                const cls  = c.type === 'ok' ? 'a11y-ok' : 'a11y-warn';
-                return `<div class="a11y-row ${cls}"><i class="bi bi-${icon}"></i><div style="flex:1"><div style="font-weight:600;font-size:.85rem">${this.e(c.label)}</div><div style="font-size:.78rem;opacity:.85">${this.e(c.msg)}</div></div></div>`;
-              }).join('')}
-            </div>`).join('');
-        })()}
+              <div class="p3-subscore-val" style="color:${sc}">${s.score}</div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Section Audit Cards ── -->
+    <div class="p3-audit-cards">
+      ${sectionCards}
+    </div>
+
+    <!-- ── MultiMian CTA ── -->
+    <div class="p3-tab-cta">
+      <div class="p3-tab-cta-inner">
+        <div class="p3-tab-cta-icon"><i class="bi bi-graph-up-arrow"></i></div>
+        <div class="p3-tab-cta-body">
+          <div class="p3-tab-cta-headline">${ctaCopy.headline}</div>
+          <div class="p3-tab-cta-sub">${ctaCopy.sub}</div>
+        </div>
+        <a href="https://multimian.com" target="_blank" rel="noopener" class="p3-tab-cta-btn">${ctaCopy.btn}</a>
       </div>
     </div>`;
-
-    const signals = `
-    <div class="g2">
-      <div class="card">
-        <div class="card-head"><i class="bi bi-shield-check"></i> Trust Signals</div>
-        ${this.crow('Testimonials / Reviews', cv.hasTestimonials)}
-        ${this.crow('Social Proof Numbers',   cv.hasSocialProof)}
-        ${this.crow('Pricing Information',    cv.hasPricing)}
-        ${this.crow('Lead Capture Form',      cv.hasLeadCapture)}
-        ${this.crow('Newsletter Form',        cv.hasNewsletterForm)}
-      </div>
-      <div class="card">
-        <div class="card-head"><i class="bi bi-cursor-fill"></i> CTA & Navigation</div>
-        ${this.crow('Primary CTA Present',    cv.hasPrimaryCTA)}
-        ${this.crow('CTA Visible Above Fold', cv.ctaAboveFold)}
-        ${this.crow('CTA Count Reasonable',   !cv.ctaCrowded)}
-        ${this.crow('Navigation Not Cluttered', !cv.hasExcessiveNav)}
-        <div style="margin-top:.5rem;font-size:.78rem;color:var(--muted)">${cv.navCount} navigation link(s) found</div>
-      </div>
-    </div>`;
-
-    return scoreCard + signals;
   },
 };
