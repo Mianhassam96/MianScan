@@ -20,198 +20,703 @@ const Exporter = {
   toPDF(data) {
     if (typeof window.jspdf === 'undefined') { UI.toast('PDF library not loaded'); return; }
     const { jsPDF } = window.jspdf;
-    const doc = new jsPDF(); let y = 22;
-    const hostname = new URL(data.url).hostname;
+    const doc      = new jsPDF({ unit: 'mm', format: 'a4' });
+    const PW       = 210;  // page width mm
+    const PH       = 297;  // page height mm
+    const ML       = 16;   // margin left
+    const MR       = 16;   // margin right
+    const CW       = PW - ML - MR;  // content width
+    const FOOTER_H = 14;
+    const BODY_MAX = PH - FOOTER_H - 10;
+    let y          = 0;
+    let pageNum    = 0;
 
-    const addPage = () => { doc.addPage(); y = 22; };
-    const checkY  = (needed = 10) => { if (y + needed > 278) addPage(); };
+    const hostname  = new URL(data.url).hostname.replace(/^www\./, '');
+    const g         = data.growth;
+    const scannedAt = new Date(data.scannedAt).toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' });
 
-    // ── Gradient-style header bar
-    doc.setFillColor(100, 112, 255);
-    doc.rect(0, 0, 210, 22, 'F');
-    doc.setFillColor(168, 85, 247);
-    doc.rect(140, 0, 70, 22, 'F');
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(13); doc.setFont(undefined, 'bold');
-    doc.text('MianScan Report', 14, 14);
-    doc.setFontSize(8); doc.setFont(undefined, 'normal');
-    doc.text(hostname, 145, 9);
-    doc.text(new Date(data.scannedAt).toLocaleDateString(), 145, 16);
-    doc.setTextColor(30, 30, 30);
-    y = 30;
-
-    // ── Score summary bar
-    const seoScore  = data.seo.score;
-    const perfScore = data.performance?.score ?? '—';
-    const mobScore  = data.mobile?.score ?? '—';
-    const secScore  = data.security?.score ?? '—';
-    const scoreColor = s => s >= 70 ? [34,197,94] : s >= 50 ? [245,158,11] : [240,68,68];
-
-    const scoreBoxes = [
-      { label: 'SEO', val: seoScore },
-      { label: 'Perf', val: perfScore },
-      { label: 'Mobile', val: mobScore },
-      { label: 'Security', val: secScore },
-    ];
-    scoreBoxes.forEach((b, i) => {
-      const x = 14 + i * 46;
-      const col = typeof b.val === 'number' ? scoreColor(b.val) : [150,150,150];
-      doc.setFillColor(...col);
-      doc.roundedRect(x, y, 40, 18, 3, 3, 'F');
-      doc.setTextColor(255,255,255);
-      doc.setFontSize(14); doc.setFont(undefined, 'bold');
-      doc.text(String(b.val), x + 20, y + 10, { align: 'center' });
-      doc.setFontSize(7); doc.setFont(undefined, 'normal');
-      doc.text(b.label, x + 20, y + 16, { align: 'center' });
-    });
-    doc.setTextColor(30,30,30);
-    y += 26;
-
-    const section = (title, color = [100,112,255]) => {
-      checkY(14);
-      y += 2;
-      doc.setFillColor(...color);
-      doc.rect(14, y - 4, 182, 8, 'F');
-      doc.setTextColor(255,255,255);
-      doc.setFontSize(9); doc.setFont(undefined, 'bold');
-      doc.text(title, 17, y + 1);
-      doc.setTextColor(30,30,30);
-      y += 10; doc.setFontSize(8.5);
+    // ─── Colour palette ───────────────────────────────────────────────────
+    const C = {
+      primary:  [100, 112, 255],
+      purple:   [168,  85, 247],
+      green:    [ 34, 197,  94],
+      yellow:   [245, 158,  11],
+      red:      [240,  68,  68],
+      cyan:     [  0, 212, 255],
+      pink:     [236,  72, 153],
+      dark:     [ 12,  22,  40],
+      card:     [ 18,  32,  54],
+      text:     [ 30,  46,  70],
+      muted:    [100, 118, 145],
+      border:   [220, 228, 245],
+      white:    [255, 255, 255],
+      bgLight:  [247, 249, 255],
     };
 
-    const row = (label, val) => {
-      checkY(7);
-      doc.setFont(undefined, 'bold'); doc.setTextColor(90,106,133);
-      doc.text(label + ':', 16, y);
-      doc.setFont(undefined, 'normal'); doc.setTextColor(30,30,30);
-      const lines = doc.splitTextToSize(String(val || '—'), 128);
-      doc.text(lines, 68, y);
+    const scoreCol = s =>
+      s >= 80 ? C.green : s >= 65 ? C.primary : s >= 50 ? C.yellow : C.red;
+    const gradeStr = s =>
+      s >= 90 ? 'A' : s >= 80 ? 'B' : s >= 65 ? 'C' : s >= 50 ? 'D' : 'F';
+    const labelStr = s =>
+      s >= 90 ? 'Excellent' : s >= 80 ? 'Strong' : s >= 65 ? 'Good' : s >= 50 ? 'Needs Work' : 'Critical';
+
+    // ─── Helpers ──────────────────────────────────────────────────────────
+
+    // Ensure we have room; add page if needed
+    const need = (h) => { if (y + h > BODY_MAX) newPage(); };
+
+    const setRGB  = (arr) => doc.setTextColor(...arr);
+    const fillRGB = (arr) => doc.setFillColor(...arr);
+    const drawRGB = (arr) => doc.setDrawColor(...arr);
+
+    // Standard page footer (called after each page is filled)
+    const drawFooter = () => {
+      fillRGB(C.bgLight);
+      doc.rect(0, PH - FOOTER_H, PW, FOOTER_H, 'F');
+      drawRGB(C.border); doc.setLineWidth(0.3);
+      doc.line(0, PH - FOOTER_H, PW, PH - FOOTER_H);
+      doc.setFontSize(7); setRGB(C.muted);
+      doc.setFont(undefined, 'normal');
+      doc.text('MianScan Website Growth Report  ·  Generated by mianscan.io', ML, PH - 5);
+      doc.text(`Page ${pageNum}`, PW - MR, PH - 5, { align: 'right' });
+      setRGB(C.text);
+    };
+
+    // Start a new page
+    const newPage = () => {
+      if (pageNum > 0) drawFooter();
+      doc.addPage();
+      pageNum++;
+      y = 18;
+    };
+
+    // Section heading bar
+    const sectionBar = (title, color = C.primary, icon = '') => {
+      need(12);
+      y += 2;
+      fillRGB(color);
+      doc.roundedRect(ML, y - 4, CW, 9, 2, 2, 'F');
+      setRGB(C.white);
+      doc.setFontSize(9); doc.setFont(undefined, 'bold');
+      doc.text((icon ? icon + '  ' : '') + title, ML + 4, y + 1.5);
+      setRGB(C.text);
+      y += 9; doc.setFontSize(8.5); doc.setFont(undefined, 'normal');
+    };
+
+    // Key-value row
+    const kv = (label, val, labelW = 52) => {
+      need(7);
+      doc.setFont(undefined, 'bold'); setRGB(C.muted);
+      doc.text(label, ML, y);
+      doc.setFont(undefined, 'normal'); setRGB(C.text);
+      const lines = doc.splitTextToSize(String(val ?? '—'), CW - labelW - 2);
+      doc.text(lines, ML + labelW, y);
       y += lines.length * 5 + 1.5;
     };
 
-    const check = (label, pass) => {
-      checkY(6);
+    // Check row  ✓ / ✗
+    const checkRow = (label, pass, note = '') => {
+      need(6.5);
+      const col = pass ? C.green : C.red;
+      fillRGB(pass ? [34,197,94, 18] : [240,68,68, 18]);
       doc.setFont(undefined, 'normal');
-      doc.setTextColor(pass ? 34 : 240, pass ? 197 : 68, pass ? 94 : 68);
-      doc.text(pass ? '✓' : '✗', 16, y);
-      doc.setTextColor(30,30,30);
-      doc.text(label, 24, y);
+      setRGB(col);
+      doc.text(pass ? '✓' : '✗', ML, y);
+      setRGB(C.text);
+      doc.text(label, ML + 7, y);
+      if (note) { setRGB(C.muted); doc.text(note, ML + 7, y + 4); y += 4; }
+      setRGB(C.text);
       y += 5.5;
     };
 
-    // ── Overview
-    section('Overview');
-    row('URL',      data.url);
-    row('Title',    data.overview.title);
-    row('Type',     data.overview.type);
-    row('Language', data.overview.lang);
-    row('Words',    (data.content.wordCount||0).toLocaleString());
-    row('HTML Size',data.performance.htmlSizeKB + ' KB');
-    row('Scanned',  new Date(data.scannedAt).toLocaleString());
+    // Small coloured pill tag
+    const pill = (text, col, bgAlpha = 0.12, x2 = null, y2 = null) => {
+      const px = x2 ?? ML;
+      const py = y2 ?? y;
+      doc.setFontSize(7); doc.setFont(undefined, 'bold');
+      const tw = doc.getTextWidth(text);
+      fillRGB(col);
+      doc.roundedRect(px, py - 4, tw + 6, 5.5, 1.5, 1.5, 'F');
+      setRGB(C.white);
+      doc.text(text, px + 3, py);
+      doc.setFontSize(8.5); doc.setFont(undefined, 'normal'); setRGB(C.text);
+      return tw + 8;
+    };
+
+    // Horizontal score bar
+    const scoreBar = (label, score, x, barY, barW = 55) => {
+      const col = scoreCol(score);
+      doc.setFontSize(7); doc.setFont(undefined, 'normal'); setRGB(C.muted);
+      doc.text(label, x, barY - 1);
+      fillRGB(C.border);
+      doc.roundedRect(x, barY, barW, 3.5, 1, 1, 'F');
+      fillRGB(col);
+      doc.roundedRect(x, barY, (score / 100) * barW, 3.5, 1, 1, 'F');
+      doc.setFontSize(7.5); doc.setFont(undefined, 'bold'); setRGB(col);
+      doc.text(String(score), x + barW + 2, barY + 3);
+      setRGB(C.text);
+    };
+
+    // ─────────────────────────────────────────────────────────────────────
+    // PAGE 1 — COVER
+    // ─────────────────────────────────────────────────────────────────────
+    pageNum = 1;
+    y = 0;
+
+    // Full-page dark gradient background
+    fillRGB(C.dark);
+    doc.rect(0, 0, PW, PH, 'F');
+
+    // Accent blobs
+    fillRGB([100, 112, 255]);
+    doc.ellipse(30, 60, 60, 45, 'F');
+    doc.setGState(new doc.GState({ opacity: 0.4 }));
+    fillRGB([168, 85, 247]);
+    doc.ellipse(180, 160, 55, 40, 'F');
+    doc.setGState(new doc.GState({ opacity: 1 }));
+
+    // Cover card
+    fillRGB([18, 32, 54]);
+    doc.roundedRect(ML, 22, CW, 110, 6, 6, 'F');
+    drawRGB([100, 112, 255]); doc.setLineWidth(0.5);
+    doc.roundedRect(ML, 22, CW, 110, 6, 6, 'S');
+
+    // MianScan logo text
+    doc.setFontSize(11); doc.setFont(undefined, 'bold'); setRGB(C.primary);
+    doc.text('MianScan', ML + 8, 35);
+    doc.setFontSize(7.5); doc.setFont(undefined, 'normal'); setRGB(C.muted);
+    doc.text('Website Growth Report', ML + 8, 41);
+
+    // Divider
+    drawRGB([100, 112, 255]); doc.setLineWidth(0.3);
+    doc.line(ML + 8, 44, ML + CW - 8, 44);
+
+    // Big score ring (simulated)
+    const ringX = ML + CW / 2;
+    const ringY = 82;
+    const overallScore = g?.overall ?? data.seo.score;
+    const ringCol = scoreCol(overallScore);
+
+    // Outer ring glow
+    fillRGB(ringCol);
+    doc.setGState(new doc.GState({ opacity: 0.12 }));
+    doc.circle(ringX, ringY, 28, 'F');
+    doc.setGState(new doc.GState({ opacity: 1 }));
+
+    // Ring border
+    drawRGB(ringCol); doc.setLineWidth(3);
+    doc.circle(ringX, ringY, 22, 'S');
+
+    // Score number
+    doc.setFontSize(26); doc.setFont(undefined, 'bold'); setRGB(ringCol);
+    doc.text(String(overallScore), ringX, ringY + 4, { align: 'center' });
+    doc.setFontSize(8); setRGB(C.muted);
+    doc.text('/ 100', ringX, ringY + 11, { align: 'center' });
+
+    // Grade + label under ring
+    doc.setFontSize(10); doc.setFont(undefined, 'bold'); setRGB(ringCol);
+    doc.text(labelStr(overallScore), ringX, ringY + 19, { align: 'center' });
+    doc.setFontSize(7.5); doc.setFont(undefined, 'normal'); setRGB(C.muted);
+    doc.text('Grade ' + gradeStr(overallScore), ringX, ringY + 24, { align: 'center' });
+
+    // Domain name
+    doc.setFontSize(9); doc.setFont(undefined, 'bold'); setRGB(C.white);
+    doc.text(hostname, ringX, ringY - 26, { align: 'center' });
+
+    // Category scores grid (2×3 under card)
+    const cats = g?.categories;
+    const catList = cats ? [
+      { key: 'seo',        label: 'SEO' },
+      { key: 'performance',label: 'Performance' },
+      { key: 'mobile',     label: 'Mobile' },
+      { key: 'security',   label: 'Security' },
+      { key: 'conversion', label: 'Conversion' },
+      { key: 'business',   label: 'Business' },
+    ] : [];
+
+    if (catList.length) {
+      let catY = 142;
+      catList.forEach((c, i) => {
+        const score = cats[c.key] ?? 0;
+        const col   = scoreCol(score);
+        const colX  = ML + 8 + (i % 3) * 60;
+        const rowY  = catY + Math.floor(i / 3) * 20;
+
+        fillRGB([28, 44, 68]);
+        doc.roundedRect(colX - 2, rowY - 7, 55, 15, 2, 2, 'F');
+
+        doc.setFontSize(7); doc.setFont(undefined, 'normal'); setRGB(C.muted);
+        doc.text(c.label, colX, rowY - 1);
+
+        fillRGB([40, 58, 88]);
+        doc.roundedRect(colX, rowY + 2, 38, 3, 1, 1, 'F');
+        fillRGB(col);
+        doc.roundedRect(colX, rowY + 2, (score / 100) * 38, 3, 1, 1, 'F');
+
+        doc.setFontSize(8); doc.setFont(undefined, 'bold'); setRGB(col);
+        doc.text(String(score), colX + 41, rowY + 4.5);
+      });
+    }
+
+    // Summary text
+    if (g?.summary) {
+      doc.setFontSize(8); doc.setFont(undefined, 'normal'); setRGB(C.muted);
+      const sumLines = doc.splitTextToSize(g.summary, CW - 16);
+      doc.text(sumLines, ML + 8, 190);
+      y = 190 + sumLines.length * 5;
+    } else {
+      y = 188;
+    }
+
+    // Prepared by + date block
+    fillRGB([28, 44, 68]);
+    doc.roundedRect(ML, 225, CW, 28, 4, 4, 'F');
+    doc.setFontSize(7.5); doc.setFont(undefined, 'bold'); setRGB(C.muted);
+    doc.text('PREPARED BY', ML + 8, 234);
+    doc.setFontSize(9); setRGB(C.white);
+    doc.text('MianScan — mianscan.io', ML + 8, 241);
+    doc.setFontSize(7); doc.setFont(undefined, 'normal'); setRGB(C.muted);
+    doc.text('Powered by MultiMian  ·  multimian.com', ML + 8, 247);
+
+    doc.setFontSize(7.5); doc.setFont(undefined, 'bold'); setRGB(C.muted);
+    doc.text('DATE', ML + CW - 40, 234);
+    doc.setFontSize(9); setRGB(C.white);
+    doc.text(scannedAt, ML + CW - 40, 241);
+
+    // Cover footer
+    doc.setFontSize(7); doc.setFont(undefined, 'normal'); setRGB(C.muted);
+    doc.text('mianscan.io  ·  Free Website Intelligence', PW / 2, PH - 8, { align: 'center' });
+
+    // ─────────────────────────────────────────────────────────────────────
+    // PAGE 2 — GROWTH SCORE + PRIORITY FINDINGS
+    // ─────────────────────────────────────────────────────────────────────
+    doc.addPage(); pageNum++; y = 18;
+    doc.setFontSize(8.5); doc.setFont(undefined, 'normal'); setRGB(C.text);
+
+    // Page header strip
+    fillRGB(C.primary);
+    doc.rect(0, 0, PW, 12, 'F');
+    doc.setFontSize(8); doc.setFont(undefined, 'bold'); setRGB(C.white);
+    doc.text('MianScan Report  ·  ' + hostname, ML, 8);
+    doc.setFont(undefined, 'normal');
+    doc.text(scannedAt, PW - MR, 8, { align: 'right' });
+    setRGB(C.text); y = 20;
+
+    sectionBar('Priority Findings', C.red);
+
+    if (g?.findings) {
+      const issues = g.findings.filter(f => f.priority !== 'good');
+      const priorityColor = p =>
+        p === 'critical' ? C.red : p === 'high' ? C.yellow : p === 'medium' ? C.primary : C.muted;
+      const priorityLabel = p =>
+        p === 'critical' ? 'FIX TODAY' : p === 'high' ? 'THIS WEEK' : p === 'medium' ? 'NEXT' : 'CONSIDER';
+
+      issues.slice(0, 12).forEach(f => {
+        need(22);
+        const pc = priorityColor(f.priority);
+
+        // Finding card background
+        fillRGB(C.bgLight); drawRGB(C.border); doc.setLineWidth(0.25);
+        doc.roundedRect(ML, y, CW, 18, 2, 2, 'FD');
+
+        // Left accent bar
+        fillRGB(pc);
+        doc.roundedRect(ML, y, 3, 18, 1, 1, 'F');
+
+        // Priority pill
+        doc.setFontSize(6.5); doc.setFont(undefined, 'bold'); setRGB(pc);
+        doc.text(priorityLabel(f.priority), ML + 6, y + 5);
+
+        // Category tag
+        doc.setFontSize(6.5); setRGB(C.muted);
+        doc.text(f.category, ML + 6, y + 10);
+
+        // Title
+        doc.setFontSize(8.5); doc.setFont(undefined, 'bold'); setRGB(C.text);
+        const titleLines = doc.splitTextToSize(f.title, CW - 50);
+        doc.text(titleLines, ML + 6, y + 15.5);
+
+        // Effort badge (right side)
+        if (f.effort) {
+          doc.setFontSize(6.5); doc.setFont(undefined, 'normal'); setRGB(C.muted);
+          doc.text(f.effort, ML + CW - 2, y + 6.5, { align: 'right' });
+        }
+
+        // Impact
+        if (f.impact) {
+          const ic = f.impact === 'High' ? C.red : f.impact === 'Medium' ? C.yellow : C.muted;
+          setRGB(ic); doc.setFontSize(6.5); doc.setFont(undefined, 'bold');
+          doc.text(f.impact + ' impact', ML + CW - 2, y + 12, { align: 'right' });
+        }
+
+        y += 20;
+      });
+
+      if (issues.length > 12) {
+        setRGB(C.muted); doc.setFontSize(7.5); doc.setFont(undefined, 'normal');
+        doc.text(`+ ${issues.length - 12} more findings — see full report at mianscan.io`, ML, y + 3);
+        y += 8;
+      }
+    } else {
+      setRGB(C.muted); doc.setFontSize(8);
+      doc.text('No priority findings available.', ML, y);
+      y += 8;
+    }
+
+    // ── Action Plan
+    if (g?.actionPlan) {
+      need(10);
+      sectionBar('Action Plan', C.primary);
+      const ap = g.actionPlan;
+
+      const apCol = (col, title, items) => {
+        if (!items.length) return;
+        need(8 + items.length * 6);
+        doc.setFontSize(8); doc.setFont(undefined, 'bold'); setRGB(col);
+        doc.text(title, ML, y); y += 5;
+        items.forEach(t => {
+          need(6);
+          setRGB(col); doc.text('→', ML, y);
+          setRGB(C.text); doc.setFont(undefined, 'normal'); doc.setFontSize(8);
+          const lines = doc.splitTextToSize(t.title || t, CW - 10);
+          doc.text(lines, ML + 6, y);
+          if (t.effort) {
+            setRGB(C.muted); doc.setFontSize(6.5);
+            doc.text(t.effort, ML + CW, y, { align: 'right' });
+          }
+          y += lines.length * 5 + 1;
+        });
+        y += 3;
+      };
+
+      apCol(C.red,     'Do Today (Critical)',    ap.today);
+      apCol(C.yellow,  'This Week (High)',        ap.thisWeek);
+      apCol(C.primary, 'This Month (Medium)',     ap.thisMonth.slice(0, 6));
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    // PAGE 3 — SEO + PERFORMANCE + MOBILE + SECURITY
+    // ─────────────────────────────────────────────────────────────────────
+    newPage();
+
+    // Page header
+    fillRGB(C.primary);
+    doc.rect(0, 0, PW, 12, 'F');
+    doc.setFontSize(8); doc.setFont(undefined, 'bold'); setRGB(C.white);
+    doc.text('MianScan Report  ·  ' + hostname, ML, 8);
+    doc.setFont(undefined, 'normal');
+    doc.text(scannedAt, PW - MR, 8, { align: 'right' });
+    setRGB(C.text); y = 20;
 
     // ── SEO
-    section('SEO Analysis', [34,197,94]);
-    row('Score',       data.seo.score + '/100');
-    row('Title',       data.seo.title || '—');
-    row('Description', data.seo.metaDesc || '—');
-    row('H1 Tags',     data.seo.h1s.join(', ') || 'None');
-    row('H2 Tags',     (data.seo.h2s||[]).length + ' found');
-    row('Canonical',   data.seo.canonical || 'Not set');
-    y += 1;
-    check('Meta Title',       !!data.seo.title);
-    check('Meta Description', !!data.seo.metaDesc);
-    check('Single H1',        data.seo.h1s.length === 1);
-    check('OG Tags',          !!data.seo.ogTitle);
-    check('All Images Alt',   data.seo.noAlt === 0);
-    check('Canonical Set',    !!data.seo.canonical);
-    check('Viewport Meta',    !!data.seo.viewport);
+    sectionBar('SEO Analysis', C.green);
+    kv('Score',        data.seo.score + '/100  (Grade ' + gradeStr(data.seo.score) + ')');
+    kv('Title',        data.seo.title || '—');
+    kv('Description',  data.seo.metaDesc || '—');
+    kv('H1 Tags',      (data.seo.h1s || []).join(', ') || 'None');
+    kv('H2 Count',     (data.seo.h2s || []).length);
+    kv('Canonical',    data.seo.canonical || 'Not set');
+    kv('Alt Missing',  data.seo.noAlt);
+    y += 2;
+    checkRow('Meta Title set',          !!data.seo.title);
+    checkRow('Meta Description set',    !!data.seo.metaDesc);
+    checkRow('Single H1',               data.seo.h1s?.length === 1);
+    checkRow('Open Graph tags',         !!data.seo.ogTitle);
+    checkRow('All images have alt text',data.seo.noAlt === 0);
+    checkRow('Canonical URL set',       !!data.seo.canonical);
+    checkRow('Viewport meta tag',       !!data.seo.viewport);
 
     // ── Performance
-    section('Performance', [245,158,11]);
-    row('Score',       (data.performance?.score ?? '—') + (data.performance?.grade ? ' (Grade ' + data.performance.grade + ')' : ''));
-    row('HTML Size',   data.performance.htmlSizeKB + ' KB');
-    row('Scripts',     data.performance.scriptsCount);
-    row('Stylesheets', data.performance.stylesCount);
-    row('Images',      data.performance.imagesCount);
-    row('Lazy Images', data.performance.lazyImgs ?? '—');
-    row('Iframes',     data.performance.iframesCount);
+    need(8);
+    sectionBar('Performance', C.yellow);
+    kv('Score',        (data.performance?.score ?? '—') + (data.performance?.grade ? '  Grade ' + data.performance.grade : ''));
+    kv('HTML Size',    data.performance.htmlSizeKB + ' KB');
+    kv('Scripts',      data.performance.scriptsCount);
+    kv('Stylesheets',  data.performance.stylesCount);
+    kv('Images',       data.performance.imagesCount);
+    kv('Lazy Images',  data.performance.lazyImgs ?? '—');
     if (data.ranking?.perfScore != null) {
-      row('PageSpeed (Mobile)', data.ranking.perfScore + '/100');
-      if (data.ranking.fcp) row('FCP', data.ranking.fcp);
-      if (data.ranking.lcp) row('LCP', data.ranking.lcp);
+      kv('PageSpeed',  data.ranking.perfScore + '/100');
+      if (data.ranking.fcp) kv('FCP', data.ranking.fcp);
+      if (data.ranking.lcp) kv('LCP', data.ranking.lcp);
     }
-
-    // ── Security
-    section('Security', [240,68,68]);
-    row('Score', (data.security?.score ?? '—') + ' / Grade ' + (data.security?.grade ?? '?'));
-    row('HTTPS', data.security?.https ? 'Yes — Secure' : 'No — Insecure');
-    (data.security?.checks || []).slice(0, 6).forEach(c => check(c.label, c.type === 'ok'));
 
     // ── Mobile
-    section('Mobile Friendliness', [34,197,94]);
-    row('Score', (data.mobile?.score ?? '—') + ' / Grade ' + (data.mobile?.grade ?? '?'));
-    (data.mobile?.checks || []).slice(0, 5).forEach(c => check(c.label, c.type === 'ok'));
+    need(8);
+    sectionBar('Mobile Friendliness', [34, 180, 94]);
+    kv('Score', (data.mobile?.score ?? '—') + (data.mobile?.grade ? '  Grade ' + data.mobile.grade : ''));
+    (data.mobile?.checks || []).slice(0, 6).forEach(c => checkRow(c.label, c.type === 'ok'));
 
-    // ── Domain & Ranking
-    section('Domain & Ranking', [168,85,247]);
-    row('Domain',      data.domain?.hostname || hostname);
-    row('Domain Auth', data.domain?.da != null ? data.domain.da + '/10 (' + (data.domain.daNote||'') + ')' : 'N/A');
-    row('Global Rank', data.ranking?.globalRank ? '#' + Number(data.ranking.globalRank).toLocaleString() : 'N/A');
-    row('IP Address',  data.domain?.ip || 'N/A');
-    row('Country',     data.domain?.country || 'N/A');
-    row('Registered',  data.domain?.age || 'Unknown');
+    // ── Security
+    need(8);
+    sectionBar('Security', C.red);
+    kv('Score', (data.security?.score ?? '—') + '  Grade ' + (data.security?.grade ?? '?'));
+    kv('HTTPS', data.security?.https ? 'Yes — Secure' : 'No — Not Secure');
+    (data.security?.checks || []).slice(0, 6).forEach(c => checkRow(c.label, c.type === 'ok'));
 
-    // ── Tech Stack
-    section('Tech Stack', [0,212,255]);
-    row('Detected', data.tech.detected.join(', ') || 'None');
-    row('Scripts',  data.performance.scriptsCount);
+    // ─────────────────────────────────────────────────────────────────────
+    // PAGE 4 — BUSINESS + CONVERSION + TECH + CONTACTS
+    // ─────────────────────────────────────────────────────────────────────
+    newPage();
 
-    // ── Colors with swatches
-    section('Color Palette', [236,72,153]);
-    row('Total Found', data.colors.total);
-    checkY(22);
-    y += 2;
-    data.colors.colors.slice(0, 16).forEach((hex, i) => {
-      const x  = 16 + (i % 8) * 21;
-      const sy = y + Math.floor(i / 8) * 16;
-      const r  = parseInt(hex.slice(1,3),16);
-      const g  = parseInt(hex.slice(3,5),16);
-      const b  = parseInt(hex.slice(5,7),16);
-      doc.setFillColor(r,g,b);
-      doc.roundedRect(x, sy, 15, 10, 2, 2, 'F');
-      doc.setFontSize(5); doc.setTextColor(100,100,100);
-      doc.text(hex, x, sy + 13);
-    });
-    y += (Math.ceil(Math.min(data.colors.colors.length,16)/8)) * 17 + 4;
-    doc.setFontSize(8.5); doc.setTextColor(30,30,30);
+    fillRGB(C.primary);
+    doc.rect(0, 0, PW, 12, 'F');
+    doc.setFontSize(8); doc.setFont(undefined, 'bold'); setRGB(C.white);
+    doc.text('MianScan Report  ·  ' + hostname, ML, 8);
+    doc.setFont(undefined, 'normal');
+    doc.text(scannedAt, PW - MR, 8, { align: 'right' });
+    setRGB(C.text); y = 20;
 
-    // ── Fonts
-    section('Fonts', [34,197,94]);
-    row('Detected', data.fonts.fonts.map(f=>f.name).join(', ') || 'None');
-
-    // ── Contacts
-    section('Contacts', [0,212,255]);
-    row('Emails',  data.contacts.emails.join(', ') || 'None');
-    row('Phones',  data.contacts.phones.join(', ') || 'None');
-    row('Social',  Object.keys(data.contacts.social||{}).join(', ') || 'None');
-
-    // ── Keywords
-    section('Top Keywords', [100,112,255]);
-    data.content.keywords.slice(0,12).forEach(k => row(k.word, `${k.count}x (${k.density}%)`));
-
-    // ── Footer on every page
-    const pageCount = doc.getNumberOfPages();
-    for (let i = 1; i <= pageCount; i++) {
-      doc.setPage(i);
-      doc.setFillColor(245,245,250);
-      doc.rect(0, 285, 210, 12, 'F');
-      doc.setFontSize(7); doc.setTextColor(120,120,140);
-      doc.text('MianScan — mianhassam96.github.io/MianScan', 14, 291);
-      doc.text(`Page ${i} of ${pageCount}`, 196, 291, { align: 'right' });
+    // ── Business Readiness
+    sectionBar('Business Readiness', C.cyan);
+    if (data.business) {
+      const biz = data.business;
+      kv('Score',       biz.score + '/100  Grade ' + (biz.grade ?? '?'));
+      checkRow('Email address visible',     biz.hasEmail);
+      checkRow('Phone number visible',      biz.hasPhone);
+      checkRow('Testimonials / Reviews',    biz.hasTestimonials);
+      checkRow('Client logos / partners',   biz.hasClientLogos);
+      checkRow('Pricing information',       biz.hasPricing);
+      checkRow('Privacy policy',            biz.hasPrivacy);
+      checkRow('Terms of service',          biz.hasTerms);
+      checkRow('Organization schema',       biz.hasOrgSchema);
+      checkRow('About / Team section',      biz.hasAbout);
+      checkRow('FAQ section',               biz.hasFAQ);
+      checkRow('Case studies / portfolio',  biz.hasCaseStudies);
+      checkRow('Social media presence',     biz.hasSocial);
+    } else {
+      setRGB(C.muted); doc.setFontSize(8);
+      doc.text('Business data not available.', ML, y); y += 6;
     }
 
-    doc.save(`mianscan-${hostname}.pdf`);
-    UI.toast('PDF exported!');
+    // ── Conversion
+    need(8);
+    sectionBar('Conversion Intelligence', C.pink);
+    if (data.conversion) {
+      const cv = data.conversion;
+      kv('Score',         cv.score + '/100  Grade ' + (cv.grade ?? '?'));
+      kv('CTA Score',     cv.ctaSectionScore ?? '—');
+      kv('Lead Gen',      cv.leadSectionScore ?? '—');
+      kv('Contact',       cv.contactSectionScore ?? '—');
+      kv('Trust',         cv.trustSectionScore ?? '—');
+      checkRow('Primary CTA present',        cv.hasPrimaryCTA);
+      checkRow('CTA visible above fold',     cv.ctaAboveFold);
+      checkRow('Contact form',               cv.hasContactForm);
+      checkRow('Email opt-in / newsletter',  cv.hasNewsletterForm);
+      checkRow('Testimonials',               cv.hasTestimonials);
+      checkRow('Social proof numbers',       cv.hasSocialProof);
+      checkRow('Guarantee language',         cv.hasGuarantee);
+      checkRow('Pricing transparent',        cv.hasPricing);
+    } else {
+      setRGB(C.muted); doc.setFontSize(8);
+      doc.text('Conversion data not available.', ML, y); y += 6;
+    }
+
+    // ── Tech Stack
+    need(8);
+    sectionBar('Tech Stack', C.purple);
+    kv('Detected',  data.tech.detected.join(', ') || 'None');
+    kv('Scripts',   data.performance.scriptsCount);
+
+    // ── Contacts
+    need(8);
+    sectionBar('Contact Information', C.cyan);
+    kv('Emails',   data.contacts.emails.join(', ') || 'None');
+    kv('Phones',   data.contacts.phones.join(', ') || 'None');
+    kv('Social',   Object.keys(data.contacts.social || {}).join(', ') || 'None');
+
+    // ─────────────────────────────────────────────────────────────────────
+    // PAGE 5 — DOMAIN + KEYWORDS + COLOURS
+    // ─────────────────────────────────────────────────────────────────────
+    newPage();
+
+    fillRGB(C.primary);
+    doc.rect(0, 0, PW, 12, 'F');
+    doc.setFontSize(8); doc.setFont(undefined, 'bold'); setRGB(C.white);
+    doc.text('MianScan Report  ·  ' + hostname, ML, 8);
+    doc.setFont(undefined, 'normal');
+    doc.text(scannedAt, PW - MR, 8, { align: 'right' });
+    setRGB(C.text); y = 20;
+
+    // ── Domain & Ranking
+    sectionBar('Domain & Ranking', C.purple);
+    kv('Domain',       data.domain?.hostname || hostname);
+    kv('Domain Auth',  data.domain?.da != null ? data.domain.da + '/10  (' + (data.domain.daNote || '') + ')' : 'N/A');
+    kv('Global Rank',  data.ranking?.globalRank ? '#' + Number(data.ranking.globalRank).toLocaleString() : 'N/A');
+    kv('Country',      data.domain?.country || 'N/A');
+    kv('Domain Age',   data.domain?.age || 'Unknown');
+    kv('Indexing',     data.indexing?.indexStatus || 'Unknown');
+    kv('robots.txt',   data.indexing?.robotsTxt || 'Unknown');
+
+    // ── Top Keywords
+    need(8);
+    sectionBar('Top Keywords', C.primary);
+    const kwCols = 3;
+    const kwList = (data.content?.keywords || []).slice(0, 18);
+    const kwColW = Math.floor(CW / kwCols);
+    kwList.forEach((k, i) => {
+      need(6);
+      const cx = ML + (i % kwCols) * kwColW;
+      const rowY = y + Math.floor(i / kwCols) * 0; // managed below
+      if (i % kwCols === 0 && i > 0) y += 5.5;
+      doc.setFont(undefined, 'bold'); setRGB(C.text); doc.setFontSize(8);
+      doc.text(k.word, cx, i % kwCols === 0 ? y : y);
+      doc.setFont(undefined, 'normal'); setRGB(C.muted); doc.setFontSize(7);
+      doc.text(k.count + 'x · ' + k.density + '%', cx + doc.getTextWidth(k.word) + 2, i % kwCols === 0 ? y : y);
+    });
+    if (kwList.length) y += 5.5;
+
+    // ── Color Palette with swatches
+    need(8);
+    sectionBar('Color Palette', C.pink);
+    const colors = (data.colors?.colors || []).slice(0, 18);
+    kv('Total Found', data.colors?.total ?? 0);
+    need(colors.length > 0 ? 28 : 0);
+    y += 2;
+    colors.forEach((hex, i) => {
+      if (!/^#[0-9a-f]{6}$/i.test(hex)) return;
+      const swX = ML + (i % 9) * 19;
+      const swY = y + Math.floor(i / 9) * 18;
+      const r = parseInt(hex.slice(1,3),16);
+      const g2 = parseInt(hex.slice(3,5),16);
+      const b = parseInt(hex.slice(5,7),16);
+      fillRGB([r, g2, b]); drawRGB(C.border); doc.setLineWidth(0.2);
+      doc.roundedRect(swX, swY, 14, 9, 1.5, 1.5, 'FD');
+      doc.setFontSize(4.5); setRGB(C.muted); doc.setFont(undefined, 'normal');
+      doc.text(hex, swX, swY + 12.5);
+    });
+    if (colors.length > 0) y += (Math.ceil(colors.length / 9)) * 18 + 2;
+    setRGB(C.text); doc.setFontSize(8.5);
+
+    // ── Fonts
+    need(8);
+    sectionBar('Typography', C.green);
+    kv('Fonts Detected', (data.fonts?.fonts || []).map(f => f.name).join(', ') || 'None');
+
+    // ─────────────────────────────────────────────────────────────────────
+    // FINAL PAGE — MULTIMIAN CTA
+    // ─────────────────────────────────────────────────────────────────────
+    doc.addPage(); pageNum++;
+
+    // Dark background
+    fillRGB(C.dark);
+    doc.rect(0, 0, PW, PH, 'F');
+
+    // Accent blobs
+    doc.setGState(new doc.GState({ opacity: 0.35 }));
+    fillRGB(C.primary);
+    doc.ellipse(20, PH * 0.35, 55, 40, 'F');
+    fillRGB(C.purple);
+    doc.ellipse(195, PH * 0.65, 50, 38, 'F');
+    doc.setGState(new doc.GState({ opacity: 1 }));
+
+    // Main CTA card
+    fillRGB([18, 32, 54]);
+    doc.roundedRect(ML, 35, CW, 175, 6, 6, 'F');
+    drawRGB(C.primary); doc.setLineWidth(0.5);
+    doc.roundedRect(ML, 35, CW, 175, 6, 6, 'S');
+
+    // Stars emoji area
+    doc.setFontSize(24); setRGB(C.white);
+    doc.text('★', PW / 2 - 18, 65, { align: 'center' });
+    doc.text('★', PW / 2, 60, { align: 'center' });
+    doc.text('★', PW / 2 + 18, 65, { align: 'center' });
+
+    // Headline
+    doc.setFontSize(17); doc.setFont(undefined, 'bold'); setRGB(C.white);
+    doc.text('Need help improving your website?', PW / 2, 82, { align: 'center' });
+
+    // Sub-headline
+    doc.setFontSize(10); doc.setFont(undefined, 'normal'); setRGB(C.muted);
+    const subLines = doc.splitTextToSize(
+      'This report was generated by MianScan, a free tool built by MultiMian. We help businesses grow online through professional web development, SEO, and conversion optimisation.',
+      CW - 20
+    );
+    doc.text(subLines, PW / 2, 93, { align: 'center' });
+
+    // Divider
+    drawRGB([50, 70, 100]); doc.setLineWidth(0.4);
+    doc.line(ML + 20, 112, ML + CW - 20, 112);
+
+    // 3 service pills
+    const services = [
+      { label: 'Web Development', col: C.primary },
+      { label: 'SEO & Growth',    col: C.green   },
+      { label: 'Conversion Optimisation', col: C.yellow },
+    ];
+    const totalW = services.reduce((s, sv) => {
+      doc.setFontSize(8); doc.setFont(undefined, 'bold');
+      return s + doc.getTextWidth(sv.label) + 14 + 6;
+    }, -6);
+    let sx = PW / 2 - totalW / 2;
+    services.forEach(sv => {
+      doc.setFontSize(8); doc.setFont(undefined, 'bold');
+      const tw = doc.getTextWidth(sv.label) + 14;
+      fillRGB(sv.col);
+      doc.roundedRect(sx, 118, tw, 8, 2, 2, 'F');
+      setRGB(C.white);
+      doc.text(sv.label, sx + tw / 2, 123.5, { align: 'center' });
+      sx += tw + 6;
+    });
+
+    // Score summary recap
+    const recapY = 136;
+    fillRGB([28, 44, 68]);
+    doc.roundedRect(ML + 10, recapY, CW - 20, 40, 3, 3, 'F');
+
+    doc.setFontSize(7.5); doc.setFont(undefined, 'bold'); setRGB(C.muted);
+    doc.text('YOUR WEBSITE GROWTH SCORE', PW / 2, recapY + 8, { align: 'center' });
+
+    const recapScores = [
+      { label: 'Overall',    score: g?.overall ?? data.seo.score },
+      { label: 'SEO',        score: g?.categories?.seo ?? data.seo.score },
+      { label: 'Mobile',     score: g?.categories?.mobile ?? (data.mobile?.score ?? 50) },
+      { label: 'Conversion', score: g?.categories?.conversion ?? (data.conversion?.score ?? 40) },
+      { label: 'Business',   score: g?.categories?.business ?? (data.business?.score ?? 40) },
+    ];
+    const recapW = (CW - 24) / recapScores.length;
+    recapScores.forEach((rs, i) => {
+      const col = scoreCol(rs.score);
+      const rx = ML + 12 + i * recapW + recapW / 2;
+      doc.setFontSize(14); doc.setFont(undefined, 'bold'); setRGB(col);
+      doc.text(String(rs.score), rx, recapY + 24, { align: 'center' });
+      doc.setFontSize(6.5); doc.setFont(undefined, 'normal'); setRGB(C.muted);
+      doc.text(rs.label, rx, recapY + 30, { align: 'center' });
+    });
+
+    // CTA button (styled rect)
+    const btnY = 188;
+    fillRGB(C.primary);
+    doc.roundedRect(ML + 25, btnY, CW - 50, 14, 3, 3, 'F');
+    setRGB(C.white);
+    doc.setFontSize(10); doc.setFont(undefined, 'bold');
+    doc.text('Get a Free Website Growth Review  →', PW / 2, btnY + 9, { align: 'center' });
+
+    // URL
+    doc.setFontSize(9); doc.setFont(undefined, 'normal'); setRGB(C.primary);
+    doc.text('multimian.com', PW / 2, 210, { align: 'center' });
+
+    // Bottom note
+    doc.setFontSize(7); setRGB(C.muted);
+    doc.text('Report generated by MianScan  ·  mianscan.io  ·  Free — no account required', PW / 2, PH - 10, { align: 'center' });
+
+    // ─────────────────────────────────────────────────────────────────────
+    // Footers on all inner pages (not cover, not CTA page)
+    // ─────────────────────────────────────────────────────────────────────
+    const total = doc.getNumberOfPages();
+    for (let i = 2; i <= total - 1; i++) {
+      doc.setPage(i);
+      fillRGB(C.bgLight);
+      doc.rect(0, PH - FOOTER_H, PW, FOOTER_H, 'F');
+      drawRGB(C.border); doc.setLineWidth(0.3);
+      doc.line(0, PH - FOOTER_H, PW, PH - FOOTER_H);
+      doc.setFontSize(7); setRGB(C.muted); doc.setFont(undefined, 'normal');
+      doc.text('MianScan Website Growth Report  ·  mianscan.io  ·  Powered by MultiMian', ML, PH - 5);
+      doc.text(`Page ${i} of ${total}`, PW - MR, PH - 5, { align: 'right' });
+    }
+
+    doc.save(`mianscan-report-${hostname}.pdf`);
+    UI.toast('PDF report downloaded!');
   },
 
   toCSV(data) {
