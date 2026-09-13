@@ -1119,179 +1119,233 @@
     const g = data.growth;
     if (!g) return this.empty('Growth score not available — rescan to generate.');
 
+    const hostname = new URL(data.url).hostname.replace(/^www\./, '');
+
     const catMeta = {
-      seo:           { label: 'SEO',              icon: 'graph-up-arrow',       color: 'var(--green)' },
-      performance:   { label: 'Performance',      icon: 'speedometer2',         color: 'var(--yellow)' },
-      mobile:        { label: 'Mobile',            icon: 'phone-fill',           color: 'var(--primary2)' },
-      security:      { label: 'Security',          icon: 'shield-lock-fill',     color: 'var(--red)' },
-      accessibility: { label: 'Accessibility',    icon: 'universal-access',     color: 'var(--accent)' },
-      content:       { label: 'Content',           icon: 'file-text-fill',       color: 'var(--purple)' },
-      conversion:    { label: 'Conversion',        icon: 'cursor-fill',          color: '#f59e0b' },
-      ux:            { label: 'UX',                icon: 'layout-text-window',   color: '#ec4899' },
-      business:      { label: 'Business Readiness',icon: 'building',             color: 'var(--accent)' },
+      seo:           { label: 'SEO',               icon: 'graph-up-arrow',       color: 'var(--green)',    tab: 'seo' },
+      performance:   { label: 'Performance',       icon: 'speedometer2',         color: 'var(--yellow)',   tab: 'performance' },
+      mobile:        { label: 'Mobile',             icon: 'phone-fill',           color: 'var(--primary2)', tab: 'mobile' },
+      security:      { label: 'Security',           icon: 'shield-lock-fill',     color: 'var(--red)',      tab: 'security' },
+      accessibility: { label: 'Accessibility',     icon: 'universal-access',     color: 'var(--accent)',   tab: 'performance' },
+      content:       { label: 'Content',            icon: 'file-text-fill',       color: 'var(--purple)',   tab: 'keywords' },
+      conversion:    { label: 'Conversion',         icon: 'cursor-fill',          color: '#f59e0b',         tab: 'conversion' },
+      ux:            { label: 'UX',                 icon: 'layout-text-window',   color: '#ec4899',         tab: 'overview' },
+      business:      { label: 'Business Readiness', icon: 'building',             color: 'var(--accent)',   tab: 'business' },
     };
 
     const priorityMeta = {
-      critical: { label: 'Fix Today',    color: 'var(--red)',     bg: 'rgba(240,68,68,.09)',     border: 'rgba(240,68,68,.25)',     icon: 'exclamation-octagon-fill' },
-      high:     { label: 'Fix This Week',color: '#f59e0b',        bg: 'rgba(245,158,11,.09)',    border: 'rgba(245,158,11,.25)',    icon: 'exclamation-triangle-fill' },
-      medium:   { label: 'Improve Next', color: 'var(--primary2)',bg: 'rgba(139,150,255,.09)',   border: 'rgba(139,150,255,.25)',   icon: 'info-circle-fill' },
-      low:      { label: 'Consider',     color: 'var(--muted)',   bg: 'rgba(122,143,168,.06)',   border: 'rgba(122,143,168,.15)',   icon: 'dot' },
-      good:     { label: 'Passing',      color: 'var(--green)',   bg: 'rgba(34,197,94,.07)',     border: 'rgba(34,197,94,.2)',      icon: 'check-circle-fill' },
+      critical: { label: 'Fix Today',     color: 'var(--red)',      bg: 'rgba(240,68,68,.07)',    border: 'rgba(240,68,68,.22)',    icon: 'exclamation-octagon-fill',  impactColor: 'var(--red)' },
+      high:     { label: 'Fix This Week', color: '#f59e0b',         bg: 'rgba(245,158,11,.07)',   border: 'rgba(245,158,11,.22)',   icon: 'exclamation-triangle-fill', impactColor: '#f59e0b' },
+      medium:   { label: 'Improve Next',  color: 'var(--primary2)', bg: 'rgba(139,150,255,.07)',  border: 'rgba(139,150,255,.22)', icon: 'info-circle-fill',          impactColor: 'var(--primary2)' },
+      low:      { label: 'Consider',      color: 'var(--muted)',    bg: 'rgba(122,143,168,.04)',  border: 'rgba(122,143,168,.14)',  icon: 'dot',                       impactColor: 'var(--muted)' },
+      good:     { label: 'Passing',       color: 'var(--green)',    bg: 'rgba(34,197,94,.06)',    border: 'rgba(34,197,94,.18)',    icon: 'check-circle-fill',         impactColor: 'var(--green)' },
     };
 
-    const overallColor = g.overall >= 80 ? 'var(--green)' : g.overall >= 65 ? 'var(--primary2)' : g.overall >= 50 ? 'var(--yellow)' : 'var(--red)';
+    const gradeLabel = s => s>=90?'A':s>=80?'B':s>=65?'C':s>=50?'D':'F';
+    const scoreColor = s => s >= 80 ? 'var(--green)' : s >= 65 ? 'var(--primary2)' : s >= 50 ? 'var(--yellow)' : 'var(--red)';
+    const overallColor = scoreColor(g.overall);
 
-    // ── Critical issues alert strip (shown FIRST if any exist) ─────────────
-    const criticals = g.findings.filter(f => f.priority === 'critical');
-    const criticalStrip = criticals.length ? `
-    <div style="background:rgba(240,68,68,.08);border:1px solid rgba(240,68,68,.3);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1.25rem">
-      <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.75rem;font-size:.82rem;font-weight:800;color:var(--red);text-transform:uppercase;letter-spacing:.06em">
-        <i class="bi bi-exclamation-octagon-fill"></i> ${criticals.length} Critical Issue${criticals.length > 1 ? 's' : ''} — Fix Today
-      </div>
-      ${criticals.map(f => `
-      <div style="display:flex;align-items:flex-start;gap:.75rem;padding:.6rem 0;border-bottom:1px solid rgba(240,68,68,.15)">
-        <i class="bi bi-x-circle-fill" style="color:var(--red);margin-top:.1rem;flex-shrink:0"></i>
-        <div style="flex:1">
-          <div style="font-weight:700;font-size:.88rem;margin-bottom:.2rem">${this.e(f.title)}</div>
-          <div style="font-size:.78rem;color:var(--muted)">${this.e(f.action)}</div>
-        </div>
-        ${f.effort ? `<span style="font-size:.65rem;font-weight:700;background:rgba(240,68,68,.12);color:var(--red);padding:.15rem .45rem;border-radius:5px;flex-shrink:0;align-self:flex-start">${this.e(f.effort)}</span>` : ''}
-      </div>`).join('')}
-    </div>` : '';
+    const critCount  = g.findings.filter(f => f.priority === 'critical').length;
+    const highCount  = g.findings.filter(f => f.priority === 'high').length;
+    const medCount   = g.findings.filter(f => f.priority === 'medium').length;
+    const passCount  = g.findings.filter(f => f.priority === 'good').length;
+    const issueCount = g.findings.filter(f => f.priority !== 'good').length;
 
-    // ── Overall score hero ─────────────────────────────────────────────────
+    // ── 1. GROWTH SCORE HERO ───────────────────────────────────────────────
     const heroSection = `
-    ${criticalStrip}
-    <div class="growth-hero">
-      <div style="text-align:center">
-        <div class="score-ring-hero" style="border-color:${overallColor};color:${overallColor};box-shadow:0 0 32px ${overallColor}30">
-          <span class="srh-val">${g.overall}</span>
-          <span class="srh-lbl">/ 100</span>
+    <div class="p2-hero">
+      <div class="p2-hero-ring-col">
+        <div class="p2-score-ring" style="border-color:${overallColor};color:${overallColor};box-shadow:0 0 48px ${overallColor}28">
+          <span class="p2-score-val">${g.overall}</span>
+          <span class="p2-score-sub">/ 100</span>
         </div>
-        <div style="margin-top:.65rem;font-weight:800;font-size:1rem;color:${overallColor}">${g.label}</div>
-        <div style="font-size:.75rem;color:var(--muted);margin-top:.15rem">Grade ${g.grade}</div>
+        <div class="p2-score-grade" style="color:${overallColor}">${g.label}</div>
+        <div class="p2-score-grade-letter" style="background:${overallColor}18;color:${overallColor}">Grade ${gradeLabel(g.overall)}</div>
       </div>
-      <div>
-        <div style="font-size:1.15rem;font-weight:800;margin-bottom:.35rem;display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
-          <span><i class="bi bi-graph-up-arrow" style="color:${overallColor}"></i> Growth Score</span>
-          <span style="font-size:.65rem;font-weight:600;background:var(--bg4);color:var(--muted);border-radius:20px;padding:.1rem .55rem">v2.3</span>
+      <div class="p2-hero-body">
+        <div class="p2-hero-headline">
+          <i class="bi bi-graph-up-arrow" style="color:${overallColor}"></i>
+          Website Growth Score
+          <span class="p2-version-pill">v2.3</span>
         </div>
-        <div style="color:var(--muted);font-size:.88rem;line-height:1.6;margin-bottom:.9rem">${g.summary}</div>
-        <div style="display:flex;gap:.4rem;flex-wrap:wrap">
-          ${g.findings.filter(f=>f.priority==='critical').length > 0
-            ? `<span style="background:rgba(240,68,68,.12);color:var(--red);border-radius:7px;padding:.2rem .65rem;font-size:.73rem;font-weight:700">${g.findings.filter(f=>f.priority==='critical').length} Critical</span>` : ''}
-          ${g.findings.filter(f=>f.priority==='high').length > 0
-            ? `<span style="background:rgba(245,158,11,.12);color:#f59e0b;border-radius:7px;padding:.2rem .65rem;font-size:.73rem;font-weight:700">${g.findings.filter(f=>f.priority==='high').length} High</span>` : ''}
-          ${g.findings.filter(f=>f.priority==='medium').length > 0
-            ? `<span style="background:rgba(139,150,255,.12);color:var(--primary2);border-radius:7px;padding:.2rem .65rem;font-size:.73rem;font-weight:700">${g.findings.filter(f=>f.priority==='medium').length} Medium</span>` : ''}
-          <span style="background:rgba(34,197,94,.1);color:var(--green);border-radius:7px;padding:.2rem .65rem;font-size:.73rem;font-weight:700">${g.findings.filter(f=>f.priority==='good').length} Passing</span>
+        <div class="p2-hero-domain">${this.e(hostname)}</div>
+        <div class="p2-hero-summary">${this.e(g.summary)}</div>
+        <div class="p2-hero-badges">
+          ${critCount > 0 ? `<span class="p2-badge p2-badge-critical"><i class="bi bi-exclamation-octagon-fill"></i>${critCount} Critical</span>` : ''}
+          ${highCount > 0 ? `<span class="p2-badge p2-badge-high"><i class="bi bi-exclamation-triangle-fill"></i>${highCount} High</span>` : ''}
+          ${medCount  > 0 ? `<span class="p2-badge p2-badge-medium"><i class="bi bi-info-circle-fill"></i>${medCount} Medium</span>` : ''}
+          <span class="p2-badge p2-badge-pass"><i class="bi bi-check-circle-fill"></i>${passCount} Passing</span>
         </div>
       </div>
     </div>`;
 
-    // ── Category scores grid ───────────────────────────────────────────────
+    // ── 2. CATEGORY SCORES ─────────────────────────────────────────────────
     const catGrid = `
-    <div class="card" style="margin-bottom:1.25rem">
-      <div class="card-head"><i class="bi bi-bar-chart-fill"></i> Category Scores</div>
-      <div class="growth-cat-grid">
+    <div class="card p2-cats-card">
+      <div class="card-head"><i class="bi bi-bar-chart-fill"></i> Category Scores
+        <span style="font-size:.72rem;font-weight:400;color:var(--muted);margin-left:.4rem">click any to explore</span>
+      </div>
+      <div class="p2-cat-grid">
         ${Object.entries(g.categories).map(([key, score]) => {
-          const m = catMeta[key];
-          const c = score >= 80 ? 'var(--green)' : score >= 65 ? 'var(--primary2)' : score >= 50 ? 'var(--yellow)' : 'var(--red)';
-          const barPct = score;
+          const m   = catMeta[key];
+          const c   = scoreColor(score);
+          const gl  = gradeLabel(score);
+          const glColor = score >= 80 ? 'var(--green)' : score >= 65 ? 'var(--primary2)' : score >= 50 ? 'var(--yellow)' : 'var(--red)';
+          const weakest = score < 50;
           return `
-          <div class="growth-cat-card">
-            <div class="growth-cat-top">
-              <span class="growth-cat-icon" style="background:${m.color}18;color:${m.color}"><i class="bi bi-${m.icon}"></i></span>
-              <span class="growth-cat-label">${m.label}</span>
-              <span class="growth-cat-score" style="color:${c}">${score}</span>
+          <div class="p2-cat-card${weakest ? ' p2-cat-weak' : ''}"
+               onclick="document.querySelector('[data-tab=${m.tab}]').click()" title="Open ${m.label} tab">
+            <div class="p2-cat-top">
+              <span class="p2-cat-icon" style="background:${m.color}18;color:${m.color}">
+                <i class="bi bi-${m.icon}"></i>
+              </span>
+              <span class="p2-cat-label">${m.label}</span>
+              <span class="p2-cat-grade" style="background:${glColor}18;color:${glColor}">${gl}</span>
             </div>
-            <div class="growth-cat-bar-wrap">
-              <div class="growth-cat-bar-fill" style="width:${barPct}%;background:${c}"></div>
+            <div class="p2-cat-score-row">
+              <span class="p2-cat-score-num" style="color:${c}">${score}</span>
+              <div class="p2-cat-bar-wrap">
+                <div class="p2-cat-bar-fill" style="width:${score}%;background:${c}"></div>
+              </div>
             </div>
           </div>`;
         }).join('')}
       </div>
     </div>`;
 
-    // ── Priority findings ──────────────────────────────────────────────────
+    // ── 3. PRIORITY FINDINGS ───────────────────────────────────────────────
     const groupedFindings = {};
     ['critical','high','medium','low','good'].forEach(p => {
       const items = g.findings.filter(f => f.priority === p);
       if (items.length) groupedFindings[p] = items;
     });
 
+    const effortIcon = e => {
+      if (!e) return '';
+      if (/easy|15 min|30 min|1 hr/i.test(e)) return '<i class="bi bi-lightning-charge-fill" style="color:var(--green)"></i>';
+      if (/medium|1.2 hr|2.4 hr/i.test(e)) return '<i class="bi bi-clock-fill" style="color:var(--yellow)"></i>';
+      return '<i class="bi bi-tools" style="color:var(--red)"></i>';
+    };
+
+    const impactDot = imp => {
+      if (!imp) return '';
+      const c = imp === 'High' ? 'var(--red)' : imp === 'Medium' ? 'var(--yellow)' : 'var(--muted)';
+      return `<span style="display:inline-flex;align-items:center;gap:.25rem;font-size:.72rem;font-weight:700;color:${c}"><span style="width:7px;height:7px;border-radius:50%;background:${c};flex-shrink:0;display:inline-block"></span>${imp} impact</span>`;
+    };
+
     const findingsHtml = Object.entries(groupedFindings).map(([priority, items]) => {
       const pm = priorityMeta[priority];
+      const isGood = priority === 'good';
       return `
-      <div class="growth-priority-group" style="margin-bottom:1rem">
-        <div class="growth-priority-label" style="color:${pm.color};display:flex;align-items:center;gap:.4rem;font-size:.75rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.5rem">
-          <i class="bi bi-${pm.icon}"></i> ${pm.label}
-          <span style="background:${pm.bg};border:1px solid ${pm.border};border-radius:30px;padding:.05rem .5rem;font-size:.7rem">${items.length}</span>
+      <div class="p2-priority-group">
+        <div class="p2-priority-label" style="color:${pm.color}">
+          <i class="bi bi-${pm.icon}"></i>
+          ${pm.label}
+          <span class="p2-priority-count" style="background:${pm.bg};border-color:${pm.border};color:${pm.color}">${items.length}</span>
         </div>
         ${items.map(f => `
-        <div class="growth-finding" style="background:${pm.bg};border:1px solid ${pm.border};border-radius:10px;padding:1rem;margin-bottom:.5rem">
-          <div style="display:flex;align-items:flex-start;gap:.6rem;flex-wrap:wrap">
-            <span style="background:${pm.bg};border:1px solid ${pm.border};border-radius:6px;padding:.15rem .5rem;font-size:.68rem;font-weight:700;color:${pm.color};flex-shrink:0">${f.category}</span>
-            <div style="flex:1;min-width:180px">
-              <div style="font-weight:700;font-size:.9rem;margin-bottom:.25rem">${this.e(f.title)}</div>
-              <div style="font-size:.82rem;color:var(--muted);line-height:1.5">${this.e(f.detail)}</div>
-              ${f.action && f.priority !== 'good' ? `
-              <div style="margin-top:.5rem;padding:.4rem .65rem;background:var(--bg);border-radius:6px;border-left:2px solid ${pm.color};font-size:.78rem;color:var(--text)">
-                <strong>Fix:</strong> ${this.e(f.action)}
-              </div>` : ''}
-            </div>
-            <div style="display:flex;flex-direction:column;gap:.3rem;align-items:flex-end;flex-shrink:0">
-              ${f.impact && f.priority !== 'good' ? `<span style="font-size:.68rem;font-weight:700;padding:.15rem .5rem;border-radius:6px;background:var(--bg4);color:var(--muted)">Impact: ${f.impact}</span>` : ''}
-              ${f.effort && f.priority !== 'good' ? `<span style="font-size:.68rem;font-weight:700;padding:.15rem .5rem;border-radius:6px;background:var(--bg4);color:var(--accent)">${this.e(f.effort)}</span>` : ''}
-            </div>
+        <div class="p2-finding${isGood ? ' p2-finding-good' : ''}" style="border-color:${pm.border}">
+          <div class="p2-finding-head">
+            <span class="p2-finding-cat" style="background:${pm.bg};color:${pm.color};border-color:${pm.border}">${f.category}</span>
+            <span class="p2-finding-title">${this.e(f.title)}</span>
           </div>
+          ${!isGood ? `
+          <div class="p2-finding-why">${this.e(f.detail)}</div>
+          <div class="p2-finding-fix" style="border-left-color:${pm.color}">
+            <span class="p2-finding-fix-label">Recommended fix</span>
+            ${this.e(f.action)}
+          </div>
+          <div class="p2-finding-meta">
+            ${impactDot(f.impact)}
+            ${f.effort ? `<span class="p2-finding-effort">${effortIcon(f.effort)}${this.e(f.effort)}</span>` : ''}
+          </div>` : `
+          <div class="p2-finding-detail-good">${this.e(f.detail)}</div>`}
         </div>`).join('')}
       </div>`;
     }).join('');
 
     const findingsSection = `
-    <div class="card" style="margin-bottom:1.25rem">
-      <div class="card-head"><i class="bi bi-clipboard2-pulse-fill"></i> Priority Findings
-        <span style="margin-left:.4rem;font-size:.72rem;font-weight:400;color:var(--muted)">${g.findings.filter(f=>f.priority!=='good').length} issues · ${g.findings.filter(f=>f.priority==='good').length} passing</span>
+    <div class="card p2-findings-card">
+      <div class="card-head">
+        <i class="bi bi-clipboard2-pulse-fill"></i> Priority Findings
+        <span class="p2-findings-meta">${issueCount} issue${issueCount !== 1 ? 's' : ''} · ${passCount} passing</span>
       </div>
       ${findingsHtml || this.empty('No findings — run a scan first')}
     </div>`;
 
-    // ── Action plan ────────────────────────────────────────────────────────
+    // ── 4. ACTION PLAN ─────────────────────────────────────────────────────
     const ap = g.actionPlan;
     const apSection = (ap.today.length || ap.thisWeek.length || ap.thisMonth.length) ? `
-    <div class="card">
+    <div class="card p2-ap-card">
       <div class="card-head"><i class="bi bi-calendar-check-fill"></i> Action Plan</div>
-      <div class="growth-action-plan">
+      <div class="p2-ap-grid">
         ${ap.today.length ? `
-        <div class="growth-ap-group">
-          <div class="growth-ap-label" style="color:var(--red)"><i class="bi bi-lightning-charge-fill"></i> Today</div>
-          ${ap.today.map(t => `<div class="growth-ap-item"><i class="bi bi-exclamation-octagon-fill" style="color:var(--red)"></i><span style="flex:1">${this.e(t.title||t)}</span>${t.effort?`<span style="font-size:.68rem;color:var(--accent);flex-shrink:0">${this.e(t.effort)}</span>`:''}</div>`).join('')}
+        <div class="p2-ap-col p2-ap-today">
+          <div class="p2-ap-col-head"><i class="bi bi-lightning-charge-fill"></i> Do Today</div>
+          ${ap.today.map(t => `
+          <div class="p2-ap-item">
+            <div class="p2-ap-item-title">${this.e(t.title || t)}</div>
+            ${t.effort ? `<div class="p2-ap-item-effort">${this.e(t.effort)}</div>` : ''}
+          </div>`).join('')}
         </div>` : ''}
         ${ap.thisWeek.length ? `
-        <div class="growth-ap-group">
-          <div class="growth-ap-label" style="color:#f59e0b"><i class="bi bi-calendar-week-fill"></i> This Week</div>
-          ${ap.thisWeek.map(t => `<div class="growth-ap-item"><i class="bi bi-exclamation-triangle-fill" style="color:#f59e0b"></i><span style="flex:1">${this.e(t.title||t)}</span>${t.effort?`<span style="font-size:.68rem;color:var(--accent);flex-shrink:0">${this.e(t.effort)}</span>`:''}</div>`).join('')}
+        <div class="p2-ap-col p2-ap-week">
+          <div class="p2-ap-col-head"><i class="bi bi-calendar-week-fill"></i> This Week</div>
+          ${ap.thisWeek.map(t => `
+          <div class="p2-ap-item">
+            <div class="p2-ap-item-title">${this.e(t.title || t)}</div>
+            ${t.effort ? `<div class="p2-ap-item-effort">${this.e(t.effort)}</div>` : ''}
+          </div>`).join('')}
         </div>` : ''}
         ${ap.thisMonth.length ? `
-        <div class="growth-ap-group">
-          <div class="growth-ap-label" style="color:var(--primary2)"><i class="bi bi-calendar-month-fill"></i> This Month</div>
-          ${ap.thisMonth.map(t => `<div class="growth-ap-item"><i class="bi bi-info-circle-fill" style="color:var(--primary2)"></i><span style="flex:1">${this.e(t.title||t)}</span>${t.effort?`<span style="font-size:.68rem;color:var(--accent);flex-shrink:0">${this.e(t.effort)}</span>`:''}</div>`).join('')}
+        <div class="p2-ap-col p2-ap-month">
+          <div class="p2-ap-col-head"><i class="bi bi-calendar-month-fill"></i> This Month</div>
+          ${ap.thisMonth.map(t => `
+          <div class="p2-ap-item">
+            <div class="p2-ap-item-title">${this.e(t.title || t)}</div>
+            ${t.effort ? `<div class="p2-ap-item-effort">${this.e(t.effort)}</div>` : ''}
+          </div>`).join('')}
         </div>` : ''}
       </div>
     </div>` : '';
 
-    // ── MultiMian CTA (Phase 7 foundation) ────────────────────────────────
-    const mmCTA = (g.findings.filter(f => f.priority === 'critical' || f.priority === 'high').length >= 2) ? `
-    <div style="background:var(--gradient-primary);border-radius:var(--radius);padding:1.5rem;margin-top:1.25rem;display:flex;align-items:center;gap:1.25rem;flex-wrap:wrap">
-      <div style="flex:1;min-width:200px">
-        <div style="font-weight:800;font-size:1rem;color:#fff;margin-bottom:.3rem"><i class="bi bi-stars"></i> Want these fixed by professionals?</div>
-        <div style="font-size:.85rem;color:rgba(255,255,255,.8)">MultiMian builds and improves websites — SEO, performance, design, and conversion.</div>
+    // ── 5. MULTIMIAN CTA — always shown, copy varies by score ─────────────
+    const ctaCopy = (() => {
+      if (critCount >= 3) return {
+        headline: `Your website may be losing customers right now.`,
+        sub: `${critCount} critical issues are directly blocking leads and search visibility. MultiMian fixes these for you — fast.`,
+        btn: 'Get a Free Growth Review →',
+      };
+      if (critCount > 0 || highCount >= 3) return {
+        headline: `Your website has clear growth opportunities.`,
+        sub: `We found ${critCount + highCount} issues that are holding back traffic and conversions. MultiMian can build you a plan and implement it.`,
+        btn: 'Talk to MultiMian →',
+      };
+      if (g.overall >= 80) return {
+        headline: `Strong foundation — ready to scale?`,
+        sub: `Your website is performing well. MultiMian can help you go further with advanced SEO, conversion optimisation, and growth campaigns.`,
+        btn: 'Explore Growth Services →',
+      };
+      return {
+        headline: `Want someone to handle all of this for you?`,
+        sub: `MultiMian is a web development and SEO agency that builds websites that actually grow your business.`,
+        btn: 'See What MultiMian Does →',
+      };
+    })();
+
+    const mmCTA = `
+    <div class="p2-mm-cta">
+      <div class="p2-mm-cta-inner">
+        <div class="p2-mm-cta-icon"><i class="bi bi-stars"></i></div>
+        <div class="p2-mm-cta-body">
+          <div class="p2-mm-cta-headline">${ctaCopy.headline}</div>
+          <div class="p2-mm-cta-sub">${ctaCopy.sub}</div>
+        </div>
+        <a href="https://multimian.com" target="_blank" rel="noopener" class="p2-mm-cta-btn">
+          ${ctaCopy.btn}
+        </a>
       </div>
-      <a href="https://multimian.com" target="_blank" rel="noopener" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;padding:.6rem 1.3rem;border-radius:var(--radius-s);font-weight:700;font-size:.88rem;white-space:nowrap;text-decoration:none;display:inline-flex;align-items:center;gap:.4rem">
-        <i class="bi bi-arrow-right-circle-fill"></i> Get a MultiMian Growth Plan
-      </a>
-    </div>` : '';
+    </div>`;
 
     return heroSection + catGrid + findingsSection + apSection + mmCTA;
   },
