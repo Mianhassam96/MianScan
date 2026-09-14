@@ -70,7 +70,8 @@
       </div>
       ${ogPreview}
       ${this._growthBannerStrip(data)}
-      ${this._mmMicroCTA(data)}`;
+      ${this._mmMicroCTA(data)}
+      ${this._partialScanNotice(data)}`;
   },
 
   /* ── Growth score summary strip shown in site banner ── */
@@ -122,7 +123,22 @@
     </div>`;
   },
 
-  renderStats(data) {
+  /* ── Partial scan notice — shown when one or more analyzers used fallback data ── */
+  _partialScanNotice(data) {
+    const f = data._fallbacks;
+    if (!f || f.length === 0) return '';
+    // Only show for non-external-only fallbacks (domain/ranking unavailability is expected)
+    const significant = f.filter(n => !['Domain','Ranking','Indexing'].includes(n));
+    if (significant.length === 0) return '';
+    return `
+    <div class="partial-scan-notice">
+      <i class="bi bi-exclamation-triangle-fill"></i>
+      <span>Partial scan — ${significant.length} analyzer${significant.length > 1 ? 's' : ''} returned limited data:
+        <strong>${significant.join(', ')}</strong>.
+        Some results may be incomplete. Try rescanning.
+      </span>
+    </div>`;
+  },
     const {colors,fonts,contacts,tech,seo,links,images,domain,ranking} = data;
     const da = domain?.da !== null && domain?.da !== undefined ? domain.da+'/10' : '—';
     const rank = ranking?.globalRank ? '#'+Number(ranking.globalRank).toLocaleString() : '—';

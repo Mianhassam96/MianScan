@@ -14,6 +14,23 @@ document.addEventListener('DOMContentLoaded', () => {
   const overlayFill= document.getElementById('overlayFill');
   const backToTop  = document.getElementById('backToTop');
 
+  // Cancel button in scan overlay — aborts active scan by reloading page state
+  const overlayCancel = document.getElementById('overlayCancel');
+  let _scanAbortController = null;
+  if (overlayCancel) {
+    overlayCancel.addEventListener('click', () => {
+      overlay.classList.remove('active');
+      scanBtn.disabled = false;
+      scanBtn.innerHTML = '<i class="bi bi-radar"></i><span>Analyze</span>';
+      progBox.classList.add('hidden');
+      results.classList.add('hidden');
+      document.getElementById('siteBanner').innerHTML  = '';
+      document.getElementById('statsRow').innerHTML    = '';
+      document.getElementById('tabContent').innerHTML  = '';
+      UI.toast('Scan cancelled');
+    });
+  }
+
   /* ── Hamburger menu ── */
   const hamburger = document.getElementById('navHamburger');
   const navMobile = document.getElementById('navMobile');
@@ -335,16 +352,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
       results.classList.remove('hidden');
       document.getElementById('siteBanner').innerHTML = `
-        <div style="text-align:center;padding:2.5rem 1rem">
-          <div style="font-size:2.5rem;margin-bottom:.75rem">${icon}</div>
-          <div style="font-size:1.1rem;font-weight:700;color:var(--red);margin-bottom:.4rem">${headline}</div>
-          <div style="color:var(--text);font-size:.9rem;margin-bottom:.35rem">${msg}</div>
-          ${hint ? `<div style="color:var(--muted);font-size:.82rem;margin-bottom:1.25rem">${hint}</div>` : '<div style="margin-bottom:1.25rem"></div>'}
-          <div style="display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap">
-            <button class="scan-btn" data-retry-url="${url.replace(/&/g,'&amp;').replace(/"/g,'&quot;')}" onclick="_run(this.dataset.retryUrl, true)" style="display:inline-flex;min-height:40px;padding:0 1.5rem;font-size:.9rem">
+        <div class="scan-error-state">
+          <div class="scan-error-icon">${icon}</div>
+          <div class="scan-error-headline">${headline}</div>
+          <div class="scan-error-msg">${msg}</div>
+          ${hint ? `<div class="scan-error-hint">${hint}</div>` : ''}
+          <div class="scan-error-actions">
+            <button class="scan-btn scan-error-retry" data-retry-url="${url.replace(/&/g,'&amp;').replace(/"/g,'&quot;')}" onclick="_run(this.dataset.retryUrl, true)">
               <i class="bi bi-arrow-repeat"></i><span>Retry</span>
             </button>
-            <button class="exp-btn" onclick="document.getElementById('scanAgainBtn').click()" style="min-height:40px">
+            <button class="exp-btn scan-error-other" onclick="document.getElementById('scanAgainBtn').click()">
               <i class="bi bi-search"></i> Try Another URL
             </button>
           </div>

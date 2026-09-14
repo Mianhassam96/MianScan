@@ -259,58 +259,81 @@ const Scanner = {
     const doc = this.parse(html);
 
     // ── Synchronous analyzers — wrapped individually so one crash
-    //    doesn't kill the entire scan (partial results)
-    const safe = (fn, fallback) => { try { return fn(); } catch(_) { return fallback; } };
+    //    doesn't kill the entire scan (partial results).
+    //    Track which ones fell back so the UI can show a "partial scan" notice.
+    const _fallbacks = [];
+    const safe = (fn, fallback, label) => {
+      try { return fn(); }
+      catch(_) { _fallbacks.push(label); return fallback; }
+    };
 
     p('Analyzing SEO…', 18);
-    const seo         = safe(() => SEOAnalyzer.analyze(doc),               { score:0, h1s:[], h2s:[], h3s:[], checks:[], warnings:[], noAlt:0, withAlt:0, imagesTotal:0 });
+    const seo         = safe(() => SEOAnalyzer.analyze(doc),               { score:0, h1s:[], h2s:[], h3s:[], checks:[], warnings:[], noAlt:0, withAlt:0, imagesTotal:0 }, 'SEO');
     p('Analyzing content…', 22);
-    const content     = safe(() => ContentAnalyzer.analyze(doc),           { keywords:[], topics:[], tags:[], wordCount:0, paragraphCount:0, bigrams:[], trigrams:[], readability:{score:50,label:'N/A',grade:'N/A'} });
+    const content     = safe(() => ContentAnalyzer.analyze(doc),           { keywords:[], topics:[], tags:[], wordCount:0, paragraphCount:0, bigrams:[], trigrams:[], readability:{score:50,label:'N/A',grade:'N/A'} }, 'Content');
     p('Analyzing structure…', 26);
-    const structure   = safe(() => StructureAnalyzer.analyze(doc),         { counts:{}, tree:[], components:[], totalElements:0 });
+    const structure   = safe(() => StructureAnalyzer.analyze(doc),         { counts:{}, tree:[], components:[], totalElements:0 }, 'Structure');
     p('Detecting tech stack…', 30);
-    const tech        = safe(() => TechAnalyzer.analyze(doc, html),        { detected:[], scriptsCount:0, scriptSrcs:[] });
+    const tech        = safe(() => TechAnalyzer.analyze(doc, html),        { detected:[], scriptsCount:0, scriptSrcs:[] }, 'Tech Stack');
     p('Analyzing performance…', 34);
-    const performance = safe(() => PerformanceAnalyzer.analyze(doc, html), { score:50, grade:'C', htmlSizeKB:'0', scriptsCount:0, stylesCount:0, imagesCount:0, iframesCount:0, inlineKB:'0', lazyImgs:0, extScripts:0, checks:[], a11y:[] });
+    const performance = safe(() => PerformanceAnalyzer.analyze(doc, html), { score:50, grade:'C', htmlSizeKB:'0', scriptsCount:0, stylesCount:0, imagesCount:0, iframesCount:0, inlineKB:'0', lazyImgs:0, extScripts:0, checks:[], a11y:[] }, 'Performance');
     p('Checking mobile…', 38);
-    const mobile      = safe(() => MobileAnalyzer.analyze(doc, html),      { score:50, grade:'C', hasViewport:false, hasWidthDevice:false, hasManifest:false, hasMediaQueries:false, hasResponsiveImgs:false, lazyImgs:0, checks:[] });
+    const mobile      = safe(() => MobileAnalyzer.analyze(doc, html),      { score:50, grade:'C', hasViewport:false, hasWidthDevice:false, hasManifest:false, hasMediaQueries:false, hasResponsiveImgs:false, lazyImgs:0, checks:[] }, 'Mobile');
     p('Extracting colors…', 42);
-    const colors      = safe(() => ColorAnalyzer.analyze(doc, html),       { colors:[], total:0 });
+    const colors      = safe(() => ColorAnalyzer.analyze(doc, html),       { colors:[], total:0 }, 'Colors');
     p('Detecting fonts…', 44);
-    const fonts       = safe(() => FontAnalyzer.analyze(doc, html),        { fonts:[], total:0 });
+    const fonts       = safe(() => FontAnalyzer.analyze(doc, html),        { fonts:[], total:0 }, 'Fonts');
     p('Analyzing CTAs…', 46);
-    const cta         = safe(() => CTAAnalyzer.analyze(doc),               { primary:[], secondary:[], all:[] });
+    const cta         = safe(() => CTAAnalyzer.analyze(doc),               { primary:[], secondary:[], all:[] }, 'CTAs');
     p('Scanning media…', 48);
-    const media       = safe(() => MediaAnalyzer.analyze(doc, url),        { images:[], videos:[], totalImages:0, totalVideos:0 });
+    const media       = safe(() => MediaAnalyzer.analyze(doc, url),        { images:[], videos:[], totalImages:0, totalVideos:0 }, 'Media');
     p('Analyzing links…', 50);
-    const links       = safe(() => LinksAnalyzer.analyze(doc, url),        { internal:[], external:[], cta:[], totalInternal:0, totalExternal:0 });
+    const links       = safe(() => LinksAnalyzer.analyze(doc, url),        { internal:[], external:[], cta:[], totalInternal:0, totalExternal:0 }, 'Links');
     p('Scanning images…', 52);
-    const images      = safe(() => ImagesAnalyzer.analyze(doc, url),       { images:[], total:0, withAlt:0, missingAlt:[], missingAltCount:0, lazyCount:0, modernFmt:0, issues:[] });
+    const images      = safe(() => ImagesAnalyzer.analyze(doc, url),       { images:[], total:0, withAlt:0, missingAlt:[], missingAltCount:0, lazyCount:0, modernFmt:0, issues:[] }, 'Images');
     p('Finding contacts…', 54);
-    const contacts    = safe(() => ContactAnalyzer.analyze(doc, html),     { emails:[], phones:[], whatsapp:[], addresses:[], contactPage:'', social:{} });
+    const contacts    = safe(() => ContactAnalyzer.analyze(doc, html),     { emails:[], phones:[], whatsapp:[], addresses:[], contactPage:'', social:{} }, 'Contacts');
 
     p('Fetching external data…', 57);
 
-    // External/async analyzers — allSettled so none blocks others
+    // External/async analyzers — allSettled so none blocks others.
+    // We fire progress messages mid-way so the user doesn't see a frozen bar
+    // during the domain/ranking lookups which can take a few seconds.
+    const extProgressTimer = setTimeout(() => p('Checking domain authority…', 65), 800);
+    const extProgressTimer2 = setTimeout(() => p('Checking ranking data…', 73), 2000);
+    const extProgressTimer3 = setTimeout(() => p('Running security checks…', 81), 3500);
+
     const [indexing, domain, ranking, security] = await Promise.allSettled([
       IndexingAnalyzer.analyze(doc, html, url),
       DomainAnalyzer.analyze(url),
       RankingAnalyzer.analyze(url),
       SecurityAnalyzer.analyze(url, doc, html),
-    ]).then(results => results.map(r => r.status === 'fulfilled' ? r.value : null));
+    ]).then(results => {
+      clearTimeout(extProgressTimer);
+      clearTimeout(extProgressTimer2);
+      clearTimeout(extProgressTimer3);
+      return results.map(r => r.status === 'fulfilled' ? r.value : null);
+    });
 
     p('Analyzing conversion…', 90);
-    const conversion = safe(() => ConversionAnalyzer.analyze(doc, html),   { score:40, grade:'D', checks:[], trustScore:0, contactScore:0, hasPrimaryCTA:false, ctaAboveFold:false, ctaCrowded:false, hasTestimonials:false, hasSocialProof:false, hasPricing:false, hasForm:false, hasNewsletterForm:false, hasLeadCapture:false, hasExcessiveNav:false, navCount:0 });
+    const conversion = safe(() => ConversionAnalyzer.analyze(doc, html),   { score:40, grade:'D', checks:[], trustScore:0, contactScore:0, hasPrimaryCTA:false, ctaAboveFold:false, ctaCrowded:false, hasTestimonials:false, hasSocialProof:false, hasPricing:false, hasForm:false, hasNewsletterForm:false, hasLeadCapture:false, hasExcessiveNav:false, navCount:0 }, 'Conversion');
 
     p('Analyzing business readiness…', 92);
-    const business   = safe(() => BusinessAnalyzer.analyze(doc, html),     { score:40, grade:'D', checks:[], hasEmail:false, hasPhone:false, hasTestimonials:false, hasClientLogos:false, hasSocialProof:false, hasPricing:false, hasFAQ:false, hasPrivacy:false, hasTerms:false, hasOrgSchema:false, hasSocial:false, socialPresence:[] });
+    const business   = safe(() => BusinessAnalyzer.analyze(doc, html),     { score:40, grade:'D', checks:[], hasEmail:false, hasPhone:false, hasTestimonials:false, hasClientLogos:false, hasSocialProof:false, hasPricing:false, hasFAQ:false, hasPrivacy:false, hasTerms:false, hasOrgSchema:false, hasSocial:false, socialPresence:[] }, 'Business');
 
     p('Computing Growth Score…', 94);
+
+    // Track which external analyzers also fell back to null
+    if (!indexing) _fallbacks.push('Indexing');
+    if (!domain)   _fallbacks.push('Domain');
+    if (!ranking)  _fallbacks.push('Ranking');
+    if (!security) _fallbacks.push('Security');
 
     const desc = this._extractDesc(doc);
 
     this.currentData = {
       url, scannedAt: new Date().toISOString(),
+      _fallbacks,  // analyzers that used fallback data — shown as partial scan notice
       overview: this._overview(doc, url, structure, content, desc),
       colors, fonts, structure, content, cta, seo,
       media, links, images, contacts, tech, performance, mobile,

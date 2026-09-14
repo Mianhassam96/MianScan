@@ -1289,24 +1289,18 @@ button:focus-visible, input:focus-visible {
 [data-theme="light"] .feat-toggle-btn { background: #fff; border-color: rgba(80,96,238,.2) }
 [data-theme="light"] .feat-toggle-btn:hover { background: #f0f3ff }
 
-/* ===== LOADING SKELETON ===== */
-.skeleton-wrap {
-  padding: 2rem 0;
-}
-.skeleton-banner {
-  height: 120px; border-radius: var(--radius); margin-bottom: 1.25rem;
-}
+/* ===== LOADING SKELETON (layout classes) ===== */
+.skeleton-wrap { padding: 2rem 0 }
+.skeleton-banner { height: 120px; border-radius: var(--radius); margin-bottom: 1.25rem }
 .skeleton-stats {
   display: grid; grid-template-columns: repeat(auto-fit,minmax(118px,1fr));
   gap: .875rem; margin-bottom: 1.75rem;
 }
-.skeleton-stat { height: 90px; border-radius: var(--radius) }
-.skeleton-tabs { height: 44px; border-radius: var(--radius-s); margin-bottom: 1.5rem }
-.skeleton-card { height: 200px; border-radius: var(--radius); margin-bottom: 1.25rem }
+.skeleton-stat  { height: 90px;  border-radius: var(--radius) }
+.skeleton-tabs  { height: 44px;  border-radius: var(--radius-s); margin-bottom: 1.5rem }
+.skeleton-card  { height: 200px; border-radius: var(--radius);   margin-bottom: 1.25rem }
 .skeleton-card-sm { height: 120px; border-radius: var(--radius) }
-.skeleton-grid {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;
-}
+.skeleton-grid  { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem }
 
 /* ===== HIDE ON SMALL SCREENS ===== */
 @media(max-width:480px) { .hide-xs { display: none } }
@@ -3014,3 +3008,167 @@ button:focus-visible, input:focus-visible {
 [data-theme="light"] .cmp6-section-head { background: #f5f7ff }
 [data-theme="light"] .cmp6-detail-col { border-color: rgba(80,96,238,.1) }
 [data-theme="light"] .cmp6-tag       { background: #f0f3ff; border-color: rgba(80,96,238,.15) }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PHASE 6.7 — UI/UX POLISH
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Scan error state card (replaces inline styles in app.js) ── */
+.scan-error-state {
+  text-align: center;
+  padding: 2.5rem 1.5rem;
+}
+.scan-error-icon {
+  font-size: 2.5rem;
+  margin-bottom: .75rem;
+  line-height: 1;
+}
+.scan-error-headline {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--red);
+  margin-bottom: .4rem;
+}
+.scan-error-msg {
+  color: var(--text);
+  font-size: .9rem;
+  line-height: 1.6;
+  margin-bottom: .35rem;
+  max-width: 480px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.scan-error-hint {
+  color: var(--muted);
+  font-size: .82rem;
+  margin-bottom: 1.5rem;
+  max-width: 420px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.scan-error-actions {
+  display: flex;
+  gap: .75rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.scan-error-retry {
+  display: inline-flex;
+  min-height: 40px;
+  padding: 0 1.5rem;
+  font-size: .9rem;
+}
+.scan-error-other {
+  min-height: 40px;
+}
+
+/* ── Partial scan notice ── */
+.partial-scan-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: .5rem;
+  margin-top: .75rem;
+  padding: .6rem .875rem;
+  background: rgba(245,158,11,.08);
+  border: 1px solid rgba(245,158,11,.25);
+  border-radius: var(--radius-s);
+  font-size: .8rem;
+  color: var(--text);
+  line-height: 1.5;
+}
+.partial-scan-notice i {
+  color: var(--yellow);
+  flex-shrink: 0;
+  margin-top: .1rem;
+}
+.partial-scan-notice strong {
+  color: var(--yellow);
+}
+
+/* ── Overlay cancel button ── */
+.scan-overlay-cancel {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.18);
+  color: rgba(255,255,255,.65);
+  border-radius: 8px;
+  padding: .45rem 1.1rem;
+  font-size: .82rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background .2s, color .2s, border-color .2s;
+  margin-top: .5rem;
+}
+.scan-overlay-cancel:hover {
+  background: rgba(255,255,255,.14);
+  color: #fff;
+  border-color: rgba(255,255,255,.35);
+}
+[data-theme="light"] .scan-overlay-cancel {
+  background: rgba(0,0,0,.06);
+  border-color: rgba(0,0,0,.15);
+  color: rgba(0,0,0,.55);
+}
+[data-theme="light"] .scan-overlay-cancel:hover {
+  background: rgba(0,0,0,.1);
+  color: rgba(0,0,0,.8);
+}
+
+/* ── Tab bar fade masks (visual affordance for horizontal scroll) ── */
+.tab-nav-wrap {
+  position: relative;
+}
+.tab-nav-wrap::before,
+.tab-nav-wrap::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 32px;
+  pointer-events: none;
+  z-index: 2;
+}
+.tab-nav-wrap::before {
+  left: 30px; /* after the left scroll arrow */
+  background: linear-gradient(90deg, var(--bg) 0%, transparent 100%);
+}
+.tab-nav-wrap::after {
+  right: 30px; /* before the right scroll arrow */
+  background: linear-gradient(270deg, var(--bg) 0%, transparent 100%);
+}
+[data-theme="light"] .tab-nav-wrap::before {
+  background: linear-gradient(90deg, var(--bg) 0%, transparent 100%);
+}
+[data-theme="light"] .tab-nav-wrap::after {
+  background: linear-gradient(270deg, var(--bg) 0%, transparent 100%);
+}
+
+/* ── Overlay rings — shrink on narrow screens ── */
+@media (max-width: 360px) {
+  .scan-overlay::before { width: 120px; height: 120px }
+  .scan-overlay::after  { width: 190px; height: 190px }
+}
+
+/* ── .ilbl responsive fix — label column too wide on 320–375px ── */
+@media (max-width: 375px) {
+  .ilbl { min-width: 100px; font-size: .76rem }
+}
+@media (max-width: 320px) {
+  .ilbl { min-width: 80px;  font-size: .72rem }
+}
+
+/* ── Export row touch target fix — min-height on exp-btn ── */
+.exp-btn { min-height: 36px }
+@media (max-width: 480px) {
+  .exp-btn { min-height: 44px }
+}
+
+/* ── Light theme — error state ── */
+[data-theme="light"] .scan-error-headline { color: var(--red) }
+[data-theme="light"] .partial-scan-notice {
+  background: rgba(217,119,6,.07);
+  border-color: rgba(217,119,6,.22);
+}
