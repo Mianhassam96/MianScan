@@ -2,7 +2,7 @@
 
 > Scan any website. Get your Growth Score. Know exactly what to fix first.
 
-**MianScan** is a free, client-side website intelligence tool that runs 18+ analyzers in parallel and delivers a prioritised Growth Score with actionable fixes — no signup, no data stored, no backend.
+**MianScan** is a free, client-side website intelligence tool that runs 19 analyzers in parallel and delivers a prioritised Growth Score with actionable fixes — no signup, no data stored, no backend.
 
 🌐 **Live:** [mianhassam96.github.io/MianScan](https://mianhassam96.github.io/MianScan/)  
 🏢 **Built by:** [MultiMian](https://multimian.com/) — Web Development & SEO  
@@ -17,7 +17,7 @@ MianScan doesn't just show you numbers. It tells you **why your website may be l
 ```
 Enter URL
    ↓
-18 Analyzers run in parallel
+19 Analyzers run in parallel
    ↓
 Growth Score (0–100)
    ↓
@@ -48,7 +48,7 @@ The core output of every scan. A single 0–100 score across 9 weighted categori
 
 ---
 
-## 18+ Analyzers
+## 19 Analyzers
 
 | Analyzer | What it finds |
 |---|---|
@@ -131,7 +131,7 @@ Scan two websites side by side:
 
 1. Enter any public URL
 2. MianScan fetches the page through a CORS proxy (Cloudflare Worker)
-3. 18 analyzers run client-side in parallel
+3. 19 analyzers run client-side in parallel
 4. Results are aggregated into a Growth Score
 5. Priority findings and action plan are generated
 6. View, export, or share the report
