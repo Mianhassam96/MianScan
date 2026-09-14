@@ -12,8 +12,14 @@ const SecurityAnalyzer = {
 
     const fullHtml = html || doc.documentElement.innerHTML;
 
-    // ── Mixed content
-    const hasMixedContent = /src=["']http:\/\//i.test(fullHtml) || /href=["']http:\/\//i.test(fullHtml);
+    // ── Mixed content — Bug #41 fix: query actual DOM elements instead of raw
+    // HTML string regex to avoid false positives from comments/script strings.
+    const httpResources = [
+      ...[...doc.querySelectorAll('[src]')].map(el => el.getAttribute('src') || ''),
+      ...[...doc.querySelectorAll('link[href]')].map(el => el.getAttribute('href') || ''),
+      ...[...doc.querySelectorAll('form[action]')].map(el => el.getAttribute('action') || ''),
+    ];
+    const hasMixedContent = httpResources.some(u => u.startsWith('http://'));
 
     // ── External scripts
     const extScripts = [...doc.querySelectorAll('script[src]')]
@@ -141,6 +147,16 @@ const SecurityAnalyzer = {
         ? `${noAutocomplete} sensitive field(s) have autocomplete="off"`
         : 'Autocomplete settings look fine',
     });
+
+    // Bug #42 fix: hasOpenRedirect was computed but never used. Added to checks.
+    if (hasOpenRedirect) {
+      checks.push({
+        type: 'warn',
+        label: 'Open Redirect Pattern',
+        msg: 'Possible open redirect detected — window.location or document.location assigned from URL parameter',
+        detail: 'Review any dynamic redirects to ensure they only allow whitelisted destinations.',
+      });
+    }
 
     checks.push({
       type: extScripts.length > 15 ? 'warn' : 'ok',

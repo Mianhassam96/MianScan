@@ -84,8 +84,11 @@ const SEOAnalyzer = {
       score += 4;
       checks.push({ id:'h1', type:'warn', category:'Content', msg:`Multiple H1 tags (${h1s.length}) — should be exactly 1` });
     }
+    // Bug #38 fix: increase H2 pts from 5→10 to restore the max achievable
+    // SEO score to 100. The 5 pts removed from meta keywords (bug #36) are
+    // moved here — H2 structure is a genuine SEO signal.
     if (h2s.length > 0) {
-      score += 5;
+      score += 10;
       checks.push({ id:'h2', type:'ok', category:'Content', msg:`H2 tags present (${h2s.length})` });
     } else {
       checks.push({ id:'h2', type:'warn', category:'Content', msg:'No H2 tags — add subheadings for structure' });
@@ -144,11 +147,13 @@ const SEOAnalyzer = {
     }
 
     // ── Keywords — 5 pts
+    // ── Meta Keywords — 0 pts (obsolete signal, ignored by Google since 2009)
+    // Bug #36 fix: removed 5-pt award. Meta keywords are a spam signal for Bing
+    // and have zero effect on Google. Awarding points was actively misleading.
     if (metaKw) {
-      score += 5;
-      checks.push({ id:'keywords', type:'ok', category:'Meta', msg:'Meta keywords present' });
+      checks.push({ id:'keywords', type:'warn', category:'Meta', msg:'Meta keywords present — ignored by Google, minor Bing spam signal. Consider removing.' });
     } else {
-      checks.push({ id:'keywords', type:'warn', category:'Meta', msg:'No meta keywords (minor)' });
+      checks.push({ id:'keywords', type:'ok', category:'Meta', msg:'No meta keywords — correct (they are obsolete)' });
     }
 
     // Build legacy warnings array for backward compat

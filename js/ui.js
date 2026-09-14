@@ -63,8 +63,8 @@
             <span class="sb-tag"><i class="bi bi-lightbulb-fill"></i>${this.e(o.topic)}</span>
           </div>
           <div class="sb-actions">
-            <button class="exp-btn" onclick="UI.shareUrl('${shareUrl.replace(/'/g,"\\'")}')"><i class="bi bi-share-fill"></i> Share</button>
-            <button class="exp-btn" onclick="UI.copy('${shareUrl.replace(/'/g,"\\'")}')"><i class="bi bi-link-45deg"></i> Copy Link</button>
+            <button class="exp-btn" data-share-url="${this.e(shareUrl)}" onclick="UI.shareUrl(this.dataset.shareUrl)"><i class="bi bi-share-fill"></i> Share</button>
+            <button class="exp-btn" data-copy-url="${this.e(shareUrl)}" onclick="UI.copy(this.dataset.copyUrl)"><i class="bi bi-link-45deg"></i> Copy Link</button>
           </div>
         </div>
       </div>
@@ -485,7 +485,7 @@
       <div class="kw-table">
         <div class="kw-header"><span>Phrase</span><span>Count</span></div>
         ${bigrams.map(b=>`<div class="kw-row">
-          <span class="kw-word" onclick="UI.copy('${b.phrase.replace(/'/g,"\\'")}') " title="Click to copy">${this.e(b.phrase)}</span>
+          <span class="kw-word" data-kw="${this.e(b.phrase)}" onclick="UI.copy(this.dataset.kw)" title="Click to copy">${this.e(b.phrase)}</span>
           <span class="kw-count">${b.count}</span>
         </div>`).join('')}
       </div>
@@ -503,7 +503,7 @@
         <div class="kw-table">
           <div class="kw-header"><span>Keyword</span><span>Count</span><span>Density</span></div>
           ${content.keywords.map(k=>`<div class="kw-row">
-            <span class="kw-word" onclick="UI.copy('${k.word}')" title="Click to copy">${this.e(k.word)}</span>
+            <span class="kw-word" data-kw="${this.e(k.word)}" onclick="UI.copy(this.dataset.kw)" title="Click to copy">${this.e(k.word)}</span>
             <span class="kw-count">${k.count}</span>
             <span class="kw-density"><span class="kw-bar" style="width:${Math.min(parseFloat(k.density)*10,100)}%"></span>${k.density}%</span>
           </div>`).join('')}
@@ -518,7 +518,7 @@
         <div class="card">
           <div class="card-head"><i class="bi bi-hash"></i> Meta Keywords / Tags</div>
           ${content.tags.length
-            ?`<div class="tags">${content.tags.map(t=>`<span class="tag" onclick="UI.copy('${t}')" style="cursor:pointer">#${this.e(t)}</span>`).join('')}</div>
+            ?`<div class="tags">${content.tags.map(t=>`<span class="tag" data-tag="${this.e(t)}" onclick="UI.copy(this.dataset.tag)" style="cursor:pointer">#${this.e(t)}</span>`).join('')}</div>
               <button class="exp-btn" style="margin-top:.875rem" onclick="UI.copy('${content.tags.join(', ')}')"><i class="bi bi-clipboard"></i> Copy All</button>`
             :this.empty('No meta keywords')}
         </div>
@@ -1062,7 +1062,11 @@
     return `<div class="card">
       <div class="card-head"><i class="bi bi-palette-fill"></i> Color Palette <span class="badge-cnt">${c.total}</span></div>
       ${strip}
-      <div class="color-grid">${c.colors.map(hex=>`<div class="color-item" onclick="UI.copy('${hex}')" title="Click to copy ${hex}"><div class="swatch" style="background:${hex}"></div><span class="chex">${hex}</span><span class="crgb">${ColorAnalyzer.toRgb(hex)}</span></div>`).join('')}</div>
+      <div class="color-grid">${c.colors.map(hex => {
+        const safeHex = /^#[0-9a-fA-F]{3,8}$/.test(hex) ? hex : '';
+        if (!safeHex) return '';
+        return `<div class="color-item" data-hex="${safeHex}" onclick="UI.copy(this.dataset.hex)" title="Click to copy ${safeHex}"><div class="swatch" style="background:${safeHex}"></div><span class="chex">${safeHex}</span><span class="crgb">${ColorAnalyzer.toRgb(safeHex)}</span></div>`;
+      }).join('')}</div>
     </div>
     <div class="card">
       <div class="card-head"><i class="bi bi-code-slash"></i> CSS Variables</div>
@@ -1246,8 +1250,8 @@
 
     const effortIcon = e => {
       if (!e) return '';
-      if (/easy|15 min|30 min|1 hr/i.test(e)) return '<i class="bi bi-lightning-charge-fill" style="color:var(--green)"></i>';
-      if (/medium|1.2 hr|2.4 hr/i.test(e)) return '<i class="bi bi-clock-fill" style="color:var(--yellow)"></i>';
+      if (/easy/i.test(e)) return '<i class="bi bi-lightning-charge-fill" style="color:var(--green)"></i>';
+      if (/medium/i.test(e)) return '<i class="bi bi-clock-fill" style="color:var(--yellow)"></i>';
       return '<i class="bi bi-tools" style="color:var(--red)"></i>';
     };
 

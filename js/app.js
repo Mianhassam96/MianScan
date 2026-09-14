@@ -341,7 +341,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <div style="color:var(--text);font-size:.9rem;margin-bottom:.35rem">${msg}</div>
           ${hint ? `<div style="color:var(--muted);font-size:.82rem;margin-bottom:1.25rem">${hint}</div>` : '<div style="margin-bottom:1.25rem"></div>'}
           <div style="display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap">
-            <button class="scan-btn" onclick="_run('${url.replace(/'/g,"\\'")}', true)" style="display:inline-flex;min-height:40px;padding:0 1.5rem;font-size:.9rem">
+            <button class="scan-btn" data-retry-url="${url.replace(/&/g,'&amp;').replace(/"/g,'&quot;')}" onclick="_run(this.dataset.retryUrl, true)" style="display:inline-flex;min-height:40px;padding:0 1.5rem;font-size:.9rem">
               <i class="bi bi-arrow-repeat"></i><span>Retry</span>
             </button>
             <button class="exp-btn" onclick="document.getElementById('scanAgainBtn').click()" style="min-height:40px">

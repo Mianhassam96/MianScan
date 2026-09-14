@@ -73,7 +73,8 @@ const GrowthEngine = {
   _scoreAccessibility(d) {
     const a11y  = d.performance?.a11y || [];
     const total = a11y.length;
-    if (!total) return 60;
+    // Bug #6 fix: default to 40 (not 60) when no a11y data — avoids masking real gaps
+    if (!total) return 40;
     let score = Math.round((a11y.filter(c => c.type === 'ok').length / total) * 100);
     if (d.seo?.noAlt === 0 && d.images?.total > 0) score = Math.min(100, score + 8);
     if (!d.seo?.viewport) score = Math.max(0, score - 15);
@@ -299,10 +300,14 @@ const GrowthEngine = {
         'Add one dominant CTA above the fold — "Get Started", "Book a Free Call", or "Request a Quote". Make it stand out visually.',
         'High', 'Easy (< 1 hr)');
     }
-    // Fixed: check for crowded CTAs separately from missing CTAs
-    if ((d.cta?.primary?.length ?? 0) > 0 && (d.cta?.all?.length ?? 0) > 10) {
+    // Bug #8 fix: use conversion.ctaCrowded (keyword-matched CTAs only) instead of
+    // d.cta.all (all buttons+links) which fires falsely on nav/footer links.
+    // Fallback: d.cta.all.length > 20 as a looser raw threshold.
+    const ctaCrowded = d.conversion?.ctaCrowded ?? ((d.cta?.all?.length ?? 0) > 20);
+    if ((d.cta?.primary?.length ?? 0) > 0 && ctaCrowded) {
+      const ctaCount = d.conversion?.primaryCTACount ?? d.cta?.all?.length ?? 0;
       add('conv_cta_crowded', 'medium', 'Conversion',
-        `Too many competing CTAs (${d.cta.all.length} buttons/links)`,
+        `Too many competing CTAs (${ctaCount} detected)`,
         'When every element is clickable, nothing stands out. Visitors become paralysed by choice and take no action.',
         'Identify one primary action. Reduce secondary CTAs to supporting roles. Use visual hierarchy to guide attention.',
         'Medium', 'Easy (< 1 hr)');
@@ -317,7 +322,10 @@ const GrowthEngine = {
         'Add at least an email address and/or phone number in the header or footer — visible on every page.',
         'High', 'Easy (< 30 min)');
     }
-    if ((d.conversion?.trustScore ?? d.business?.trustScore ?? 100) < 30) {
+    // Bug #9 fix: d.conversion.trustScore is 0–20, d.conversion.trustSectionScore is 0–100.
+    // Use trustSectionScore (normalised) so the threshold < 30 is meaningful.
+    const trustSectionScore = d.conversion?.trustSectionScore ?? (d.business?.score != null ? d.business.score * 0.3 : 100);
+    if (trustSectionScore < 30) {
       add('conv_trust', 'high', 'Conversion',
         'Low trust signals',
         'First-time visitors need reasons to trust you before they\'ll contact you or buy. Without social proof, many will leave.',
@@ -443,13 +451,14 @@ const GrowthEngine = {
       ux:'UX', business:'Business Readiness',
     };
 
-    if (overall >= 80) {
-      return `Your website is in strong shape. Your biggest strength is ${labels[strongest[0]]} (${strongest[1]}). Focusing on ${labels[weakest[0]]} would push the score higher.`;
-    }
+    // Bug #11 fix: use else-if so critical issue message is never suppressed
+    // by the overall >= 80 branch on sites that score high overall but still
+    // have critical individual issues.
     if (critCount > 0) {
       return `Your website has ${critCount} critical issue${critCount > 1 ? 's' : ''} that need immediate attention — fix those first, then address ${highCount} high-priority improvements to meaningfully increase traffic and conversions.`;
-    }
-    if (highCount > 0) {
+    } else if (overall >= 80) {
+      return `Your website is in strong shape. Your biggest strength is ${labels[strongest[0]]} (${strongest[1]}). Focusing on ${labels[weakest[0]]} would push the score higher.`;
+    } else if (highCount > 0) {
       return `Good foundation — but ${highCount} important improvement${highCount > 1 ? 's' : ''} are holding back your growth potential. Your strongest area is ${labels[strongest[0]]}. ${labels[weakest[0]]} needs the most attention.`;
     }
     return `Your website is performing well across most areas. Your strongest area is ${labels[strongest[0]]} (${strongest[1]}). Keep iterating on ${labels[weakest[0]]} for further gains.`;

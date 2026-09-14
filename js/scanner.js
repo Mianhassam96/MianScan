@@ -97,20 +97,27 @@ const Scanner = {
 
     // Hard global cap — if all waves haven't resolved within this window,
     // abort everything and surface ERR_TIMEOUT immediately.
-    let _globalReject;
+    // Bug #1 fix: use try/finally so the clearTimeout always fires even on
+    // rejection, preventing a dangling setTimeout from leaking.
+    let _cancelTimer;
     const globalTimeout = new Promise((_, reject) => {
       const t = setTimeout(() => {
         reject(Object.assign(new Error(this.ERR_TIMEOUT), { code: this.ERR_TIMEOUT }));
       }, this.GLOBAL_SCAN_TIMEOUT_MS);
-      _globalReject = () => clearTimeout(t); // called on success to cancel the timer
+      _cancelTimer = () => clearTimeout(t);
     });
 
-    const result = await Promise.race([
-      this._fetchHTMLInner(url, errors),
-      globalTimeout,
-    ]);
-    if (_globalReject) _globalReject();
-    return result;
+    try {
+      const result = await Promise.race([
+        this._fetchHTMLInner(url, errors),
+        globalTimeout,
+      ]);
+      return result;
+    } finally {
+      // Always cancel the timer — whether _fetchHTMLInner resolved, rejected,
+      // or the timeout fired first. Prevents a leaked setTimeout.
+      if (_cancelTimer) _cancelTimer();
+    }
   },
 
   async _fetchHTMLInner(url, errors) {
@@ -175,12 +182,16 @@ const Scanner = {
     } catch (_) {}
 
     // ── Wave 3: sequential last-resort proxies
+    // Bug #4 fix: accumulate errors from Wave 3 into errors[] so the final
+    // error-code heuristic at the bottom has the full picture.
     const wave3 = [
       ['allorigins2', `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,  null, 10000],
       ['corsproxy',   `https://corsproxy.io/?url=${encodeURIComponent(url)}`,           null, 10000],
     ];
     for (const [label, pUrl, jKey, ms] of wave3) {
-      try { return await tryProxy(label, pUrl, jKey, ms); } catch (_) {}
+      try { return await tryProxy(label, pUrl, jKey, ms); } catch (e) {
+        errors.push(`${label} → ${e.message}`);
+      }
     }
 
     // ── All waves failed — determine the most meaningful error to show
