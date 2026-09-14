@@ -1,7 +1,7 @@
 {
-  "name": "MianScan — Website Intelligence Scanner",
+  "name": "MianScan — Website Growth Intelligence",
   "short_name": "MianScan",
-  "description": "Free website analyzer. SEO score, security grade, tech stack, colors, fonts, contacts — 18 analyzers in one scan.",
+  "description": "Free website growth scanner. Growth Score, priority fixes, SEO, security, mobile, conversion, business readiness — 18 analyzers. No signup.",
   "start_url": "/MianScan/",
   "scope": "/MianScan/",
   "display": "standalone",
@@ -18,7 +18,7 @@
     {
       "name": "Scan a Website",
       "short_name": "Scan",
-      "description": "Analyze any website instantly",
+      "description": "Get your Growth Score — free, instant, no signup",
       "url": "/MianScan/#scanner-app",
       "icons": [{ "src": "favicon.svg", "sizes": "any" }]
     },
