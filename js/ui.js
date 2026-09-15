@@ -139,6 +139,8 @@
       </span>
     </div>`;
   },
+
+  renderStats(data) {
     const {colors,fonts,contacts,tech,seo,links,images,domain,ranking} = data;
     const da = domain?.da !== null && domain?.da !== undefined ? domain.da+'/10' : '—';
     const rank = ranking?.globalRank ? '#'+Number(ranking.globalRank).toLocaleString() : '—';
