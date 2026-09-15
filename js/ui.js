@@ -7,8 +7,8 @@
 
   e(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); },
   copyBtn(val, label='Copy') {
-    const safe = String(val).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-    return `<button class="copy-btn" onclick="UI.copy('${safe}')"><i class="bi bi-clipboard"></i>${label}</button>`;
+    // Use data-val attribute to avoid XSS via onclick string injection
+    return `<button class="copy-btn" data-val="${this.e(String(val||''))}" onclick="UI.copy(this.dataset.val)"><i class="bi bi-clipboard"></i>${label}</button>`;
   },
   irow(l,v){ return `<div class="irow"><span class="ilbl">${l}</span><span class="ival">${v}</span></div>`; },
   crow(l,pass){ return `<div class="crow"><span class="clbl">${l}</span><span class="${pass?'pass':'fail'}"><i class="bi bi-${pass?'check-circle-fill':'x-circle-fill'}"></i>${pass?'Pass':'Fail'}</span></div>`; },
@@ -30,14 +30,14 @@
     const r = data.content?.readability || {};
     const readColor = r.score >= 70 ? 'var(--green)' : r.score >= 50 ? 'var(--yellow)' : 'var(--red)';
 
-    // OG social preview
-    const ogPreview = (data.seo.ogTitle || data.seo.ogImage) ? `
+    // OG social preview — use optional chaining as seo object may be a fallback
+    const ogPreview = (data.seo?.ogTitle || data.seo?.ogImage) ? `
       <div class="og-preview">
-        ${data.seo.ogImage ? `<img class="og-img" src="${this.e(data.seo.ogImage)}" alt="OG Image" onerror="this.parentElement.style.display='none'">` : ''}
+        ${data.seo?.ogImage ? `<img class="og-img" src="${this.e(data.seo.ogImage)}" alt="OG Image" onerror="this.parentElement.style.display='none'">` : ''}
         <div class="og-text">
           <div class="og-label">Open Graph Preview</div>
-          <div class="og-title">${this.e(data.seo.ogTitle || o.title)}</div>
-          <div class="og-desc">${this.e(data.seo.metaDesc || o.desc || '')}</div>
+          <div class="og-title">${this.e(data.seo?.ogTitle || o.title)}</div>
+          <div class="og-desc">${this.e(data.seo?.metaDesc || o.desc || '')}</div>
           <div class="og-domain">${this.e(hostname)}</div>
         </div>
       </div>` : '';
@@ -59,7 +59,7 @@
             <span class="sb-tag"><i class="bi bi-tag-fill"></i>${this.e(o.type)}</span>
             <span class="sb-tag"><i class="bi bi-translate"></i>${this.e(o.lang)}</span>
             <span class="sb-tag"><i class="bi bi-layout-split"></i>${o.sections} sections</span>
-            <span class="sb-tag"><i class="bi bi-file-word"></i>${(data.content.wordCount || 0).toLocaleString()} words</span>
+            <span class="sb-tag"><i class="bi bi-file-word"></i>${(data.content?.wordCount || 0).toLocaleString()} words</span>
             <span class="sb-tag"><i class="bi bi-lightbulb-fill"></i>${this.e(o.topic)}</span>
           </div>
           <div class="sb-actions">
@@ -151,13 +151,13 @@
       : 'var(--red)';
     const cards = [
       {icon:'🚀', val:growthVal,               lbl:'Growth Score', color:growthColor,       count:growth?.overall, highlight:true},
-      {icon:'📊', val:seo.score+'/100',         lbl:'SEO Score',    color:'var(--green)',    count:seo.score},
-      {icon:'🏆', val:da,                       lbl:'Domain Auth',  color:'var(--primary2)'},
-      {icon:'🌍', val:rank,                     lbl:'Global Rank',  color:'var(--accent)'},
+      {icon:'📊', val:(seo?.score ?? 0)+'/100',    lbl:'SEO Score',    color:'var(--green)',    count:seo?.score ?? 0},
+      {icon:'🏆', val:da,                           lbl:'Domain Auth',  color:'var(--primary2)'},
+      {icon:'🌍', val:rank,                         lbl:'Global Rank',  color:'var(--accent)'},
       {icon:'⚡', val:(data.performance?.score??'—'),lbl:'Perf Score',color:data.performance?.score>=80?'var(--green)':data.performance?.score>=50?'var(--yellow)':'var(--red)',count:data.performance?.score},
-      {icon:'🔗', val:links.totalInternal,      lbl:'Int. Links',   color:'var(--primary2)', count:links.totalInternal},
-      {icon:'🌐', val:links.totalExternal,      lbl:'Ext. Links',   color:'var(--muted)',    count:links.totalExternal},
-      {icon:'🛠️', val:tech.detected.length,    lbl:'Tech Found',   color:'var(--purple)',   count:tech.detected.length},
+      {icon:'🔗', val:links?.totalInternal ?? 0,    lbl:'Int. Links',   color:'var(--primary2)', count:links?.totalInternal ?? 0},
+      {icon:'🌐', val:links?.totalExternal ?? 0,    lbl:'Ext. Links',   color:'var(--muted)',    count:links?.totalExternal ?? 0},
+      {icon:'🛠️', val:tech?.detected?.length ?? 0, lbl:'Tech Found',   color:'var(--purple)',   count:tech?.detected?.length ?? 0},
     ];
     document.getElementById('statsRow').innerHTML = cards.map((c,i)=>
       `<div class="stat-card fu${c.highlight?' stat-card-growth':''}" style="animation-delay:${i*.05}s${c.highlight?';order:-1':''}"${c.highlight?` onclick="document.querySelector('[data-tab=growth]').click()" title="View Growth Score"`:''}>
@@ -211,14 +211,14 @@
 
     // Site health score
     let health = 0;
-    if (d.seo.score >= 70) health += 30; else if (d.seo.score >= 50) health += 15;
-    if (d.seo.title) health += 10;
-    if (d.seo.metaDesc) health += 10;
-    if (d.seo.h1s.length === 1) health += 10;
+    if (d.seo?.score >= 70) health += 30; else if (d.seo?.score >= 50) health += 15;
+    if (d.seo?.title) health += 10;
+    if (d.seo?.metaDesc) health += 10;
+    if ((d.seo?.h1s?.length ?? 0) === 1) health += 10;
     if (!d.indexing?.noindex) health += 10;
-    if (d.tech.detected.length > 0) health += 10;
-    if (d.contacts.emails.length > 0 || Object.keys(d.contacts.social).length > 0) health += 10;
-    if (d.seo.noAlt === 0) health += 10;
+    if ((d.tech?.detected?.length ?? 0) > 0) health += 10;
+    if ((d.contacts?.emails?.length ?? 0) > 0 || Object.keys(d.contacts?.social ?? {}).length > 0) health += 10;
+    if (d.seo?.noAlt === 0) health += 10;
     const healthCls = health >= 70 ? 'sg' : health >= 50 ? 'so' : 'sb';
     const healthLabel = health >= 70 ? 'Healthy' : health >= 50 ? 'Needs Work' : 'Poor';
     const healthDesc = health >= 70
@@ -1073,7 +1073,11 @@
   tColors(c) {
     if (!c.colors.length) return this.empty('No colors detected');
     const strip = `<div class="palette-strip" title="Click any color to copy">
-      ${c.colors.slice(0,16).map(hex=>`<div class="palette-strip-seg" style="background:${hex}" onclick="UI.copy('${hex}')" title="${hex}"></div>`).join('')}
+      ${c.colors.slice(0,16).map(hex => {
+        const safeH = /^#[0-9a-fA-F]{3,8}$/.test(hex) ? hex : '';
+        if (!safeH) return '';
+        return `<div class="palette-strip-seg" style="background:${safeH}" data-hex="${safeH}" onclick="UI.copy(this.dataset.hex)" title="${safeH}"></div>`;
+      }).join('')}
     </div>`;
     return `<div class="card">
       <div class="card-head"><i class="bi bi-palette-fill"></i> Color Palette <span class="badge-cnt">${c.total}</span></div>
