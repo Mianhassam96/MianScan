@@ -1,9 +1,13 @@
 const Exporter = {
+    safeHostname(url) {
+        return new URL(url).hostname.replace(/[^a-zA-Z0-9.-]/g, '_');
+    },
+
     toJSON(data) {
         const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
-        a.download = `mianscan-${new URL(data.url).hostname}-${Date.now()}.json`;
+        a.download = `mianscan-${this.safeHostname(data.url)}-${Date.now()}.json`;
         a.click();
         URL.revokeObjectURL(a.href);
         UI.toast('JSON exported!');
@@ -65,7 +69,7 @@ const Exporter = {
         line('Scripts',    data.performance.scriptsCount);
         line('Images',     data.performance.imagesCount);
 
-        doc.save(`mianscan-${new URL(data.url).hostname}.pdf`);
+        doc.save(`mianscan-${this.safeHostname(data.url)}.pdf`);
         UI.toast('PDF exported!');
     },
 
