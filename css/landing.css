@@ -89,9 +89,8 @@
 .lp-hero-bg {
   position: absolute; inset: 0; pointer-events: none;
   background:
-    radial-gradient(ellipse 90% 70% at 50% 0%, rgba(37,99,235,.22) 0%, transparent 65%),
-    radial-gradient(ellipse 50% 40% at 80% 20%, rgba(0,212,255,.14) 0%, transparent 60%),
-    radial-gradient(ellipse 40% 30% at 20% 80%, rgba(168,85,247,.12) 0%, transparent 55%);
+    radial-gradient(ellipse 80% 60% at 50% -5%, rgba(37,99,235,.18) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 30% at 80% 20%, rgba(37,99,235,.08) 0%, transparent 55%);
 }
 .lp-hero-bg::before {
   content: '';
@@ -197,9 +196,9 @@
   content: '';
   position: absolute; inset: -2px;
   border-radius: calc(var(--radius) + 2px);
-  background: linear-gradient(135deg, var(--primary), var(--accent), var(--purple), var(--primary));
-  background-size: 300% 300%;
-  animation: borderGlow 4s linear infinite;
+  background: linear-gradient(135deg, var(--primary), var(--accent), var(--primary));
+  background-size: 200% 200%;
+  animation: borderGlow 3s linear infinite;
   z-index: -1; opacity: 0; transition: opacity .3s;
 }
 .lp-scan-box .url-row:focus-within::before { opacity: 1 }
@@ -267,28 +266,14 @@
   background: var(--card); border: 1px solid var(--border);
   border-radius: 20px; overflow: hidden;
   box-shadow:
-    0 40px 100px rgba(0,0,0,.6),
-    0 0 0 1px rgba(37,99,235,.25),
-    0 0 80px rgba(37,99,235,.1),
-    inset 0 1px 0 rgba(255,255,255,.06);
-  animation: floatMock 5s ease-in-out infinite;
+    0 32px 80px rgba(0,0,0,.5),
+    0 0 0 1px rgba(37,99,235,.2);
   position: relative;
 }
 .lp-dashboard-mock::before {
   content: '';
   position: absolute; top: 0; left: 0; right: 0; height: 3px;
-  background: linear-gradient(90deg, var(--primary), var(--accent), var(--purple));
-  background-size: 200% 100%;
-  animation: shimmerBar 3s linear infinite;
-}
-@keyframes shimmerBar {
-  0%   { background-position: 200% 0 }
-  100% { background-position: -200% 0 }
-}
-@keyframes floatMock {
-  0%,100% { transform: translateY(0) rotate(0deg) }
-  33%      { transform: translateY(-10px) rotate(.4deg) }
-  66%      { transform: translateY(-5px) rotate(-.25deg) }
+  background: linear-gradient(90deg, var(--primary), var(--accent));
 }
 .mock-topbar {
   background: var(--bg3); padding: .75rem 1rem;
@@ -336,7 +321,7 @@
   padding: .6rem 1.25rem;
 }
 .mock-cta-badge {
-  background: linear-gradient(135deg,#2563eb,#a855f7);
+  background: linear-gradient(135deg,#2563eb,#1d4ed8);
   color: #fff; border-radius: 6px; padding: .12rem .5rem;
   font-size: .68rem; font-weight: 700; white-space: nowrap;
 }

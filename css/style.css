@@ -3173,3 +3173,366 @@ button:focus-visible, input:focus-visible {
   border-color: rgba(217,119,6,.22);
 }
 
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   UI/UX POLISH — Steps 1-5
+   MultiMian brand system — consistent components, tightened spacing,
+   improved accessibility, responsive fixes
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Step 1: Button system ── */
+
+/* Primary scan button — consistent height and shape */
+.scan-btn {
+  border-radius: var(--radius-s) !important;
+  min-height: 48px;
+  letter-spacing: .01em;
+}
+
+/* Secondary/export buttons — unified height and style */
+.exp-btn {
+  min-height: 36px;
+  border-radius: var(--radius-s);
+  font-weight: 600;
+  letter-spacing: .01em;
+}
+@media (max-width: 480px) {
+  .exp-btn { min-height: 44px }
+}
+
+/* Focus states — keyboard nav visible on all interactive elements */
+:focus-visible {
+  outline: 2px solid var(--primary2);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+button:focus-visible,
+.tab:focus-visible,
+.exp-btn:focus-visible,
+.scan-btn:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--primary2);
+  outline-offset: 2px;
+}
+
+/* Try buttons — slightly more visible */
+.try-btn {
+  border-radius: 20px;
+  font-weight: 600;
+  transition: all .18s;
+}
+.try-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary2);
+  background: rgba(37,99,235,.1);
+}
+
+/* ── Step 1: Card system ── */
+
+/* Cards — restrained shadow, consistent left border on hover */
+.card {
+  box-shadow: 0 1px 4px rgba(0,0,0,.18);
+  transition: border-color .2s, box-shadow .2s;
+}
+.card:hover {
+  box-shadow: 0 4px 16px rgba(37,99,235,.12);
+}
+[data-theme="light"] .card {
+  box-shadow: 0 1px 4px rgba(37,99,235,.07);
+}
+[data-theme="light"] .card:hover {
+  box-shadow: 0 4px 20px rgba(37,99,235,.12);
+}
+
+/* Stat cards — lighter hover lift */
+.stat-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(37,99,235,.18);
+}
+
+/* ── Step 1: Input system ── */
+
+/* URL input — cleaner focus ring */
+.url-row:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37,99,235,.15);
+}
+
+/* ── Step 2: Hero background — remove purple/cyan particle dots, keep blue grid ── */
+.lp-hero-bg {
+  background:
+    radial-gradient(ellipse 80% 60% at 50% -10%, rgba(37,99,235,.18) 0%, transparent 65%);
+}
+/* Remove the coloured particle dots (::after) — keep clean */
+.lp-hero-bg::after {
+  display: none;
+}
+/* Keep the subtle grid, make it blue only */
+.lp-hero-bg::before {
+  background-image:
+    linear-gradient(rgba(37,99,235,.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(37,99,235,.06) 1px, transparent 1px);
+  background-size: 52px 52px;
+}
+
+/* Hero headline — tighter leading */
+.lp-h1 {
+  letter-spacing: -.04em;
+  line-height: 1.06;
+}
+
+/* .grad in hero headline — blue only (overrides landing.css blue→purple) */
+.lp-h1 .grad {
+  background: linear-gradient(135deg, #60a5fa 0%, #2563eb 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: none; /* remove background-position animation */
+}
+
+/* Hero sub — slightly larger on desktop */
+.lp-sub {
+  font-size: 1.1rem;
+  color: var(--muted);
+  max-width: 580px;
+}
+
+/* Dashboard mock — remove shimmer top bar animation, simplify */
+.lp-dashboard-mock::before {
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  animation: none;
+}
+
+/* Remove floating mock animation — keep it static and clean */
+.lp-dashboard-mock {
+  animation: none;
+  box-shadow:
+    0 24px 64px rgba(0,0,0,.45),
+    0 0 0 1px rgba(37,99,235,.2);
+}
+
+/* Border glow on scan input focus — use subtle blue only */
+.lp-scan-box .url-row::before {
+  background: linear-gradient(135deg, var(--primary), var(--accent), var(--primary));
+  background-size: 200% 200%;
+  animation: borderGlowBlue 3s linear infinite;
+}
+@keyframes borderGlowBlue {
+  0%   { background-position: 0% 50% }
+  50%  { background-position: 100% 50% }
+  100% { background-position: 0% 50% }
+}
+
+/* ── Step 2: Scanner status badge ── */
+.scanner-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  font-size: .75rem;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+/* ── Step 3: Scan results ── */
+
+/* Site banner — solid top border instead of purple gradient */
+.site-banner::before {
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+}
+
+/* Stats row — slightly taller, number more prominent */
+.stat-val {
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+/* Growth stat card highlight */
+.stat-card-growth {
+  border-color: rgba(37,99,235,.4) !important;
+  background: rgba(37,99,235,.04) !important;
+  cursor: pointer;
+}
+.stat-card-growth:hover {
+  border-color: rgba(37,99,235,.6) !important;
+}
+
+/* Tabs — active indicator uses --primary, clean blue */
+.tab.active {
+  color: var(--primary2);
+  font-weight: 600;
+}
+.tab.active::after {
+  background: var(--primary);
+}
+
+/* Growth tab stays green — intentional semantic colour */
+.tab-growth.active {
+  color: var(--green) !important;
+}
+.tab-growth.active::after {
+  background: var(--green) !important;
+}
+
+/* Score rings — stronger shadow for visibility */
+.sg { box-shadow: 0 0 16px rgba(34,197,94,.25) }
+.so { box-shadow: 0 0 16px rgba(245,158,11,.25) }
+.sb { box-shadow: 0 0 16px rgba(240,68,68,.25) }
+
+/* Badge count — blue family */
+.badge-cnt {
+  background: rgba(37,99,235,.12);
+  color: var(--primary2);
+}
+
+/* Card head icons — primary2 blue */
+.card-head i { color: var(--primary2) }
+
+/* Tag chips — clean blue */
+.tag {
+  background: rgba(37,99,235,.08);
+  border-color: rgba(37,99,235,.18);
+  color: var(--primary2);
+}
+.tag:hover {
+  background: rgba(37,99,235,.16);
+}
+
+/* ── Step 3: A11y rows — tighten ── */
+.a11y-ok  { border-radius: var(--radius-s) }
+.a11y-warn { border-radius: var(--radius-s) }
+
+/* ── Step 4: Compare mode ── */
+
+/* Compare header gradient — blue only */
+.compare-hero {
+  background: radial-gradient(ellipse 60% 40% at 50% 0%, rgba(37,99,235,.14) 0%, transparent 70%);
+}
+
+/* VS badge */
+.compare-vs-badge {
+  background: linear-gradient(135deg, var(--primary), #1d4ed8);
+}
+
+/* cmp6 hero header */
+.cmp6-winner-banner {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+}
+
+/* CTA badge in compare */
+.cmp6-cta-badge {
+  background: rgba(37,99,235,.12);
+  color: var(--primary2);
+}
+
+/* ── Step 5: Responsive polish ── */
+
+/* Ensure scan overlay is readable on very small screens */
+@media (max-width: 360px) {
+  .scan-overlay-msg { font-size: .95rem }
+  .scan-overlay-url { font-size: .78rem }
+}
+
+/* Better touch targets for tabs on mobile */
+@media (max-width: 640px) {
+  .tab {
+    padding: .6rem .75rem;
+    min-height: 40px;
+  }
+}
+
+/* Export row — stack cleanly on small screens */
+@media (max-width: 480px) {
+  .export-row {
+    flex-direction: column;
+    gap: .5rem;
+  }
+  .exp-btn {
+    width: 100%;
+    justify-content: center;
+  }
+  .export-lbl {
+    align-self: flex-start;
+  }
+}
+
+/* Progress bar — stronger blue glow */
+.prog-fill {
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  box-shadow: 0 0 10px rgba(37,99,235,.5);
+}
+
+/* Scan overlay fill — blue */
+.scan-overlay-fill {
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  box-shadow: 0 0 14px rgba(37,99,235,.6);
+}
+
+/* Partial scan notice — light theme */
+[data-theme="light"] .partial-scan-notice {
+  background: rgba(217,119,6,.07);
+  border-color: rgba(217,119,6,.22);
+}
+
+/* Light theme — button/tag overrides */
+[data-theme="light"] .try-btn {
+  background: #fff;
+  border-color: rgba(37,99,235,.2);
+}
+[data-theme="light"] .try-btn:hover {
+  background: #eff6ff;
+  border-color: var(--primary);
+  color: var(--primary);
+}
+[data-theme="light"] .tag {
+  background: #eff6ff;
+  border-color: rgba(37,99,235,.2);
+  color: var(--primary);
+}
+[data-theme="light"] .badge-cnt {
+  background: #dbeafe;
+  color: var(--primary);
+}
+[data-theme="light"] .scan-again-btn {
+  background: #eff6ff !important;
+  border-color: rgba(37,99,235,.25) !important;
+  color: var(--primary) !important;
+}
+[data-theme="light"] .lp-dashboard-mock {
+  box-shadow: 0 20px 60px rgba(37,99,235,.15), 0 0 0 1px rgba(37,99,235,.15);
+}
+
+/* ── Misc polish ── */
+
+/* Scrollbar — blue accent */
+::-webkit-scrollbar-thumb:hover { background: var(--primary) }
+
+/* Selection highlight — blue */
+::selection {
+  background: rgba(37,99,235,.25);
+  color: var(--text);
+}
+
+/* Toast — blue solid */
+.toast-msg {
+  background: linear-gradient(135deg, var(--primary), #1d4ed8);
+  box-shadow: 0 8px 24px rgba(37,99,235,.4);
+}
+
+/* Empty state icon — blue tint */
+.empty i { color: var(--primary2); opacity: .25 }
+
+/* Perf bar fill — blue family */
+.perf-bar-fill { border-radius: 4px }
+
+/* kw-bar — blue */
+.kw-bar { background: linear-gradient(90deg, var(--primary2), var(--primary)) }
+
+/* Link items hover — blue */
+.litem:hover { border-color: var(--primary) }
+
+/* Card head divider line */
+.card-head {
+  padding-bottom: .75rem;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 1rem;
+}
