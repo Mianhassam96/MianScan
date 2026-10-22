@@ -173,40 +173,34 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     btn.classList.add('active');
     UI.renderTab(btn.dataset.tab, Scanner.currentData);
+  });
 
-    // Wire compare button after tab renders
-    if (btn.dataset.tab === 'compare') {
-      setTimeout(() => {
-        const cmpBtn = document.getElementById('cmpRunBtn');
-        if (cmpBtn && !cmpBtn._wired) {
-          cmpBtn._wired = true;
-          cmpBtn.addEventListener('click', async () => {
-            let urlA = document.getElementById('cmpUrlA').value.trim();
-            let urlB = document.getElementById('cmpUrlB').value.trim();
-            if (!urlA || !urlB) { UI.toast('Enter both URLs'); return; }
-            urlA = Scanner.normalizeUrl(urlA);
-            urlB = Scanner.normalizeUrl(urlB);
-            const bar = document.getElementById('cmpBar');
-            const lbl = document.getElementById('cmpLabel');
-            const prog = document.getElementById('cmpProgress');
-            const out  = document.getElementById('cmpOutput');
-            cmpBtn.disabled = true;
-            cmpBtn.innerHTML = '<i class="bi bi-radar spin"></i><span>Comparing…</span>';
-            prog.classList.remove('hidden');
-            out.innerHTML = '';
-            bar.style.width = '0%';
-            try {
-              await Compare.runInline(urlA, urlB, bar, lbl, out);
-            } catch(e) {
-              UI.toast('Compare failed: ' + e.message);
-            } finally {
-              cmpBtn.disabled = false;
-              cmpBtn.innerHTML = '<i class="bi bi-arrow-left-right"></i><span>Compare Sites</span>';
-              setTimeout(() => prog.classList.add('hidden'), 800);
-            }
-          });
-        }
-      }, 100);
+  /* ── Compare tab: event delegation on #tabContent (survives innerHTML re-renders) ── */
+  document.getElementById('tabContent').addEventListener('click', async e => {
+    const cmpBtn = e.target.closest('#cmpRunBtn');
+    if (!cmpBtn) return;
+    let urlA = document.getElementById('cmpUrlA').value.trim();
+    let urlB = document.getElementById('cmpUrlB').value.trim();
+    if (!urlA || !urlB) { UI.toast('Enter both URLs'); return; }
+    urlA = Scanner.normalizeUrl(urlA);
+    urlB = Scanner.normalizeUrl(urlB);
+    const bar  = document.getElementById('cmpBar');
+    const lbl  = document.getElementById('cmpLabel');
+    const prog = document.getElementById('cmpProgress');
+    const out  = document.getElementById('cmpOutput');
+    cmpBtn.disabled = true;
+    cmpBtn.innerHTML = '<i class="bi bi-radar spin"></i><span>Comparing…</span>';
+    prog.classList.remove('hidden');
+    out.innerHTML = '';
+    bar.style.width = '0%';
+    try {
+      await Compare.runInline(urlA, urlB, bar, lbl, out);
+    } catch (err) {
+      UI.toast('Compare failed: ' + err.message);
+    } finally {
+      cmpBtn.disabled = false;
+      cmpBtn.innerHTML = '<i class="bi bi-arrow-left-right"></i><span>Compare Sites</span>';
+      setTimeout(() => prog.classList.add('hidden'), 800);
     }
   });
 
