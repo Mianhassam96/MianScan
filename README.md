@@ -6,7 +6,7 @@ Built for **SEO experts, freelancers, developers, and content creators**.
 
 Scan any URL and get **complete website intelligence in seconds.**
 
----
+--- 
 
 # Features 
    
