@@ -7,11 +7,19 @@ const LinksAnalyzer = {
     const ctaPattern = /get started|sign up|free trial|contact|buy|shop|demo|pricing|learn more|download|subscribe|join|start|try/i;
 
     all.forEach(a => {
-      const href = a.href || '';
+      const href = a.getAttribute('href') || '';
+      const resolved = a.href || '';
       const text = a.textContent.trim().replace(/\s+/g,' ');
       if (!href || href.startsWith('mailto:') || href.startsWith('tel:') || href.startsWith('javascript:')) return;
-      const entry = { href, text: text.slice(0,80), anchor: text.slice(0,60) };
-      if (href.startsWith(origin) || href.startsWith('/') || href.startsWith('#')) {
+      const entry = { href: resolved || href, text: text.slice(0,80), anchor: text.slice(0,60) };
+
+      // Bug fix: protocol-relative URLs (//cdn.example.com) are external —
+      // was incorrectly caught by href.startsWith('/') and marked as internal.
+      const isProtocolRelative = href.startsWith('//');
+      const isRelative = !isProtocolRelative && (href.startsWith('/') || href.startsWith('#') || href.startsWith('.'));
+      const isAbsoluteSameOrigin = (resolved || href).startsWith(origin);
+
+      if (!isProtocolRelative && (isRelative || isAbsoluteSameOrigin)) {
         internal.push(entry);
       } else {
         external.push(entry);

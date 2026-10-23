@@ -4,22 +4,26 @@ const ContactAnalyzer = {
     const rawHtml = html || doc.body?.innerHTML || '';
     const rawText = doc.body?.textContent || '';
 
-    /* ── Emails ── */
+    /* ── Emails — tightened filter same as conversion.js ── */
     const emailReg = /[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,6}/g;
     const emails = [...new Set(rawHtml.match(emailReg) || [])]
-      .filter(e => !/(\.png|\.jpg|\.gif|\.svg|\.webp|sentry|example|test@)/.test(e))
+      .filter(e => !/(\.png|\.jpg|\.gif|\.svg|\.webp|sentry|example\.com|test@|noreply|@\d|react@|vue@|angular@|webpack@|babel@|node_modules)/.test(e))
       .slice(0, 10);
 
-    /* ── Phones ── */
+    /* ── Phones — structural pattern + contextual signal (same as conversion.js) ── */
+    const phoneText = rawText.replace(/[\s\u200b\u00a0]+/g, ' ');
     const phoneReg = /(?:\+?\d{1,3}[\s\-.]?)?\(?\d{2,4}\)?[\s\-.]?\d{3,4}[\s\-.]?\d{3,4}/g;
-    const phones = [...new Set(
-      (rawHtml.match(phoneReg) || [])
-        .map(p => p.trim())
-        .filter(p => {
-          const digits = p.replace(/\D/g, '');
-          return digits.length >= 7 && digits.length <= 15;
-        })
-    )].slice(0, 6);
+    const hasPhoneContext = /(?:call|phone|tel|mob|whatsapp|contact|\+\d{1,3}|\(\d{2,4}\))/i.test(phoneText);
+    const phones = hasPhoneContext
+      ? [...new Set(
+          (phoneText.match(phoneReg) || [])
+            .map(p => p.trim())
+            .filter(p => {
+              const digits = p.replace(/\D/g, '');
+              return digits.length >= 7 && digits.length <= 15;
+            })
+        )].slice(0, 6)
+      : [];
 
     /* ── Use getAttribute to get raw href before base tag resolves them ── */
     const rawLinks = [...doc.querySelectorAll('a[href]')]

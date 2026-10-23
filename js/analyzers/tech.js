@@ -10,7 +10,7 @@ const TechAnalyzer = {
     {name:'Astro',            p:/astro-island|astro\.build/i},
     {name:'jQuery',           p:/jquery(?:\.min)?\.js|jQuery\s*\(/i},
     {name:'Bootstrap',        p:/bootstrap(?:\.min)?\.(?:css|js)|data-bs-/i},
-    {name:'Tailwind CSS',     p:/tailwind(?:css)?(?:\.min)?\.css|class="[^"]*(?:flex|grid|px-|py-|text-|bg-|rounded)/i},
+    {name:'Tailwind CSS',     p:/tailwind(?:css)?(?:\.min)?\.css|cdn\.tailwindcss\.com|tailwindcss\.com\/|"tailwindcss"|'tailwindcss'|data-tailwind/i},
     {name:'WordPress',        p:/wp-content|wp-includes|wordpress/i},
     {name:'Shopify',          p:/shopify|cdn\.shopify\.com/i},
     {name:'Webflow',          p:/webflow\.com|webflow\.js/i},
