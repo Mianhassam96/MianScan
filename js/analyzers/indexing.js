@@ -26,18 +26,24 @@ const IndexingAnalyzer = {
       .map(s => { try { return JSON.parse(s.textContent)?.['@type'] || null; } catch { return null; } })
       .filter(Boolean);
 
-    // ── robots.txt (network — use corsproxy.io)
+    // ── robots.txt — try multiple proxies for resilience
     let robotsTxt = 'Not found';
     let robotsDisallows = [];
     let robotsAllows = 0;
 
-    try {
-      const robotsUrl = `${origin}/robots.txt`;
-      const proxyUrl  = `https://corsproxy.io/?${encodeURIComponent(robotsUrl)}`;
-      const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(6000) });
-      if (res.ok) {
+    const robotsUrl = `${origin}/robots.txt`;
+    const robotsProxies = [
+      `https://corsproxy.io/?${encodeURIComponent(robotsUrl)}`,
+      `https://api.allorigins.win/get?url=${encodeURIComponent(robotsUrl)}`,
+      `https://api.cors.lol/?url=${encodeURIComponent(robotsUrl)}`,
+    ];
+
+    for (const proxyUrl of robotsProxies) {
+      try {
+        const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(6000) });
+        if (!res.ok) continue;
         let txt = await res.text();
-        // corsproxy returns raw text; allorigins returns JSON
+        // Unwrap allorigins JSON envelope if present
         try { const j = JSON.parse(txt); if (j.contents) txt = j.contents; } catch (_) {}
         if (txt && (txt.includes('User-agent') || txt.includes('Disallow'))) {
           robotsTxt       = 'Found';
@@ -51,9 +57,12 @@ const IndexingAnalyzer = {
             const sm = txt.match(/^Sitemap:\s*(.+)/im);
             if (sm) sitemapUrl = sm[1].trim();
           }
+          break; // success — stop trying proxies
         }
+      } catch (_) {
+        // Try next proxy
       }
-    } catch (_) {}
+    }
 
     return {
       noindex, nofollow, noarchive, nosnippet,

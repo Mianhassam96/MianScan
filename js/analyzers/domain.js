@@ -19,7 +19,8 @@ const DomainAnalyzer = {
 
     await Promise.allSettled([
 
-      // ── Open PageRank (free, no key needed)
+      // ── Open PageRank — free tier, no key required for page_rank_integer
+      // Only sets da when API actually returns valid data (status_code 200)
       (async () => {
         try {
           const res = await fetch(
@@ -29,11 +30,11 @@ const DomainAnalyzer = {
           if (res.ok) {
             const data = await res.json();
             const entry = data?.response?.[0];
-            if (entry?.page_rank_integer != null) {
+            if (entry && entry.status_code === 200 && entry.page_rank_integer != null) {
               result.da     = entry.page_rank_integer;
-              result.daNote = 'Open PageRank (0–10)';
+              result.daNote = 'Open PageRank (0–10 scale)';
             }
-            if (entry?.rank) result.rank = entry.rank;
+            if (entry?.rank && entry.rank > 0) result.rank = entry.rank;
           }
         } catch (_) {}
       })(),
