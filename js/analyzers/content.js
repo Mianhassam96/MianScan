@@ -35,9 +35,22 @@ const ContentAnalyzer = {
     const topics = headings.filter(h => h.length > 3 && h.length < 70).slice(0, 6);
     const tags = metaKw.split(',').map(t => t.trim()).filter(Boolean).slice(0, 10);
 
-    // Body word count (visible text only)
-    const bodyText = doc.body?.innerText || doc.body?.textContent || '';
-    const wordCount = bodyText.trim().split(/\s+/).filter(w => w.length > 0).length;
+    // Body word count — visible text only, excluding script/style/noscript content
+    // Bug fix: body.innerText is not available in DOMParser output; textContent
+    // includes all script/style text inflating the count. Clone body and remove
+    // non-visible elements before extracting text.
+    let wordCount = 0;
+    try {
+      const bodyClone = doc.body?.cloneNode(true);
+      if (bodyClone) {
+        bodyClone.querySelectorAll('script,style,noscript,template').forEach(el => el.remove());
+        const visibleText = bodyClone.textContent || '';
+        wordCount = visibleText.trim().split(/\s+/).filter(w => w.length > 0).length;
+      }
+    } catch (_) {
+      // Fallback if cloneNode fails
+      wordCount = (doc.body?.textContent || '').trim().split(/\s+/).filter(w => w.length > 0).length;
+    }
 
     return {
       headings: headings.slice(0, 10),

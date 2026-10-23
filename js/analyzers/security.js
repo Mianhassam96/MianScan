@@ -39,10 +39,10 @@ const SecurityAnalyzer = {
     // ── CSP meta tag
     const hasCspMeta = !!doc.querySelector('meta[http-equiv="Content-Security-Policy"]');
 
-    // ── Referrer policy
+    // ── Referrer policy — use DOM check to avoid raw HTML regex false positives
     const hasReferrerPolicy = !!doc.querySelector('meta[name="referrer"]') ||
       !!doc.querySelector('meta[name="referrerpolicy"]') ||
-      /referrer-policy/i.test(fullHtml);
+      !!doc.querySelector('meta[http-equiv="Referrer-Policy"]');
 
     // ── X-Frame-Options equivalent (CSP frame-ancestors)
     const hasFrameGuard = hasCspMeta &&

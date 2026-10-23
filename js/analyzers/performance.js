@@ -8,10 +8,27 @@ const PerformanceAnalyzer = {
     const inlineKB    = ([...doc.querySelectorAll('script:not([src])')].reduce((a,s)=>a+(s.textContent?.length||0),0)/1024).toFixed(1);
     const noAlt       = [...images].filter(i=>!i.getAttribute('alt')).length;
     const h1Count     = doc.querySelectorAll('h1').length;
-    const noLabel     = [...doc.querySelectorAll('input:not([type="hidden"])')].filter(inp=>!inp.id||!doc.querySelector(`label[for="${inp.id}"]`)).length;
+    // Bug fix: only count inputs that genuinely need a label (visible, non-hidden,
+    // non-submit, non-button types). Empty id is falsy — also check aria-label/aria-labelledby.
+    const labelableInputs = [...doc.querySelectorAll(
+      'input:not([type="hidden"]):not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="image"])'
+    )];
+    const noLabel = labelableInputs.filter(inp => {
+      const id = inp.getAttribute('id');
+      const hasLabel = (id && doc.querySelector(`label[for="${id}"]`)) ||
+                       inp.getAttribute('aria-label') ||
+                       inp.getAttribute('aria-labelledby') ||
+                       inp.closest('label');
+      return !hasLabel;
+    }).length;
     const emptyLinks  = [...doc.querySelectorAll('a')].filter(a=>!a.textContent.trim()&&!a.getAttribute('aria-label')).length;
     const lazyImgs    = [...images].filter(i=>i.getAttribute('loading')==='lazy').length;
-    const extScripts  = [...doc.querySelectorAll('script[src]')].filter(s=>s.src&&s.src.startsWith('http')).length;
+    // Bug fix: use getAttribute('src') not .src property — .src resolves relative
+    // paths to absolute URLs starting with the page origin, making them look external.
+    const extScripts  = [...doc.querySelectorAll('script[src]')].filter(s => {
+      const src = s.getAttribute('src') || '';
+      return src.startsWith('http://') || src.startsWith('https://') || src.startsWith('//');
+    }).length;
 
     // ── Performance score (0–100)
     let score = 100;
