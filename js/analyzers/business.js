@@ -44,11 +44,15 @@ const BusinessAnalyzer = {
       doc.querySelectorAll('[class*="service"], [class*="product"], [class*="feature"], [id*="service"]').length > 0;
 
     // ── Contact information ───────────────────────────────────────────────────
+    // Bug fix: same improvements as conversion.js — tighter email and phone detection
     const emailReg   = /[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,6}/g;
     const emailCount = (fullHtml.match(emailReg) || [])
-      .filter(e => !/(\.png|\.jpg|\.gif|\.svg|sentry|example|test@|noreply)/.test(e)).length;
+      .filter(e => !/(\.png|\.jpg|\.gif|\.svg|sentry|example\.com|test@|noreply|@\d|react@|vue@|angular@|webpack@|babel@|node_modules)/.test(e)).length;
     const hasEmail   = emailCount > 0;
-    const hasPhone   = /(\+?\d[\d\s\-().]{6,}\d)/.test(bodyText);
+    // Tightened phone: requires recognisable phone structure + contextual signal
+    const phoneText  = (doc.body?.textContent || '').replace(/[\s\u200b\u00a0]+/g, ' ');
+    const hasPhone   = /(\+?\d{1,3}[\s\-.]?)?\(?\d{2,4}\)?[\s\-.]?\d{3,4}[\s\-.]?\d{3,4}/.test(phoneText) &&
+      /(?:call|phone|tel|mob|whatsapp|contact|\+\d{1,3}|\(\d{2,4}\))/.test(phoneText);
     const hasWhatsApp = /wa\.me|whatsapp\.com/i.test(fullHtml);
     const hasContactPage = linkHrefs.some(h => /\/(contact|reach|support|get-in-touch|hire)/i.test(h));
     const hasForm    = doc.querySelectorAll('form').length > 0;

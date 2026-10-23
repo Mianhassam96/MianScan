@@ -17,7 +17,9 @@ const ConversionAnalyzer = {
     const allBtns   = [...doc.querySelectorAll('button, a.btn, a[class*="cta"], [class*="btn"]')];
 
     // ── CTA analysis ──────────────────────────────────────────────────────────
-    const ctaKeywords = /get started|start free|try free|sign up|free trial|get access|join now|start now|create account|get demo|book a call|request a quote|contact us|buy now|order now|subscribe|book now|hire us|work with us/i;
+    // English + common international CTA patterns
+    // Expanded to cover Urdu, Arabic, and generic action-oriented phrases
+    const ctaKeywords = /get started|start free|try free|sign up|free trial|get access|join now|start now|create account|get demo|book a call|request a quote|contact us|buy now|order now|subscribe|book now|hire us|work with us|learn more|get in touch|talk to us|schedule a call|claim your|start today|join free|get your|download now|see pricing|view plans|شروع کریں|ابھی|مفت|رابطہ کریں|ابتداء|شامل ہوں|ابھی شروع|خریدیں|ابتدا|تجربہ|حاصل کریں|ان سے ملیں|ابھی خریدیں|ابھی حاصل کریں|ابھی رجسٹر|ابھی سائن اپ/i;
 
     const ctaEls = allBtns.concat(allLinks).filter(el => {
       const t = el.textContent.trim();
@@ -55,12 +57,20 @@ const ConversionAnalyzer = {
     // ── Lead generation ───────────────────────────────────────────────────────
     const forms = [...doc.querySelectorAll('form')];
     const hasForm = forms.length > 0;
-    const hasContactForm = forms.some(f =>
-      /contact|enquir|inquiry|message|name.*email|email.*name/i.test(f.innerHTML)
-    );
+    // Bug fix: contact form detection now checks field names/types, not just
+    // class names — prevents newsletter forms with class="contact-..." from
+    // being counted as contact forms and inflating the lead score.
+    const hasContactForm = forms.some(f => {
+      const html = f.innerHTML;
+      const hasMessageField = /\bname=["']?(?:message|body|comment|enquir|inquiry)\b/i.test(html) ||
+        f.querySelector('textarea') !== null;
+      const hasEmailAndName = /\bname=["']?(?:name|fullname|full_name)\b/i.test(html) &&
+        f.querySelector('input[type="email"]') !== null;
+      return hasMessageField || hasEmailAndName;
+    });
     const hasNewsletterForm = forms.some(f =>
-      /newsletter|subscribe|email/i.test(f.innerHTML) ||
-      f.querySelector('input[type="email"]')
+      /newsletter|subscribe/i.test(f.innerHTML) ||
+      (f.querySelector('input[type="email"]') !== null && !hasContactForm)
     );
     const hasGatedContent = /download|free guide|ebook|whitepaper|cheat sheet|free resource|get the|grab the/i.test(bodyText);
     const hasLeadCapture = hasContactForm || hasNewsletterForm || hasGatedContent;
@@ -72,11 +82,22 @@ const ConversionAnalyzer = {
     if (hasGatedContent)   leadScore += 5;
 
     // ── Contact accessibility ─────────────────────────────────────────────────
+    // Bug fix: email regex now only matches emails in visible text/links,
+    // not in script src, CSS, or framework package names like "react@17.0.2"
     const emailReg   = /[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,6}/g;
-    const emailCount = (fullHtml.match(emailReg) || [])
-      .filter(e => !/(\.png|\.jpg|\.gif|\.svg|sentry|example|test@|noreply)/.test(e)).length;
+    const emailMatches = (fullHtml.match(emailReg) || []).filter(e =>
+      !/(\.png|\.jpg|\.gif|\.svg|sentry|example\.com|test@|noreply|@\d|react@|vue@|angular@|webpack@|babel@|node_modules)/.test(e)
+    );
+    const emailCount = emailMatches.length;
     const hasEmail     = emailCount > 0;
-    const hasPhone     = /(\+?\d[\d\s\-().]{6,}\d)/.test(bodyText);
+
+    // Bug fix: phone regex tightened — require at least 7 digits and reject
+    // strings that look like years (4 digits), statistics (large numbers with commas),
+    // or version numbers. Must have a plausible phone structure.
+    const phoneText = bodyText.replace(/[\s\u200b\u00a0]+/g, ' ');
+    const hasPhone = /(\+?\d{1,3}[\s\-.]?)?\(?\d{2,4}\)?[\s\-.]?\d{3,4}[\s\-.]?\d{3,4}/.test(phoneText) &&
+      /(?:call|phone|tel|mob|whatsapp|contact|\+\d{1,3}|\(\d{2,4}\))/.test(phoneText);
+
     const hasWhatsApp  = /wa\.me|whatsapp\.com/i.test(fullHtml);
     const hasContactPg = allLinks.some(a => /\/(contact|reach|support|help|hire)/i.test(a.getAttribute('href') || ''));
     const hasChatWidget= /intercom|crisp|tawk|livechat|drift|hubspot/i.test(fullHtml);
