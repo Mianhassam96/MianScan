@@ -17,7 +17,7 @@ Quick snapshot of the site:
 
 * Title  
 * Meta description
-* Domain
+* Domain 
 * Language
 * Page type
 * Word count
