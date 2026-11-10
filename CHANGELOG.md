@@ -1,140 +1,261 @@
 # MianScan Changelog
 
 All notable changes to MianScan are documented here.
+Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
-## [v2.4] — 2026-09-13
+## [1.0.0] — 2026-09-15
 
-### Phase 6 — Compare Mode Polish
-- Rewrote `_buildOutput()` in `compare.js` from scratch
-- New header: Growth Score rings (100px) for both sites with grade badges
-- Winner banner shows exact point difference (+N points)
-- `_computeWins()` checks 12 signals (Growth Score, SEO, perf, mobile, security, conversion, business, CTA, email, testimonials, HTTPS, tech stack, content depth) — shows up to 5 wins per side
-- Category-by-category comparison bars (8 categories) expanding from centre label, winner gets +N badge
-- 8 detail sections: SEO, Keywords, CTAs, Tech Stack, Colors, Fonts, Performance, Contacts
-- All output XSS-safe via `_e()` helper
-- ~250 lines of `cmp6-*` CSS: full responsive (768px, 480px) + light theme
+### First stable release — Website Growth Intelligence
 
-### Phase 5 — MultiMian Lead Funnel
-- New "MianScan Found the Problems. We Fix Them." section on landing page
-  - 3 service cards: Web Development / SEO & Growth / Conversion Optimisation
-  - Featured badge on SEO card, checklist per service
-  - Gradient CTA block: "Get a Free Website Growth Review"
-- `_mmMicroCTA()` added to `renderBanner()` — shown when critical+high issues exist
-  - 3 copy variants driven by critical issue count
-  - Links directly to multimian.com
-- What's New section updated to v2.4
-- Hero badge updated: v2.3 → v2.4
-- Footer: new MultiMian services column
-- ~150 lines of `mm-*` CSS
-
-### Phase 4 — Professional PDF Report
-- Rewrote `toPDF()` in `export.js`
-- Page 1 — Cover: dark branded layout, large Growth Score ring, 6-category score grid, summary, MianScan + MultiMian branding
-- Page 2 — Findings: up to 12 priority finding cards (priority pill, category, effort, impact) + Action Plan
-- Page 3 — Technical: SEO, Performance, Mobile, Security
-- Page 4 — Business: Business Readiness (12 signals), Conversion sub-scores, Tech, Contacts
-- Page 5 — Intelligence: Domain, Top 18 keywords, Colour swatches grid, Typography
-- Final page — MultiMian CTA: dark full-page pitch, score recap strip, 3 service pills, styled button
+MianScan v1.0 is the first production-ready release. It covers all core
+website analysis capabilities, a full Growth Score engine, professional
+PDF export, Compare Mode, and the MultiMian lead funnel.
 
 ---
 
-## [v2.3] — 2026-09 (pre-session baseline)
+### Scanner & Architecture
 
-### Phase 3 — Business Audit UX
-- Rewrote `tBusiness()`: consultant-style audit with hero, 8-signal quick bar, section cards per domain
-- Rewrote `tConversion()`: sub-score progress bars, 18 audit definitions with revenue-impact framing
-- Every failing check shows "Why it matters" + "Recommended fix" + impact badge
-- MultiMian CTA on both tabs with score-driven copy variants
-- ~300 lines of `p3-*` CSS
+- **19 independent analyzer modules** running in parallel (up from 16 at v0.1)
+- **Multi-proxy fetch pipeline** — 3-wave fallback (CF Worker → 0xhorizon →
+  cors.lol → allorigins → codetabs → corsproxy.io)
+- **22-second global timeout** via `Promise.race()` — eliminates 60s+ waits
+- **`normalizeUrl()`** — consistent cache keys across URL variants
+- **`safe()` wrapper** — one analyzer crash never kills the full scan
+- **Partial scan indicator** — user sees which analyzers returned fallback data
+- **`_workerReady()`** fixed — Cloudflare Worker now participates in Wave 1
+- **Wave 3 error accumulation** — accurate error code surfacing
 
-### Phase 2 — Growth Score Core UX
-- Rewrote `tGrowth()` entirely
-- New `p2-hero`: 136px score ring, grade letter badge (A–F), domain name, business-language summary
-- Category scores: grade badge per category, clickable (navigates to that tab), weak categories highlighted
-- Findings: "Why it matters" + "Recommended fix" + impact dot + effort icon per finding
-- Action Plan: 3 colour-coded columns (Today / This Week / This Month) with top accent borders
-- MultiMian CTA always shown, 4 copy variants driven by score/issue count
-- ~250 lines of `p2-*` CSS
-- Growth banner strip added to site banner (clickable, shows score + badge pills)
+### Analyzer Accuracy Fixes
 
-### Phase 1 — Scanner Reliability
-- Fixed `_workerReady()`: was comparing URL to itself (always returned false)
-- Added `GLOBAL_SCAN_TIMEOUT_MS: 22000` — hard cap via `Promise.race()` across all proxy waves
-- Added `Scanner.normalizeUrl()`: lowercase hostname, strip default ports, strip trailing slash on bare origin
-- Wired `normalizeUrl()` into all scan entry points (single scan, both compare modes, auto-scan)
-- Fixed health check: now tests 0xhorizon + cors.lol in parallel (actual Wave 1 proxies)
+**conversion.js**
+- Expanded `ctaKeywords` to 20+ phrases including Urdu CTAs for
+  international sites
+- Phone false positive fix — requires structural pattern + contextual signal
+- Email false positive fix — excludes framework package names (`react@`, etc.)
+- Contact form detection — field-structure based, not class-name based
+- Newsletter/contact form double-counting eliminated
+
+**business.js**
+- Same phone and email false positive fixes applied
+
+**security.js**
+- Mixed content: DOM-based check instead of raw HTML regex (no more
+  false positives from HTML comments)
+- Referrer policy: DOM-only check (no regex against fullHtml)
+- `hasOpenRedirect` surfaced in checks (was dead code)
+
+**performance.js**
+- Label check: excludes submit/button/reset/image inputs; respects
+  `aria-label`, `aria-labelledby`, implicit labels
+- External scripts: uses `getAttribute('src')` not `.src` (resolved URL)
+  — relative scripts no longer appear external
+
+**content.js**
+- Word count: clones body, removes `<script>/<style>/<noscript>` before
+  counting — eliminates JS/CSS inflation of content scores
+
+**seo.js**
+- Meta keywords: removed 5-pt award (obsolete/harmful signal); now shows
+  as `warn` when present, `ok` when absent
+- SEO score ceiling restored to 100 (redistributed 5pts to H2 check)
+
+**cta.js**
+- Primary/secondary pattern expanded; class-based fallback covers more
+  framework conventions
+
+**structure.js**
+- All selectors tightened with `:not()` to exclude child/item elements —
+  navbar overcounting eliminated
+
+**links.js**
+- Protocol-relative URLs (`//cdn.example.com`) correctly classified as
+  external (not internal)
+
+**contacts.js**
+- Same email/phone false positive fixes applied
+
+**tech.js**
+- Tailwind CSS: replaced class-attribute regex (caused false positives on
+  Bootstrap/vanilla CSS) with file/CDN/package reference detection only
+
+**ranking.js**
+- OPR `status_code === 200` guard before using data
+- Tranco: direct CORS fetch before proxy fallback
+- PageSpeed timeout: 20s → 15s
+
+**indexing.js**
+- robots.txt: 3-proxy waterfall (corsproxy.io → allorigins → cors.lol)
+
+**domain.js**
+- OPR `status_code === 200` guard applied
 
 ---
 
-## [v2.3] — Business + Conversion Analyzers
+### Growth Score Engine
+
+- 9 weighted categories (SEO 18%, Performance 13%, Mobile 11%, Security 10%,
+  Conversion 12%, Business 10%, Content 9%, UX 9%, Accessibility 8%)
+- **Priority findings** with Why it matters / Recommended fix / Impact / Effort
+- **Action Plan** — Today / This Week / This Month
+- **`_buildSummary()`** reordered to `else-if` — critical issues never hidden
+  on high-scoring sites
+- Accessibility default changed 60 → 40 (no data = not a pass)
+- CTA crowded check: uses `conversion.ctaCrowded` not raw `cta.all.length`
+- Trust score: uses `trustSectionScore` (0–100) not `trustScore` (0–20 raw)
+
+---
+
+### UI/UX
+
+**Brand system**
+- MultiMian blue design system: `--primary: #2563eb`, `--primary2: #60a5fa`
+- All purple/cyan accent colors replaced with blue family throughout
+- Gradients: blue-to-dark-blue (no purple, no cyan)
+- theme-color meta tag updated to `#2563eb`
+
+**Component polish**
+- Button heights standardised; `focus-visible` keyboard outlines on all
+  interactive elements
+- Card hover: subtle blue shadow
+- Tab active indicator: clean blue underline
+- Error state: `.scan-error-state` CSS classes (was 100% inline styles)
+- Partial scan notice: yellow strip with affected analyzer names
+- Cancel button added to scan overlay
+- Tab bar edge fade masks for horizontal scroll affordance
+- `.ilbl` responsive fix on 320px/375px screens
+- `.exp-btn` min-height 44px on mobile (touch targets)
+
+**Growth Score tab**
+- 136px score ring with grade letter badge (A–F)
+- Category cards: clickable → opens that analyzer tab, weak categories
+  highlighted, grade badge per category
+- Findings: "Why it matters" + "Recommended fix" + impact dot + effort icon
+- Action Plan: 3 colour-coded columns
+- MultiMian CTA: always shown, 4 copy variants driven by scan result
+
+**Business & Conversion tabs**
+- Consultant-style audit reports
+- Every failing check shows Why it matters + Recommended fix + impact badge
+- Sub-score progress bars in Conversion tab
+- MultiMian CTA with score-driven copy
+
+**Compare Mode**
+- Growth Score rings (100px) for both sites
+- Winner banner with point difference
+- 12-signal advantage detector
+- Side-by-side category comparison bars
+- 8 detail sections
+
+**Loading / Error UX**
+- Progress messages during async external data phase (57%→65%→73%→81%)
+- Duplicate skeleton CSS removed
+- 22-second global timeout prevents 60s+ freezes
+
+---
+
+### PDF Report
+
+5-page client-ready report:
+- Page 1: Cover with Growth Score ring, 6-category grid, summary
+- Page 2: Priority findings + Action Plan
+- Page 3: SEO, Performance, Mobile, Security
+- Page 4: Business Readiness, Conversion, Tech, Contacts
+- Page 5: Domain, Keywords, Colour swatches, Typography
+- Final: MultiMian CTA with score recap
+
+---
+
+### Landing Page & Content
+
+- Hero: "Understand your website. Improve its growth."
+- Features section: outcome-focused headlines (Growth Score first,
+  "Why visitors aren't converting", Business Readiness Audit)
+- How It Works: "From URL to Action Plan in Under 10 Seconds"
+- Compare section: yoursite.com vs competitor.com with business-relevant metrics
+- Who It's For: Business Owners first, outcome-focused copy
+- Why It Works section (replaced "Open Source / Built in Public")
+- What's New: product milestones (not developer changelog)
+- Final CTA: "What's Your Website's Growth Score?"
+- MultiMian lead section with 3 service cards + gradient CTA block
+- Inline micro-CTA in scan banner (fires on critical/high issues)
+
+### Inner Pages
+
+- All pages: footer tagline updated to "Free website growth analyzer"
+- features.html: hero updated, icon colors fixed, "19 Analyzers" pill
+- how-it-works.html: all sections updated, Growth Score tab added to grid
+- All pages: OG tags, Twitter cards, favicon, robots, theme-color added
+
+### SEO & Metadata
+
+- All page titles updated: "Free Website Growth Analyzer"
+- Descriptions updated with Growth Score value proposition
+- Keywords refreshed: growth score, conversion analysis, business readiness
+- sitemap.xml: lastmod dates added to all 5 URLs
+- 404.html: purple/cyan replaced with blue
+
+---
+
+### Security
+
+- `copyBtn()`: uses `data-val` attribute instead of inline `onclick` string
+  (XSS from emails, links, tech names)
+- Color hex in onclick: validated with regex + `data-hex` attribute
+- Keywords/tags: use `data-kw`/`data-tag` attributes
+- Retry button: uses `data-retry-url` attribute
+- OG image src: properly escaped
+- renderStats/tOverview: optional chaining on all fallback object accesses
+- Palette strip: hex validated before use
+
+---
+
+## [0.9.0] — 2026-09 (pre-release)
 
 ### Added
-- `BusinessAnalyzer` (19 checks): brand identity, services, contact methods, testimonials, client logos, case studies, pricing, FAQ, location, privacy, terms, schema, social
-- `ConversionAnalyzer` (18 checks + 5 sub-scores): CTA presence/position/clarity/repetition, lead gen forms, contact accessibility, trust signals, navigation friction
-- `GrowthEngine`: 9-category weighted Growth Score (100pts), Priority Findings with effort estimates, Action Plan (Today/This Week/This Month), summary text generation
-- Growth tab as default scan result view
-- Partial scan results — one analyzer crash no longer kills the full scan (all async analyzers use `Promise.allSettled`)
-- Priority Engine: critical → high → medium → low → good findings with effort badges
+- Growth Score engine with 9 categories and weighted scoring
+- Business Readiness analyzer (19 checks)
+- Conversion Intelligence analyzer (18 checks + 5 sub-scores)
+- Priority findings with effort estimates and action plan
+- Professional PDF export (jsPDF, 5 pages)
+- Compare Mode (Growth Score header, advantage summary, category bars)
+- MultiMian lead funnel (landing section, micro-CTAs)
 
 ---
 
-## [v2.2] — Growth Score Introduction
+## [0.5.0] — 2026-08
 
 ### Added
-- Initial Growth Score concept
-- Category scoring (SEO, Performance, Mobile, Security, Accessibility, Content, Conversion, UX)
-- Priority findings list
-- Action plan sections
-
----
-
-## [v2.1] — Export Suite
-
-### Added
-- PDF export (jsPDF)
-- JSON export
-- CSV export (keywords + contacts)
-- CSS color variable export
-- Copy report to clipboard
-- Share via URL parameter (`?url=`)
-
----
-
-## [v2.0] — Compare Mode
-
-### Added
-- Compare two websites side by side
+- Compare Mode (side-by-side website comparison)
 - Inline compare tab within scanner results
-- Standalone compare page (`compare.html`)
+- JSON, CSV, CSS export
+- Growth Score (initial implementation)
+- Cloudflare Worker for CORS proxy
 
 ---
 
-## [v1.1] — Clean Rebuild
+## [0.3.0] — 2026-07
 
 ### Added
-- CTA Analyzer
-- Overview builder
-- MultiMian footer branding
-- Improved analyzer isolation
+- 16 analyzer modules (SEO, tech stack, colors, fonts, contacts, links,
+  images, performance, security, mobile, media, structure, content, CTA,
+  domain, ranking, indexing)
+- Multi-wave CORS proxy fallback
+- LocalStorage cache (30 min TTL, 5 URL max)
+- Share via URL parameter (`?url=`)
+- Dark/light theme toggle
 
 ---
 
-## [v1.0] — Initial Release
+## [0.1.0] — 2026-06
 
-### Added
+### Initial release
 - Basic website scanner
-- SEO analysis (title, meta, headings, links, images)
-- Tech stack detection (28+ technologies)
+- SEO analysis
+- Tech stack detection
 - Color palette extractor
 - Font detector
-- Contact finder (emails, phones, social)
+- Contact finder
 - Domain authority estimate
-- Ranking data
-- Mobile friendliness check
-- Security grade (A–F)
-- Performance metrics
-- Keywords extractor
-- Indexing / robots checker
-- Client-side only — no backend, no signup
+- Client-side only — no backend, no signup required
