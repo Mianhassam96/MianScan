@@ -180,6 +180,7 @@
     const map = {
       growth:      ()=>this.tGrowth(data),
       history:     ()=>this.tHistory(data),
+      summary:     ()=>this.tSummary(data),
       overview:    ()=>this.tOverview(data),
       seo:         ()=>this.tSEO(data.seo),
       domain:      ()=>this.tDomain(data.domain, data.seo, data.overview),
@@ -1399,6 +1400,136 @@
     </div>`;
 
     return heroSection + catGrid + findingsSection + apSection + mmCTA;
+  },
+
+  /* ── Audit Summary Tab — clean client-ready overview ── */
+  tSummary(data) {
+    const g        = data.growth;
+    const hostname = new URL(data.url).hostname.replace(/^www\./, '');
+    const sc       = s => s >= 80 ? 'var(--green)' : s >= 65 ? 'var(--primary2)' : s >= 50 ? 'var(--yellow)' : 'var(--red)';
+    const grade    = s => s>=90?'A':s>=80?'B':s>=65?'C':s>=50?'D':'F';
+    const label    = s => s>=90?'Excellent':s>=80?'Strong':s>=65?'Good':s>=50?'Needs Work':'Critical Issues';
+
+    const overall  = g?.overall ?? 0;
+    const oColor   = sc(overall);
+    const scannedAt = new Date(data.scannedAt).toLocaleDateString('en-GB', {day:'numeric', month:'long', year:'numeric'});
+
+    // Top 5 priority issues (non-good only)
+    const issues   = (g?.findings || []).filter(f => f.priority !== 'good').slice(0, 5);
+    const passing  = (g?.findings || []).filter(f => f.priority === 'good').slice(0, 5);
+
+    const categoryRows = g?.categories ? Object.entries(g.categories).map(([k, v]) => {
+      const labels = { seo:'SEO', performance:'Performance', mobile:'Mobile', security:'Security',
+                       conversion:'Conversion', business:'Business Readiness', content:'Content',
+                       ux:'UX', accessibility:'Accessibility' };
+      const col = sc(v);
+      const pct = v;
+      return `
+      <div class="sum-cat-row">
+        <span class="sum-cat-label">${labels[k] || k}</span>
+        <div class="sum-cat-bar-wrap">
+          <div class="sum-cat-bar" style="width:${pct}%;background:${col}"></div>
+        </div>
+        <span class="sum-cat-score" style="color:${col}">${v}</span>
+        <span class="sum-cat-grade" style="background:${col}18;color:${col}">${grade(v)}</span>
+      </div>`;
+    }).join('') : '';
+
+    const issueRows = issues.map(f => {
+      const pColor = f.priority === 'critical' ? 'var(--red)' : f.priority === 'high' ? 'var(--yellow)' : 'var(--primary2)';
+      return `
+      <div class="sum-issue-row">
+        <span class="sum-issue-priority" style="color:${pColor};background:${pColor}18">${f.priority}</span>
+        <div class="sum-issue-body">
+          <div class="sum-issue-title">${this.e(f.title)}</div>
+          ${f.effort ? `<div class="sum-issue-effort">${this.e(f.effort)}</div>` : ''}
+        </div>
+      </div>`;
+    }).join('');
+
+    const passingRows = passing.map(f =>
+      `<div class="sum-pass-row"><i class="bi bi-check-circle-fill" style="color:var(--green)"></i> ${this.e(f.title)}</div>`
+    ).join('');
+
+    return `
+    <!-- Header -->
+    <div class="sum-header">
+      <div class="sum-header-left">
+        <div class="sum-logo"><i class="bi bi-radar"></i> MianScan Audit Report</div>
+        <div class="sum-domain">${this.e(hostname)}</div>
+        <div class="sum-date">Scanned ${this.e(scannedAt)}</div>
+      </div>
+      <div class="sum-header-right">
+        <div class="sum-score-ring" style="border-color:${oColor};color:${oColor}">
+          <span>${overall}</span>
+          <small>/ 100</small>
+        </div>
+        <div class="sum-score-label" style="color:${oColor}">${label(overall)}</div>
+        <div class="sum-score-grade" style="background:${oColor}18;color:${oColor}">Grade ${grade(overall)}</div>
+      </div>
+    </div>
+
+    <!-- Summary sentence -->
+    <div class="sum-summary-text">${this.e(g?.summary || '')}</div>
+
+    <!-- Category scores -->
+    <div class="card sum-cats-card">
+      <div class="card-head"><i class="bi bi-bar-chart-fill"></i> Category Scores</div>
+      <div class="sum-cats">${categoryRows}</div>
+    </div>
+
+    <!-- Priority issues -->
+    ${issueRows ? `
+    <div class="card">
+      <div class="card-head"><i class="bi bi-exclamation-triangle-fill" style="color:var(--yellow)"></i> Priority Issues</div>
+      ${issueRows}
+    </div>` : ''}
+
+    <!-- Passing checks -->
+    ${passingRows ? `
+    <div class="card">
+      <div class="card-head"><i class="bi bi-check-circle-fill" style="color:var(--green)"></i> What's Working Well</div>
+      ${passingRows}
+    </div>` : ''}
+
+    <!-- Quick stats -->
+    <div class="sum-quick-grid">
+      <div class="sum-quick-card">
+        <div class="sum-quick-val" style="color:${sc(data.seo?.score??0)}">${data.seo?.score??'—'}</div>
+        <div class="sum-quick-lbl">SEO Score</div>
+      </div>
+      <div class="sum-quick-card">
+        <div class="sum-quick-val" style="color:${data.security?.https?'var(--green)':'var(--red)'}">${data.security?.https?'✓':'✗'}</div>
+        <div class="sum-quick-lbl">HTTPS</div>
+      </div>
+      <div class="sum-quick-card">
+        <div class="sum-quick-val" style="color:${sc(data.mobile?.score??0)}">${data.mobile?.score??'—'}</div>
+        <div class="sum-quick-lbl">Mobile</div>
+      </div>
+      <div class="sum-quick-card">
+        <div class="sum-quick-val" style="color:var(--primary2)">${data.tech?.detected?.length??0}</div>
+        <div class="sum-quick-lbl">Tech Found</div>
+      </div>
+    </div>
+
+    <!-- Export actions -->
+    <div class="sum-actions">
+      <button class="scan-btn" onclick="Scanner.currentData && Exporter.toPDF(Scanner.currentData)" style="font-size:.85rem;min-height:40px;padding:0 1.25rem">
+        <i class="bi bi-file-pdf"></i> Download PDF Report
+      </button>
+      <button class="exp-btn" onclick="Scanner.currentData && Exporter.toShareableLink(Scanner.currentData)">
+        <i class="bi bi-share-fill"></i> Share Report
+      </button>
+      <button class="exp-btn" onclick="Scanner.currentData && Exporter.copyReport(Scanner.currentData)">
+        <i class="bi bi-clipboard"></i> Copy Summary
+      </button>
+    </div>
+
+    <!-- Footer note -->
+    <div class="sum-footer-note">
+      Generated by <strong>MianScan</strong> — <a href="https://mianhassam96.github.io/MianScan/" style="color:var(--primary2)">mianscan.io</a>
+      &nbsp;·&nbsp; Built by <a href="https://multimian.com" style="color:var(--primary2)">MultiMian</a>
+    </div>`;
   },
 
   /* ── History Tab ── */

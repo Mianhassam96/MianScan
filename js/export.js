@@ -1,4 +1,114 @@
 const Exporter = {
+
+  // ── Generate a shareable link that encodes the scan result in the URL hash
+  // Uses LZ-string-style base64 compression via built-in CompressionStream where available,
+  // with a plain JSON base64 fallback for older browsers.
+  async toShareableLink(data) {
+    try {
+      // Build a compact summary (not the full data — too large for a URL)
+      const summary = {
+        v:  1, // schema version
+        u:  data.url,
+        at: data.scannedAt,
+        ov: { title: data.overview?.title, type: data.overview?.type },
+        g:  data.growth ? {
+              s: data.growth.overall,
+              gr: data.growth.grade,
+              lb: data.growth.label,
+              sm: data.growth.summary,
+              cats: data.growth.categories,
+              top: (data.growth.findings || [])
+                     .filter(f => f.priority !== 'good')
+                     .slice(0, 8)
+                     .map(f => ({ p: f.priority, cat: f.category, t: f.title, e: f.effort, imp: f.impact })),
+            } : null,
+        seo: { sc: data.seo?.score, h1: data.seo?.h1s?.[0], desc: !!data.seo?.metaDesc },
+        mob: data.mobile?.score,
+        sec: { sc: data.security?.score, gr: data.security?.grade, https: data.security?.https },
+        pf:  data.performance?.score,
+        cv:  data.conversion?.score,
+        biz: data.business?.score,
+        tech: (data.tech?.detected || []).slice(0, 6),
+      };
+
+      const json   = JSON.stringify(summary);
+      let encoded;
+
+      // Try CompressionStream (Chrome 80+, Firefox 113+, Safari 16.4+)
+      if (typeof CompressionStream !== 'undefined') {
+        const cs      = new CompressionStream('deflate-raw');
+        const writer  = cs.writable.getWriter();
+        const enc     = new TextEncoder();
+        writer.write(enc.encode(json));
+        writer.close();
+        const buf     = await new Response(cs.readable).arrayBuffer();
+        const bytes   = new Uint8Array(buf);
+        let binary    = '';
+        bytes.forEach(b => binary += String.fromCharCode(b));
+        encoded = 'z:' + btoa(binary).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
+      } else {
+        // Fallback: plain base64 JSON
+        encoded = 'j:' + btoa(unescape(encodeURIComponent(json)))
+                           .replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
+      }
+
+      const shareUrl = `${location.origin}${location.pathname}#report=${encoded}`;
+
+      // Try Web Share API first
+      if (navigator.share) {
+        try {
+          await navigator.share({ title: `MianScan — ${new URL(data.url).hostname}`, url: shareUrl });
+          return;
+        } catch (_) { /* user cancelled or not supported */ }
+      }
+
+      await navigator.clipboard.writeText(shareUrl);
+      UI.toast('Shareable link copied!');
+    } catch (err) {
+      // Final fallback — just share the scan URL
+      const fallback = `${location.origin}${location.pathname}?url=${encodeURIComponent(data.url)}`;
+      await navigator.clipboard.writeText(fallback);
+      UI.toast('Share link copied (will rescan on visit)');
+    }
+  },
+
+  // ── Load a scan summary from the URL hash (called on page load)
+  // Returns the summary object if a valid #report= hash is present, else null.
+  async loadFromHash() {
+    try {
+      const hash = location.hash;
+      if (!hash.startsWith('#report=')) return null;
+      const encoded = hash.slice('#report='.length);
+
+      let json;
+      if (encoded.startsWith('z:')) {
+        // Compressed
+        const b64     = encoded.slice(2).replace(/-/g,'+').replace(/_/g,'/');
+        const binary  = atob(b64);
+        const bytes   = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+        const ds      = new DecompressionStream('deflate-raw');
+        const writer  = ds.writable.getWriter();
+        writer.write(bytes);
+        writer.close();
+        const buf     = await new Response(ds.readable).arrayBuffer();
+        json          = new TextDecoder().decode(buf);
+      } else if (encoded.startsWith('j:')) {
+        // Plain base64
+        const b64 = encoded.slice(2).replace(/-/g,'+').replace(/_/g,'/');
+        json = decodeURIComponent(escape(atob(b64)));
+      } else {
+        return null;
+      }
+
+      const summary = JSON.parse(json);
+      if (summary.v !== 1) return null;
+      return summary;
+    } catch (_) {
+      return null;
+    }
+  },
+
   downloadCSS(colors) {
     const hostname = Scanner.currentData ? new URL(Scanner.currentData.url).hostname : 'site';
     const css = `/* MianScan Color Export — ${hostname} */\n:root {\n${colors.map((c,i)=>`  --color-${i+1}: ${c};`).join('\n')}\n}\n`;
@@ -35,17 +145,17 @@ const Exporter = {
     const g         = data.growth;
     const scannedAt = new Date(data.scannedAt).toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' });
 
-    // ─── Colour palette ───────────────────────────────────────────────────
+    // ─── Colour palette — MultiMian blue system ──────────────────────────
     const C = {
-      primary:  [100, 112, 255],
-      purple:   [168,  85, 247],
+      primary:  [ 37,  99, 235],  // #2563eb
+      purple:   [124,  58, 237],  // kept for rare use
       green:    [ 34, 197,  94],
       yellow:   [245, 158,  11],
       red:      [240,  68,  68],
-      cyan:     [  0, 212, 255],
+      cyan:     [ 59, 130, 246],  // #3b82f6
       pink:     [236,  72, 153],
-      dark:     [ 12,  22,  40],
-      card:     [ 18,  32,  54],
+      dark:     [  7,  16,  31],  // #07101f
+      card:     [ 15,  30,  48],  // #0f1e30
       text:     [ 30,  46,  70],
       muted:    [100, 118, 145],
       border:   [220, 228, 245],
@@ -761,22 +871,59 @@ const Exporter = {
   },
 
   copyReport(data) {
+    const hostname = data.url ? new URL(data.url).hostname : 'site';
+    const g        = data.growth;
+    const issues   = g?.findings?.filter(f => f.priority !== 'good') || [];
+    const topIssues = issues.slice(0, 5).map((f, i) =>
+      `  ${i+1}. [${f.priority.toUpperCase()}] ${f.title} — ${f.effort || ''}`
+    );
+
     const lines = [
-      `MianScan Report — ${data.url}`,
-      `Scanned: ${new Date(data.scannedAt).toLocaleString()}`,
-      '',`[Overview]`,
-      `Title: ${data.overview.title}`,
-      `Type: ${data.overview.type}  |  Language: ${data.overview.lang}  |  Sections: ${data.overview.sections}`,
-      '',`[SEO] Score: ${data.seo.score}/100`,
-      `Title: ${data.seo.title}`,
-      `Description: ${data.seo.metaDesc}`,
-      `H1: ${data.seo.h1s.join(' | ')||'None'}`,
-      '',`[Colors] ${data.colors.total} found: ${data.colors.colors.slice(0,10).join(', ')}`,
-      `[Fonts] ${data.fonts.fonts.map(f=>f.name).join(', ')||'None'}`,
-      `[Tech Stack] ${data.tech.detected.join(', ')||'None'}`,
-      `[Emails] ${data.contacts.emails.join(', ')||'None'}`,
-      `[Phones] ${data.contacts.phones.join(', ')||'None'}`,
-      `[Scripts] ${data.performance.scriptsCount}  [Images] ${data.performance.imagesCount}  [HTML] ${data.performance.htmlSizeKB}KB`,
+      `╔══════════════════════════════════════════╗`,
+      `  MianScan Website Growth Report`,
+      `  ${hostname}`,
+      `  Scanned: ${new Date(data.scannedAt).toLocaleString()}`,
+      `╚══════════════════════════════════════════╝`,
+      '',
+      `GROWTH SCORE: ${g?.overall ?? '—'}/100  (Grade ${g?.grade ?? '?'} — ${g?.label ?? ''})`,
+      '',
+      `CATEGORY SCORES`,
+      `  SEO:            ${g?.categories?.seo           ?? '—'}`,
+      `  Performance:    ${g?.categories?.performance   ?? '—'}`,
+      `  Mobile:         ${g?.categories?.mobile        ?? '—'}`,
+      `  Security:       ${g?.categories?.security      ?? '—'}`,
+      `  Conversion:     ${g?.categories?.conversion    ?? '—'}`,
+      `  Business:       ${g?.categories?.business      ?? '—'}`,
+      `  Content:        ${g?.categories?.content       ?? '—'}`,
+      `  Accessibility:  ${g?.categories?.accessibility ?? '—'}`,
+      '',
+      `TOP PRIORITY ISSUES`,
+      ...topIssues,
+      '',
+      `SEO`,
+      `  Score:       ${data.seo?.score ?? '—'}/100`,
+      `  Title:       ${data.seo?.title || '—'}`,
+      `  Description: ${data.seo?.metaDesc || '—'}`,
+      `  H1 Tags:     ${data.seo?.h1s?.join(' | ') || 'None'}`,
+      '',
+      `TECHNICAL`,
+      `  Tech Stack:  ${data.tech?.detected?.join(', ') || 'None'}`,
+      `  Performance: ${data.performance?.score ?? '—'}/100`,
+      `  Mobile:      ${data.mobile?.score ?? '—'}/100`,
+      `  Security:    ${data.security?.score ?? '—'}/100  Grade ${data.security?.grade ?? '?'}`,
+      `  HTTPS:       ${data.security?.https ? 'Yes ✓' : 'No ✗'}`,
+      '',
+      `CONTACTS`,
+      `  Emails:  ${data.contacts?.emails?.join(', ') || 'None'}`,
+      `  Phones:  ${data.contacts?.phones?.join(', ') || 'None'}`,
+      '',
+      `DESIGN`,
+      `  Colors: ${data.colors?.colors?.slice(0,8).join('  ') || 'None'}`,
+      `  Fonts:  ${data.fonts?.fonts?.map(f=>f.name).join(', ') || 'None'}`,
+      '',
+      `─────────────────────────────────────────────`,
+      `Generated by MianScan — mianscan.io`,
+      `Built by MultiMian — multimian.com`,
     ];
     navigator.clipboard.writeText(lines.join('\n')).then(() => UI.toast('Report copied!'));
   }

@@ -233,12 +233,15 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  /* ── Share button ── */
+  /* ── Share button — uses Exporter.toShareableLink() for compact encoded report ── */
   const shareBtn = document.getElementById('shareBtn');
   if (shareBtn) {
     shareBtn.addEventListener('click', () => {
-      const link = location.href;
-      navigator.clipboard.writeText(link).then(() => UI.toast('Share link copied!'));
+      if (Scanner.currentData) {
+        Exporter.toShareableLink(Scanner.currentData);
+      } else {
+        navigator.clipboard.writeText(location.href).then(() => UI.toast('Link copied!'));
+      }
     });
   }
 
@@ -391,6 +394,89 @@ document.addEventListener('DOMContentLoaded', () => {
   if (autoUrl) {
     urlInput.value = autoUrl;
     setTimeout(() => run(autoUrl), 400);
+  }
+
+  // ── Load shared report from #report= hash ──
+  if (location.hash.startsWith('#report=')) {
+    Exporter.loadFromHash().then(summary => {
+      if (!summary) return;
+      // Show the shared report summary in the results area
+      results.classList.remove('hidden');
+      const hostname = new URL(summary.u).hostname.replace(/^www\./, '');
+      document.getElementById('siteBanner').innerHTML = `
+        <div class="shared-report-banner">
+          <div class="shared-report-badge"><i class="bi bi-share-fill"></i> Shared Report</div>
+          <div class="shared-report-title">${UI.e(summary.ov?.title || hostname)}</div>
+          <div class="shared-report-url"><i class="bi bi-globe2"></i> ${UI.e(hostname)}</div>
+          <div class="shared-report-meta">
+            <span><i class="bi bi-clock"></i> Scanned ${new Date(summary.at).toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'})}</span>
+            <span style="color:var(--muted);font-size:.75rem">This is a shared snapshot — scan the site again for fresh results.</span>
+          </div>
+        </div>`;
+      // Show summary stats
+      if (summary.g) {
+        const g = summary.g;
+        const sc = s => s >= 80 ? 'var(--green)' : s >= 65 ? 'var(--primary2)' : s >= 50 ? 'var(--yellow)' : 'var(--red)';
+        const catCards = Object.entries(g.cats || {}).map(([k,v]) => {
+          const labels = {seo:'SEO',performance:'Performance',mobile:'Mobile',security:'Security',
+                          conversion:'Conversion',business:'Business',content:'Content',ux:'UX',accessibility:'Accessibility'};
+          return `<div class="stat-card"><div class="stat-icon" style="font-size:.8rem">${labels[k]||k}</div><div class="stat-val" style="color:${sc(v)}">${v}</div></div>`;
+        }).join('');
+        document.getElementById('statsRow').innerHTML = `
+          <div class="stat-card stat-card-growth" style="order:-1">
+            <div class="stat-icon">🚀</div>
+            <div class="stat-val" style="color:${sc(g.s)}">${g.s}</div>
+            <div class="stat-lbl">Growth Score</div>
+          </div>
+          ${catCards}`;
+      }
+      // Show tab content — render shared summary
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      const growthTab = document.querySelector('[data-tab="growth"]');
+      if (growthTab) {
+        growthTab.classList.add('active');
+        document.getElementById('tabContent').innerHTML = `<div class="fu">${_renderSharedGrowth(summary)}</div>`;
+      }
+      document.getElementById('scanner-app').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }).catch(() => {});
+  }
+
+  function _renderSharedGrowth(s) {
+    if (!s.g) return UI.empty('No Growth Score data in this shared report.');
+    const g   = s.g;
+    const sc  = v => v >= 80 ? 'var(--green)' : v >= 65 ? 'var(--primary2)' : v >= 50 ? 'var(--yellow)' : 'var(--red)';
+    const col = sc(g.s);
+    const issues = (g.top || []).map(f => {
+      const pm = { critical:'var(--red)', high:'#f59e0b', medium:'var(--primary2)', low:'var(--muted)' };
+      return `<div class="p2-finding" style="border-color:rgba(37,99,235,.2);margin-bottom:.5rem">
+        <div class="p2-finding-head">
+          <span class="p2-finding-cat" style="background:rgba(37,99,235,.1);color:${pm[f.p]||'var(--muted)'};border-color:rgba(37,99,235,.2)">${f.cat}</span>
+          <span class="p2-finding-title">${UI.e(f.t)}</span>
+          ${f.e ? `<span class="p2-finding-effort">${UI.e(f.e)}</span>` : ''}
+        </div>
+      </div>`;
+    }).join('');
+    return `
+    <div class="shared-report-notice">
+      <i class="bi bi-info-circle-fill"></i>
+      This is a shared snapshot of a previous scan. <a href="?url=${encodeURIComponent(s.u)}" style="color:var(--primary2)">Run a fresh scan →</a>
+    </div>
+    <div class="p2-hero">
+      <div class="p2-hero-ring-col">
+        <div class="p2-score-ring" style="border-color:${col};color:${col};box-shadow:0 0 48px ${col}28">
+          <span class="p2-score-val">${g.s}</span>
+          <span class="p2-score-sub">/ 100</span>
+        </div>
+        <div class="p2-score-grade" style="color:${col}">${g.lb || ''}</div>
+        <div class="p2-score-grade-letter" style="background:${col}18;color:${col}">Grade ${g.gr}</div>
+      </div>
+      <div class="p2-hero-body">
+        <div class="p2-hero-headline"><i class="bi bi-graph-up-arrow" style="color:${col}"></i> Growth Score</div>
+        <div class="p2-hero-domain">${UI.e(new URL(s.u).hostname.replace(/^www\./,''))}</div>
+        <div class="p2-hero-summary">${UI.e(g.sm || '')}</div>
+      </div>
+    </div>
+    ${issues ? `<div class="card"><div class="card-head"><i class="bi bi-clipboard2-pulse-fill"></i> Top Priority Issues</div>${issues}</div>` : ''}`;
   }
 
   // ── Scanner health check ─────────────────────────────────────────────────

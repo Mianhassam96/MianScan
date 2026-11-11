@@ -3774,3 +3774,278 @@ input:focus-visible {
 /* ── Light theme ── */
 [data-theme="light"] .hist-stat { background: #fff; border-color: rgba(37,99,235,.12) }
 [data-theme="light"] .hist-empty-tip { background: #eff6ff; border-color: rgba(37,99,235,.15) }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   v1.2 — AUDIT SUMMARY TAB + SHARED REPORT
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Shared report banner ── */
+.shared-report-banner {
+  padding: 1.5rem 1.75rem;
+}
+.shared-report-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  background: rgba(37,99,235,.12);
+  color: var(--primary2);
+  border: 1px solid rgba(37,99,235,.25);
+  border-radius: 20px;
+  padding: .2rem .75rem;
+  font-size: .72rem;
+  font-weight: 700;
+  margin-bottom: .6rem;
+}
+.shared-report-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  margin-bottom: .2rem;
+}
+.shared-report-url {
+  font-size: .875rem;
+  color: var(--primary2);
+  margin-bottom: .4rem;
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+}
+.shared-report-meta {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-size: .78rem;
+  color: var(--muted);
+  flex-wrap: wrap;
+}
+.shared-report-notice {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .6rem 1rem;
+  background: rgba(37,99,235,.07);
+  border: 1px solid rgba(37,99,235,.2);
+  border-radius: var(--radius-s);
+  font-size: .82rem;
+  color: var(--muted);
+  margin-bottom: 1.25rem;
+}
+.shared-report-notice i { color: var(--primary2); flex-shrink: 0 }
+
+/* ── Audit Summary header ── */
+.sum-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem 1.75rem;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+.sum-logo {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: .88rem;
+  font-weight: 800;
+  color: var(--primary2);
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+  margin-bottom: .3rem;
+}
+.sum-domain {
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: -.02em;
+  color: var(--text);
+}
+.sum-date {
+  font-size: .78rem;
+  color: var(--muted);
+  margin-top: .2rem;
+}
+.sum-header-right {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .35rem;
+  flex-shrink: 0;
+}
+.sum-score-ring {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 5px solid;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.sum-score-ring span {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.6rem;
+  font-weight: 900;
+  line-height: 1;
+}
+.sum-score-ring small {
+  font-size: .58rem;
+  font-weight: 600;
+  opacity: .6;
+}
+.sum-score-label {
+  font-size: .82rem;
+  font-weight: 700;
+}
+.sum-score-grade {
+  font-size: .68rem;
+  font-weight: 700;
+  padding: .1rem .5rem;
+  border-radius: 20px;
+}
+
+/* ── Summary text ── */
+.sum-summary-text {
+  font-size: .9rem;
+  color: var(--muted);
+  line-height: 1.65;
+  margin-bottom: 1.25rem;
+  padding: .75rem 1rem;
+  background: var(--bg3);
+  border-radius: var(--radius-s);
+  border-left: 3px solid var(--primary);
+}
+
+/* ── Category rows ── */
+.sum-cats { display: flex; flex-direction: column; gap: .55rem }
+.sum-cat-row {
+  display: grid;
+  grid-template-columns: 130px 1fr 36px 32px;
+  align-items: center;
+  gap: .6rem;
+}
+.sum-cat-label {
+  font-size: .82rem;
+  font-weight: 600;
+  color: var(--text);
+}
+.sum-cat-bar-wrap {
+  height: 7px;
+  background: var(--bg4);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.sum-cat-bar {
+  height: 100%;
+  border-radius: 10px;
+  transition: width .5s cubic-bezier(.4,0,.2,1);
+}
+.sum-cat-score {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: .88rem;
+  font-weight: 800;
+  text-align: right;
+}
+.sum-cat-grade {
+  font-size: .65rem;
+  font-weight: 700;
+  padding: .1rem .35rem;
+  border-radius: 5px;
+  text-align: center;
+}
+
+/* ── Issue rows ── */
+.sum-issue-row {
+  display: flex;
+  align-items: flex-start;
+  gap: .65rem;
+  padding: .6rem 0;
+  border-bottom: 1px solid var(--border);
+}
+.sum-issue-row:last-child { border-bottom: none }
+.sum-issue-priority {
+  font-size: .65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  padding: .15rem .5rem;
+  border-radius: 5px;
+  flex-shrink: 0;
+  margin-top: .1rem;
+}
+.sum-issue-title { font-size: .875rem; font-weight: 600; color: var(--text) }
+.sum-issue-effort { font-size: .72rem; color: var(--muted); margin-top: .15rem }
+
+/* ── Passing rows ── */
+.sum-pass-row {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .4rem 0;
+  border-bottom: 1px solid var(--border);
+  font-size: .875rem;
+  color: var(--text);
+}
+.sum-pass-row:last-child { border-bottom: none }
+
+/* ── Quick stats ── */
+.sum-quick-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: .75rem;
+  margin: 1.25rem 0;
+}
+.sum-quick-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-s);
+  padding: .875rem;
+  text-align: center;
+}
+.sum-quick-val {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 900;
+  line-height: 1;
+  margin-bottom: .25rem;
+}
+.sum-quick-lbl {
+  font-size: .68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--muted);
+}
+
+/* ── Summary actions ── */
+.sum-actions {
+  display: flex;
+  gap: .75rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+}
+
+/* ── Summary footer ── */
+.sum-footer-note {
+  text-align: center;
+  font-size: .78rem;
+  color: var(--muted);
+  padding: 1rem 0;
+  border-top: 1px solid var(--border);
+}
+
+/* ── Responsive ── */
+@media (max-width: 640px) {
+  .sum-header { flex-direction: column; align-items: flex-start }
+  .sum-header-right { flex-direction: row; align-items: center; gap: .75rem }
+  .sum-cat-row { grid-template-columns: 100px 1fr 32px 28px }
+  .sum-quick-grid { grid-template-columns: repeat(2, 1fr) }
+  .sum-actions { flex-direction: column }
+  .sum-actions .scan-btn, .sum-actions .exp-btn { width: 100%; justify-content: center }
+}
+
+/* ── Light theme ── */
+[data-theme="light"] .sum-header { background: #fff; border-color: rgba(37,99,235,.12) }
+[data-theme="light"] .sum-quick-card { background: #fff; border-color: rgba(37,99,235,.12) }
+[data-theme="light"] .sum-summary-text { background: #eff6ff }
+[data-theme="light"] .shared-report-banner { background: #fff }
