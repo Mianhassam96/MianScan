@@ -3536,3 +3536,241 @@ input:focus-visible {
   border-bottom: 1px solid var(--border);
   margin-bottom: 1rem;
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   v1.1 — SCAN HISTORY TAB
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Empty state ── */
+.hist-empty {
+  text-align: center;
+  padding: 3rem 1.5rem;
+  color: var(--muted);
+}
+.hist-empty i {
+  font-size: 2.5rem;
+  color: var(--primary2);
+  opacity: .3;
+  display: block;
+  margin-bottom: .875rem;
+}
+.hist-empty h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: .5rem;
+}
+.hist-empty p {
+  font-size: .875rem;
+  line-height: 1.65;
+  max-width: 420px;
+  margin: 0 auto .875rem;
+}
+.hist-empty-tip {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  font-size: .78rem;
+  color: var(--muted);
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-s);
+  padding: .4rem .875rem;
+}
+
+/* ── Chart card ── */
+.hist-chart-card .card-head {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  flex-wrap: wrap;
+}
+
+/* ── Bar chart ── */
+.hist-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 0;
+  margin-top: .5rem;
+  height: 160px;
+  position: relative;
+  padding-left: 32px;
+}
+.hist-y-axis {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 20px;
+  width: 28px;
+}
+.hist-y-label {
+  position: absolute;
+  left: 0;
+  transform: translateY(50%);
+  font-size: .62rem;
+  color: var(--muted);
+  text-align: right;
+  width: 24px;
+  line-height: 1;
+}
+.hist-bars {
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 100%;
+  border-left: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 0 4px 0 8px;
+  position: relative;
+}
+/* Horizontal grid lines */
+.hist-bars::before {
+  content: '';
+  position: absolute;
+  left: 0; right: 0;
+  top: 0; bottom: 20px;
+  background:
+    linear-gradient(var(--border) 1px, transparent 1px) 0 0 / 100% 25%,
+    linear-gradient(var(--border) 1px, transparent 1px) 0 0 / 100% 50%,
+    linear-gradient(var(--border) 1px, transparent 1px) 0 0 / 100% 75%;
+  background-repeat: no-repeat;
+  pointer-events: none;
+}
+.hist-bar-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .2rem;
+  min-width: 0;
+  height: 100%;
+  justify-content: flex-end;
+}
+.hist-bar-score {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: .68rem;
+  font-weight: 700;
+  line-height: 1;
+  min-height: 14px;
+}
+.hist-bar-track {
+  width: 100%;
+  max-width: 36px;
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+}
+.hist-bar {
+  width: 100%;
+  min-height: 4px;
+  border-radius: 3px 3px 0 0;
+  transition: height .4s cubic-bezier(.4,0,.2,1);
+}
+.hist-bar-label {
+  font-size: .62rem;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  text-align: center;
+  height: 20px;
+  line-height: 20px;
+}
+
+/* ── Summary stats row ── */
+.hist-summary-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: .75rem;
+  margin: 1rem 0;
+}
+.hist-stat {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-s);
+  padding: .875rem;
+  text-align: center;
+}
+.hist-stat-val {
+  display: block;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.6rem;
+  font-weight: 900;
+  line-height: 1;
+  margin-bottom: .25rem;
+}
+.hist-stat-lbl {
+  font-size: .68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--muted);
+}
+
+/* ── Delta indicators ── */
+.hist-delta-up {
+  display: inline-flex;
+  align-items: center;
+  gap: .15rem;
+  font-size: .75rem;
+  font-weight: 700;
+  color: var(--green);
+  margin-left: .4rem;
+}
+.hist-delta-down {
+  display: inline-flex;
+  align-items: center;
+  gap: .15rem;
+  font-size: .75rem;
+  font-weight: 700;
+  color: var(--red);
+  margin-left: .4rem;
+}
+.hist-delta-flat {
+  font-size: .75rem;
+  font-weight: 600;
+  color: var(--muted);
+  margin-left: .4rem;
+}
+
+/* ── History table ── */
+.hist-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .82rem;
+}
+.hist-table th {
+  text-align: left;
+  padding: .4rem .75rem;
+  color: var(--muted);
+  font-size: .68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+.hist-table td {
+  padding: .5rem .75rem;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  white-space: nowrap;
+}
+.hist-table tr:last-child td { border-bottom: none }
+.hist-table tr:hover td { background: var(--bg3) }
+
+/* ── Responsive ── */
+@media (max-width: 640px) {
+  .hist-summary-row { grid-template-columns: repeat(2, 1fr) }
+  .hist-chart { height: 130px }
+  .hist-bar-score { font-size: .58rem }
+}
+@media (max-width: 480px) {
+  .hist-summary-row { grid-template-columns: repeat(2, 1fr) }
+}
+
+/* ── Light theme ── */
+[data-theme="light"] .hist-stat { background: #fff; border-color: rgba(37,99,235,.12) }
+[data-theme="light"] .hist-empty-tip { background: #eff6ff; border-color: rgba(37,99,235,.15) }

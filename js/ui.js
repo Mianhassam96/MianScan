@@ -179,6 +179,7 @@
     }
     const map = {
       growth:      ()=>this.tGrowth(data),
+      history:     ()=>this.tHistory(data),
       overview:    ()=>this.tOverview(data),
       seo:         ()=>this.tSEO(data.seo),
       domain:      ()=>this.tDomain(data.domain, data.seo, data.overview),
@@ -1398,6 +1399,141 @@
     </div>`;
 
     return heroSection + catGrid + findingsSection + apSection + mmCTA;
+  },
+
+  /* ── History Tab ── */
+  tHistory(data) {
+    const domain     = new URL(data.url).hostname.replace(/^www\./, '');
+    const storageKey = `ms_history:${domain}`;
+    let records = [];
+    try { records = JSON.parse(localStorage.getItem(storageKey) || '[]'); } catch (_) {}
+
+    if (records.length < 2) {
+      return `
+      <div class="hist-empty">
+        <i class="bi bi-clock-history"></i>
+        <h3>No history yet for ${this.e(domain)}</h3>
+        <p>MianScan automatically saves your Growth Score every time you scan this website.
+           Scan again tomorrow and your progress chart will appear here.</p>
+        <div class="hist-empty-tip">
+          <i class="bi bi-info-circle"></i>
+          History is saved in your browser. Clear your browser data to reset it.
+        </div>
+      </div>`;
+    }
+
+    // ── Score colour helper
+    const scoreCol = s =>
+      s >= 80 ? 'var(--green)' : s >= 65 ? 'var(--primary2)' : s >= 50 ? 'var(--yellow)' : 'var(--red)';
+
+    // ── Score change vs previous scan
+    const latest   = records[0];
+    const previous = records[1];
+    const delta    = (latest.growthScore ?? 0) - (previous.growthScore ?? 0);
+    const deltaHtml = delta === 0
+      ? `<span class="hist-delta-flat">→ No change</span>`
+      : delta > 0
+        ? `<span class="hist-delta-up"><i class="bi bi-arrow-up-short"></i>+${delta} since last scan</span>`
+        : `<span class="hist-delta-down"><i class="bi bi-arrow-down-short"></i>${delta} since last scan</span>`;
+
+    // ── Bar chart (last 10 scans, oldest left → newest right)
+    const chartRecords = [...records].reverse().slice(-10);
+    const maxScore = 100;
+    const bars = chartRecords.map(r => {
+      const score = r.growthScore ?? 0;
+      const pct   = Math.round((score / maxScore) * 100);
+      const col   = scoreCol(score);
+      const date  = new Date(r.scannedAt);
+      const lbl   = date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+      return `
+      <div class="hist-bar-wrap">
+        <div class="hist-bar-score" style="color:${col}">${score}</div>
+        <div class="hist-bar-track">
+          <div class="hist-bar" style="height:${pct}%;background:${col}"></div>
+        </div>
+        <div class="hist-bar-label">${this.e(lbl)}</div>
+      </div>`;
+    }).join('');
+
+    const yLabels = [100, 75, 50, 25, 0].map(v =>
+      `<div class="hist-y-label" style="bottom:${v}%">${v}</div>`
+    ).join('');
+
+    const chart = `
+    <div class="card hist-chart-card">
+      <div class="card-head"><i class="bi bi-bar-chart-fill"></i> Growth Score History
+        <span style="margin-left:.4rem;font-size:.72rem;font-weight:400;color:var(--muted)">${this.e(domain)}</span>
+        ${deltaHtml}
+      </div>
+      <div class="hist-chart">
+        <div class="hist-y-axis">${yLabels}</div>
+        <div class="hist-bars">${bars}</div>
+      </div>
+    </div>`;
+
+    // ── Summary stats
+    const scores       = records.map(r => r.growthScore).filter(s => s != null);
+    const avg          = scores.length ? Math.round(scores.reduce((a,b) => a+b, 0) / scores.length) : 0;
+    const best         = scores.length ? Math.max(...scores) : 0;
+    const totalScans   = records.length;
+
+    const summary = `
+    <div class="hist-summary-row">
+      <div class="hist-stat"><span class="hist-stat-val" style="color:${scoreCol(latest.growthScore ?? 0)}">${latest.growthScore ?? '—'}</span><span class="hist-stat-lbl">Latest</span></div>
+      <div class="hist-stat"><span class="hist-stat-val" style="color:var(--primary2)">${avg}</span><span class="hist-stat-lbl">Average</span></div>
+      <div class="hist-stat"><span class="hist-stat-val" style="color:var(--green)">${best}</span><span class="hist-stat-lbl">Best</span></div>
+      <div class="hist-stat"><span class="hist-stat-val" style="color:var(--muted)">${totalScans}</span><span class="hist-stat-lbl">Total Scans</span></div>
+    </div>`;
+
+    // ── History table
+    const tableRows = records.slice(0, 15).map((r, i) => {
+      const sc  = scoreCol(r.growthScore ?? 0);
+      const dt  = new Date(r.scannedAt).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
+      const cats = r.categories || {};
+      const prev = records[i + 1];
+      const d    = prev ? (r.growthScore ?? 0) - (prev.growthScore ?? 0) : null;
+      const dHtml = d === null ? '' : d > 0
+        ? `<span class="hist-delta-up">+${d}</span>`
+        : d < 0
+        ? `<span class="hist-delta-down">${d}</span>`
+        : `<span class="hist-delta-flat">—</span>`;
+
+      return `<tr>
+        <td>${this.e(dt)}</td>
+        <td style="color:${sc};font-weight:700">${r.growthScore ?? '—'} ${dHtml}</td>
+        <td>${cats.seo          ?? '—'}</td>
+        <td>${cats.performance  ?? '—'}</td>
+        <td>${cats.mobile       ?? '—'}</td>
+        <td>${cats.security     ?? '—'}</td>
+      </tr>`;
+    }).join('');
+
+    const table = `
+    <div class="card">
+      <div class="card-head"><i class="bi bi-table"></i> Scan Records</div>
+      <div style="overflow-x:auto">
+        <table class="hist-table">
+          <thead>
+            <tr><th>Date</th><th>Growth</th><th>SEO</th><th>Perf</th><th>Mobile</th><th>Security</th></tr>
+          </thead>
+          <tbody>${tableRows}</tbody>
+        </table>
+      </div>
+    </div>`;
+
+    // ── Clear history button
+    const clearBtn = `
+    <div style="text-align:center;margin-top:.5rem">
+      <button class="exp-btn" onclick="
+        if(confirm('Clear scan history for ${this.e(domain)}?')){
+          localStorage.removeItem('ms_history:${this.e(domain)}');
+          UI.toast('History cleared');
+          document.querySelector('[data-tab=history]').click();
+        }
+      "><i class="bi bi-trash3"></i> Clear History</button>
+    </div>`;
+
+    return chart + summary + table + clearBtn;
   },
 
   /* ── Business Readiness Tab ── */

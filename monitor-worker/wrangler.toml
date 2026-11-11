@@ -1,0 +1,16 @@
+name = "mianscan-monitor"
+main = "worker.js"
+compatibility_date = "2024-01-01"
+
+# account_id is passed via CLOUDFLARE_ACCOUNT_ID environment variable
+# Set it as a GitHub secret: repo → Settings → Secrets → Actions
+
+[[kv_namespaces]]
+binding = "SCAN_HISTORY"
+id      = "YOUR_KV_NAMESPACE_ID"
+preview_id = "YOUR_KV_PREVIEW_ID"
+
+[[kv_namespaces]]
+binding = "RATE_LIMITS"
+id      = "YOUR_RATE_LIMITS_KV_ID"
+preview_id = "YOUR_RATE_LIMITS_KV_PREVIEW_ID"

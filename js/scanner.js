@@ -55,6 +55,7 @@ const Scanner = {
   //   3. Set WORKER_URL below to your deployed URL
 
   WORKER_URL: 'https://mianscan-proxy.multimian.workers.dev',
+  MONITOR_WORKER_URL: '', // Set to deployed monitor worker URL to enable cloud history
   FETCH_TIMEOUT_MS: 15000,
   GLOBAL_SCAN_TIMEOUT_MS: 22000,  // hard cap across all proxy waves
 
@@ -352,6 +353,58 @@ const Scanner = {
     p('Done!', 100);
 
     this._cacheSave(url, this.currentData);
+    this._saveToMonitor(this.currentData); // fire-and-forget history save
     return this.currentData;
-  }
+  },
+
+  // ── Save scan summary to localStorage history + optional monitor worker ──
+  // This method MUST never throw — history saving must not break a scan.
+  _saveToMonitor(data) {
+    try {
+      const domain  = new URL(data.url).hostname.replace(/^www\./, '');
+      const record  = {
+        domain,
+        url:         data.url,
+        scannedAt:   data.scannedAt,
+        growthScore: data.growth?.overall ?? null,
+        categories:  data.growth?.categories
+          ? {
+              seo:           data.growth.categories.seo           ?? null,
+              performance:   data.growth.categories.performance   ?? null,
+              mobile:        data.growth.categories.mobile        ?? null,
+              security:      data.growth.categories.security      ?? null,
+              conversion:    data.growth.categories.conversion    ?? null,
+              business:      data.growth.categories.business      ?? null,
+              content:       data.growth.categories.content       ?? null,
+              ux:            data.growth.categories.ux            ?? null,
+              accessibility: data.growth.categories.accessibility ?? null,
+            }
+          : {},
+      };
+
+      // ── LocalStorage history (always, no worker needed) ──
+      const storageKey = `ms_history:${domain}`;
+      try {
+        const existing = JSON.parse(localStorage.getItem(storageKey) || '[]');
+        // Avoid duplicate entries within 5 minutes
+        const fiveMinAgo = Date.now() - 5 * 60 * 1000;
+        const deduped = existing.filter(r => new Date(r.scannedAt).getTime() < fiveMinAgo);
+        const updated = [record, ...deduped].slice(0, 30);
+        localStorage.setItem(storageKey, JSON.stringify(updated));
+      } catch (_) { /* storage full or private mode */ }
+
+      // ── Monitor Worker (if configured) ──
+      const workerUrl = this.MONITOR_WORKER_URL;
+      if (workerUrl && workerUrl.length > 0 && !workerUrl.includes('YOUR_')) {
+        const ctrl = new AbortController();
+        setTimeout(() => ctrl.abort(), 5000);
+        fetch(`${workerUrl}/scan`, {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify(record),
+          signal:  ctrl.signal,
+        }).catch(() => {}); // fire-and-forget
+      }
+    } catch (_) { /* never propagate */ }
+  },
 };
