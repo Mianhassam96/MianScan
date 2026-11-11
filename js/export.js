@@ -35,17 +35,25 @@ const Exporter = {
       let encoded;
 
       // Try CompressionStream (Chrome 80+, Firefox 113+, Safari 16.4+)
+      // deflate-raw is not universally available; try gzip first, then deflate
       if (typeof CompressionStream !== 'undefined') {
-        const cs      = new CompressionStream('deflate-raw');
-        const writer  = cs.writable.getWriter();
-        const enc     = new TextEncoder();
-        writer.write(enc.encode(json));
-        writer.close();
-        const buf     = await new Response(cs.readable).arrayBuffer();
-        const bytes   = new Uint8Array(buf);
-        let binary    = '';
-        bytes.forEach(b => binary += String.fromCharCode(b));
-        encoded = 'z:' + btoa(binary).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
+        try {
+          const format = (typeof CompressionStream === 'function' && new CompressionStream('deflate-raw')) ? 'deflate-raw' : 'gzip';
+          const cs      = new CompressionStream(format);
+          const writer  = cs.writable.getWriter();
+          const enc     = new TextEncoder();
+          writer.write(enc.encode(json));
+          writer.close();
+          const buf     = await new Response(cs.readable).arrayBuffer();
+          const bytes   = new Uint8Array(buf);
+          let binary    = '';
+          bytes.forEach(b => binary += String.fromCharCode(b));
+          encoded = 'z:' + btoa(binary).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
+        } catch (_) {
+          // CompressionStream exists but format not supported — use plain base64
+          encoded = 'j:' + btoa(unescape(encodeURIComponent(json)))
+                             .replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
+        }
       } else {
         // Fallback: plain base64 JSON
         encoded = 'j:' + btoa(unescape(encodeURIComponent(json)))
@@ -82,17 +90,31 @@ const Exporter = {
 
       let json;
       if (encoded.startsWith('z:')) {
-        // Compressed
+        // Compressed — try deflate-raw first, then gzip
         const b64     = encoded.slice(2).replace(/-/g,'+').replace(/_/g,'/');
         const binary  = atob(b64);
         const bytes   = new Uint8Array(binary.length);
         for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-        const ds      = new DecompressionStream('deflate-raw');
-        const writer  = ds.writable.getWriter();
-        writer.write(bytes);
-        writer.close();
-        const buf     = await new Response(ds.readable).arrayBuffer();
-        json          = new TextDecoder().decode(buf);
+        try {
+          const ds      = new DecompressionStream('deflate-raw');
+          const writer  = ds.writable.getWriter();
+          writer.write(bytes);
+          writer.close();
+          const buf     = await new Response(ds.readable).arrayBuffer();
+          json          = new TextDecoder().decode(buf);
+        } catch (_) {
+          // Try gzip format
+          try {
+            const ds2     = new DecompressionStream('gzip');
+            const writer2 = ds2.writable.getWriter();
+            writer2.write(bytes);
+            writer2.close();
+            const buf2    = await new Response(ds2.readable).arrayBuffer();
+            json          = new TextDecoder().decode(buf2);
+          } catch (_) {
+            return null;
+          }
+        }
       } else if (encoded.startsWith('j:')) {
         // Plain base64
         const b64 = encoded.slice(2).replace(/-/g,'+').replace(/_/g,'/');

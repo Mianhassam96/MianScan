@@ -149,23 +149,25 @@ const Compare = {
     const wins = [];
     const add  = (label, icon) => wins.push({ label, icon });
 
-    const gW = winner.growth?.overall ?? winner.seo.score;
-    const gL = loser.growth?.overall  ?? loser.seo.score;
+    const gW = winner.growth?.overall ?? winner.seo?.score ?? 0;
+    const gL = loser.growth?.overall  ?? loser.seo?.score  ?? 0;
     if (gW > gL + 5)  add(`Better overall Growth Score (+${gW - gL})`, 'graph-up-arrow');
 
-    if (winner.seo.score > loser.seo.score + 5)
-      add(`Higher SEO score (${winner.seo.score} vs ${loser.seo.score})`, 'graph-up-arrow');
+    const seoW = winner.seo?.score ?? 0;
+    const seoL = loser.seo?.score ?? 0;
+    if (seoW > seoL + 5)
+      add(`Higher SEO score (${seoW} vs ${seoL})`, 'graph-up-arrow');
 
     const pW = winner.growth?.categories?.performance ?? winner.performance?.score ?? 0;
     const pL = loser.growth?.categories?.performance  ?? loser.performance?.score  ?? 0;
     if (pW > pL + 5)  add('Faster performance score', 'speedometer2');
 
-    const mW = winner.mobile?.score  ?? 0;
-    const mL = loser.mobile?.score   ?? 0;
+    const mW = winner.mobile?.score  ?? winner.growth?.categories?.mobile ?? 0;
+    const mL = loser.mobile?.score   ?? loser.growth?.categories?.mobile  ?? 0;
     if (mW > mL + 5)  add('Better mobile experience', 'phone-fill');
 
-    const sW = winner.security?.score ?? 0;
-    const sL = loser.security?.score  ?? 0;
+    const sW = winner.security?.score ?? winner.growth?.categories?.security ?? 0;
+    const sL = loser.security?.score  ?? loser.growth?.categories?.security  ?? 0;
     if (sW > sL + 5)  add('Stronger security score', 'shield-lock-fill');
 
     const cvW = winner.growth?.categories?.conversion ?? winner.conversion?.score ?? 0;
@@ -189,7 +191,7 @@ const Compare = {
       add('HTTPS secured', 'lock-fill');
 
     if ((winner.tech?.detected?.length ?? 0) > (loser.tech?.detected?.length ?? 0))
-      add(`Richer tech stack (${winner.tech.detected.length} detected)`, 'cpu-fill');
+      add(`Richer tech stack (${winner.tech?.detected?.length ?? 0} detected)`, 'cpu-fill');
 
     if ((winner.content?.wordCount ?? 0) > (loser.content?.wordCount ?? 0) + 200)
       add('More content depth', 'file-text-fill');
