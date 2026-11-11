@@ -746,6 +746,32 @@
 }
 .lp-btn-lg { padding: 1.15rem 2.75rem; font-size: 1.1rem }
 
+.lp-btn-secondary {
+  display: inline-flex; align-items: center; gap: .6rem;
+  background: transparent;
+  border: 2px solid var(--border-h);
+  color: var(--text);
+  border-radius: 12px;
+  padding: .875rem 1.75rem;
+  font-weight: 700; font-size: .95rem;
+  text-decoration: none;
+  transition: border-color .2s, background .2s, transform .2s;
+}
+.lp-btn-secondary:hover {
+  border-color: var(--primary2);
+  color: var(--primary2);
+  background: rgba(37,99,235,.06);
+  transform: translateY(-2px);
+}
+[data-theme="light"] .lp-btn-secondary {
+  border-color: rgba(37,99,235,.3);
+  color: var(--primary);
+}
+[data-theme="light"] .lp-btn-secondary:hover {
+  background: rgba(37,99,235,.06);
+  border-color: var(--primary);
+}
+
 /* ── Footer ── */
 .lp-footer {
   background: var(--bg2); border-top: 1px solid var(--border);
