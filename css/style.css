@@ -4049,3 +4049,188 @@ input:focus-visible {
 [data-theme="light"] .sum-quick-card { background: #fff; border-color: rgba(37,99,235,.12) }
 [data-theme="light"] .sum-summary-text { background: #eff6ff }
 [data-theme="light"] .shared-report-banner { background: #fff }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   UI/UX POLISH — Post v1.2
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Tab bar: primary tabs more prominent, secondary visually lighter ── */
+.tab[data-tab="growth"],
+.tab[data-tab="summary"],
+.tab[data-tab="history"] {
+  font-weight: 600;
+}
+
+/* Growth tab label — remove NEW badge, use accent color */
+.tab-growth {
+  color: var(--green) !important;
+  font-weight: 700 !important;
+}
+.tab-growth.active::after {
+  background: var(--green) !important;
+}
+
+/* Secondary tabs (specialty) — slightly more muted */
+.tab[data-tab="headings"],
+.tab[data-tab="cta"],
+.tab[data-tab="metatags"],
+.tab[data-tab="social"],
+.tab[data-tab="indexing"],
+.tab[data-tab="domain"],
+.tab[data-tab="ranking"] {
+  font-size: .78rem;
+  opacity: .8;
+}
+.tab[data-tab="headings"]:hover,
+.tab[data-tab="cta"]:hover,
+.tab[data-tab="metatags"]:hover,
+.tab[data-tab="social"]:hover,
+.tab[data-tab="indexing"]:hover,
+.tab[data-tab="domain"]:hover,
+.tab[data-tab="ranking"]:hover {
+  opacity: 1;
+}
+
+/* ── Stats row: Growth Score card is more prominent ── */
+.stat-card-growth {
+  grid-column: span 1;
+  background: linear-gradient(135deg, rgba(37,99,235,.12), rgba(37,99,235,.05)) !important;
+  border-color: rgba(37,99,235,.4) !important;
+}
+.stat-card-growth .stat-val {
+  font-size: 2rem !important;
+}
+.stat-card-growth .stat-icon {
+  font-size: 1.25rem;
+}
+
+/* ── Card head: fix double border by removing the bottom border
+      that was added in Phase 6.7 — use just padding-bottom instead ── */
+.card-head {
+  border-bottom: none !important;
+  padding-bottom: 0 !important;
+  margin-bottom: 1rem !important;
+}
+
+/* ── Scan form UX: wider scan box on large screens ── */
+.lp-scan-box {
+  max-width: 660px;
+}
+
+/* ── URL input: slightly taller, better readable ── */
+.url-row input {
+  font-size: 1rem;
+  padding: .95rem .3rem;
+}
+
+/* ── Progress label: larger so it reads during scan ── */
+.prog-label {
+  font-size: .875rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* ── Scan overlay cancel: more visible ── */
+.scan-overlay-cancel {
+  background: rgba(37,99,235,.12) !important;
+  border-color: rgba(37,99,235,.3) !important;
+  color: var(--primary2) !important;
+  font-weight: 700 !important;
+}
+.scan-overlay-cancel:hover {
+  background: rgba(37,99,235,.22) !important;
+  border-color: var(--primary2) !important;
+  color: #fff !important;
+}
+
+/* ── Export row: make it more visible at bottom of results ── */
+.export-row {
+  background: var(--bg2) !important;
+  border: 1px solid var(--border) !important;
+  border-top: 2px solid var(--primary) !important;
+  border-radius: var(--radius) !important;
+  padding: 1rem 1.25rem !important;
+}
+
+/* ── New scan sticky bar: tighter ── */
+.new-scan-bar {
+  border-radius: var(--radius-s) !important;
+}
+
+/* ── Site banner top stripe: clean blue only ── */
+.site-banner::before {
+  background: linear-gradient(90deg, var(--primary), var(--accent)) !important;
+  height: 2px !important;
+}
+
+/* ── lp-btn-primary: ensure full blue ── */
+.lp-btn-primary {
+  background: var(--gradient-primary) !important;
+  border: none !important;
+}
+
+/* ── Feature section pill on landing: remove shimmer animation (too distracting) ── */
+.lp-section-pill::after {
+  display: none;
+}
+
+/* ── Who cards: consistent height ── */
+.who-card {
+  display: flex;
+  flex-direction: column;
+}
+.who-card p {
+  flex: 1;
+}
+
+/* ── Step cards: remove excessive lift on hover ── */
+.step-card:hover {
+  transform: translateY(-4px) !important;
+}
+
+/* ── Compare mock: slightly less shadow ── */
+.compare-mock {
+  box-shadow: 0 16px 48px rgba(0,0,0,.35), 0 0 0 1px rgba(37,99,235,.12) !important;
+}
+
+/* ── Footer: tighten the brand description ── */
+.lp-footer-brand p {
+  font-size: .82rem;
+  line-height: 1.6;
+  max-width: 260px;
+}
+
+/* ── A11y rows: consistent radius ── */
+.a11y-row {
+  border-radius: var(--radius-s) !important;
+}
+
+/* ── Smooth tab content entry ── */
+.tab-content .fu {
+  animation: fadeUp .25s ease forwards;
+}
+
+/* ── Empty state icon: show color ── */
+.empty i {
+  opacity: .2;
+}
+
+/* ── Responsive: tab overflow ── */
+@media (max-width: 768px) {
+  .stat-card-growth {
+    grid-column: span 2;
+  }
+}
+
+/* ── Light theme fixes ── */
+[data-theme="light"] .export-row {
+  background: #fff !important;
+  border-color: rgba(37,99,235,.15) !important;
+  border-top-color: var(--primary) !important;
+}
+[data-theme="light"] .new-scan-bar {
+  background: rgba(248,250,255,.98) !important;
+}
+[data-theme="light"] .prog-label {
+  color: var(--text);
+}

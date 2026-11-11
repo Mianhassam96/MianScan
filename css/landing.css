@@ -112,8 +112,8 @@
   position: absolute; inset: 0;
   background:
     radial-gradient(circle 3px at 15% 25%, rgba(37,99,235,.6) 0%, transparent 100%),
-    radial-gradient(circle 2px at 85% 15%, rgba(0,212,255,.6) 0%, transparent 100%),
-    radial-gradient(circle 3px at 70% 75%, rgba(168,85,247,.6) 0%, transparent 100%),
+    radial-gradient(circle 2px at 85% 15%, rgba(37,99,235,.4) 0%, transparent 100%),
+    radial-gradient(circle 3px at 70% 75%, rgba(96,165,250,.5) 0%, transparent 100%),
     radial-gradient(circle 2px at 40% 85%, rgba(34,197,94,.5) 0%, transparent 100%),
     radial-gradient(circle 2px at 90% 60%, rgba(37,99,235,.5) 0%, transparent 100%);
   animation: particleDrift 12s ease-in-out infinite alternate;
@@ -164,7 +164,7 @@
   animation: fadeSlideUp .7s .1s ease both;
 }
 .lp-h1 .grad {
-  background: linear-gradient(135deg, #2563eb 0%, #3b82f6 40%, #a855f7 80%);
+  background: linear-gradient(135deg, #60a5fa 0%, #2563eb 60%, #1d4ed8 100%);
   -webkit-background-clip: text; -webkit-text-fill-color: transparent;
   background-clip: text;
   background-size: 200% 200%;
@@ -462,14 +462,14 @@
   background: linear-gradient(135deg, var(--card) 0%, rgba(240,68,68,.04) 100%);
 }
 .feat-card[data-goto="compare"] {
-  border-left-color: rgba(168,85,247,.4);
-  background: linear-gradient(135deg, var(--card) 0%, rgba(168,85,247,.06) 100%);
+  border-left-color: rgba(37,99,235,.35);
+  background: linear-gradient(135deg, var(--card) 0%, rgba(37,99,235,.06) 100%);
 }
 .feat-card[data-goto="contacts"],
 .feat-card[data-goto="images"],
 .feat-card[data-goto="performance"] {
-  border-left-color: rgba(0,212,255,.3);
-  background: linear-gradient(135deg, var(--card) 0%, rgba(0,212,255,.04) 100%);
+  border-left-color: rgba(37,99,235,.3);
+  background: linear-gradient(135deg, var(--card) 0%, rgba(37,99,235,.04) 100%);
 }
 
 /* Explicit security/mobile classes */
@@ -491,8 +491,8 @@
 }
 
 .feat-card-highlight {
-  border-color: rgba(168,85,247,.3);
-  background: linear-gradient(135deg, var(--card) 0%, rgba(168,85,247,.07) 100%);
+  border-color: rgba(37,99,235,.3);
+  background: linear-gradient(135deg, var(--card) 0%, rgba(37,99,235,.06) 100%);
 }
 
 .feat-icon {
@@ -506,7 +506,7 @@
 .feat-card h3 { font-family: 'Space Grotesk', sans-serif; font-size: 1.05rem; font-weight: 700; margin-bottom: .6rem; color: var(--text); position: relative; z-index: 1 }
 .feat-card p  { font-size: .875rem; color: var(--muted); line-height: 1.65; position: relative; z-index: 1 }
 .feat-new {
-  background: linear-gradient(135deg, #a855f7, #2563eb);
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
   color: #fff; border-radius: 20px; padding: .1rem .5rem;
   font-size: .65rem; font-weight: 700; margin-left: .4rem;
   vertical-align: middle;
@@ -692,7 +692,7 @@
 /* ── Final CTA — dramatic mesh gradient ── */
 .lp-cta-section {
   padding: 7rem 0;
-  background: radial-gradient(ellipse 100% 100% at 50% 0%, rgba(37,99,235,.3) 0%, rgba(168,85,247,.2) 40%, rgba(7,16,31,1) 100%);
+  background: radial-gradient(ellipse 100% 100% at 50% 0%, rgba(37,99,235,.3) 0%, rgba(29,78,216,.15) 40%, rgba(7,16,31,1) 100%);
   border-top: 1px solid rgba(37,99,235,.2);
   border-bottom: 1px solid var(--border);
   text-align: center;
@@ -711,8 +711,8 @@
   position: absolute; inset: 0; pointer-events: none;
   background:
     radial-gradient(ellipse 50% 60% at 20% 50%, rgba(37,99,235,.14) 0%, transparent 70%),
-    radial-gradient(ellipse 40% 50% at 80% 50%, rgba(168,85,247,.12) 0%, transparent 70%),
-    radial-gradient(ellipse 30% 40% at 50% 100%, rgba(0,212,255,.1) 0%, transparent 70%);
+    radial-gradient(ellipse 40% 50% at 80% 50%, rgba(29,78,216,.1) 0%, transparent 70%),
+    radial-gradient(ellipse 30% 40% at 50% 100%, rgba(96,165,250,.08) 0%, transparent 70%);
 }
 .lp-cta-inner { position: relative; z-index: 1 }
 .lp-cta-inner h2 {
@@ -852,8 +852,8 @@
 .hiw-tab-item:hover { border-color: var(--border-h); transform: translateY(-2px) }
 .hiw-tab-item i { color: var(--primary2); font-size: 1rem; flex-shrink: 0 }
 .hiw-tab-highlight {
-  border-color: rgba(168,85,247,.3);
-  background: linear-gradient(135deg, var(--card), rgba(168,85,247,.06));
+  border-color: rgba(37,99,235,.3);
+  background: linear-gradient(135deg, var(--card), rgba(37,99,235,.06));
 }
 .hiw-tab-highlight i { color: var(--purple) }
 
@@ -969,7 +969,7 @@
 }
 [data-theme="light"] .feat-card[data-goto="compare"],
 [data-theme="light"] .feat-card-highlight {
-  background: linear-gradient(135deg, #fff 0%, rgba(124,58,237,.05) 100%);
+  background: linear-gradient(135deg, #fff 0%, rgba(37,99,235,.04) 100%);
 }
 
 /* Steps */
@@ -1104,4 +1104,6 @@
 @media(max-width:640px) {
   .lp-footer-inner { grid-template-columns: 1fr !important }
 }
+
+
 
