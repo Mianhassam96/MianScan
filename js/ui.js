@@ -140,6 +140,27 @@
     </div>`;
   },
 
+  /* ── Tool link helper — maps finding IDs to relevant tools on tools.html ── */
+  _findingToolLink(id) {
+    const map = {
+      'seo_title':    { label: 'Build a meta title',       tool: 'meta' },
+      'seo_desc':     { label: 'Write a meta description', tool: 'meta' },
+      'seo_og':       { label: 'Generate OG tags',         tool: 'meta' },
+      'biz_schema':   { label: 'Generate schema markup',   tool: 'meta' },
+      'indexing':     { label: 'Build a robots.txt',       tool: 'robots' },
+      'seo_robots':   { label: 'Build a robots.txt',       tool: 'robots' },
+      'seo_sitemap':  { label: 'Generate a sitemap',       tool: 'sitemap' },
+      'seo_alt':      { label: 'Check keyword density',    tool: 'keyword' },
+      'content_thin': { label: 'Check keyword density',    tool: 'keyword' },
+      'content_brief':{ label: 'Analyze keyword density',  tool: 'keyword' },
+    };
+    const entry = map[id];
+    if (!entry) return '';
+    return `<a href="tools.html#${entry.tool}" target="_blank" rel="noopener" class="p2-tool-link">
+      <i class="bi bi-tools"></i> ${entry.label} →
+    </a>`;
+  },
+
   renderStats(data) {
     const {colors,fonts,contacts,tech,seo,links,images,domain,ranking} = data;
     const da = domain?.da !== null && domain?.da !== undefined ? domain.da+'/10' : '—';
@@ -1310,6 +1331,7 @@
           <div class="p2-finding-meta">
             ${impactDot(f.impact)}
             ${f.effort ? `<span class="p2-finding-effort">${effortIcon(f.effort)}${this.e(f.effort)}</span>` : ''}
+            ${this._findingToolLink(f.id)}
           </div>` : `
           <div class="p2-finding-detail-good">${this.e(f.detail)}</div>`}
         </div>`).join('')}

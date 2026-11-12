@@ -356,6 +356,25 @@
   }
 };
 
-document.addEventListener('DOMContentLoaded', () => Tools.init());
+document.addEventListener('DOMContentLoaded', () => {
+  Tools.init();
+  // Auto-open a tool if URL has a hash (e.g. tools.html#meta)
+  const hash = location.hash.slice(1);
+  if (hash && Tools.render) {
+    const validTools = ['meta','robots','sitemap','keyword','slug','minifier','counter','checklist'];
+    if (validTools.includes(hash)) {
+      setTimeout(() => {
+        // Activate the card and render the tool
+        document.querySelectorAll('.tool-card').forEach(c => c.classList.remove('active'));
+        const card = document.querySelector(`.tool-card[data-tool="${hash}"]`);
+        if (card) {
+          card.classList.add('active');
+          Tools.render(hash);
+          document.getElementById('toolOutput').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 150);
+    }
+  }
+});
 
 

@@ -4234,3 +4234,32 @@ input:focus-visible {
 [data-theme="light"] .prog-label {
   color: var(--text);
 }
+
+/* ── Finding tool link — contextual tool shortcut in Growth Score findings ── */
+.p2-tool-link {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  font-size: .72rem;
+  font-weight: 700;
+  color: var(--primary2);
+  text-decoration: none;
+  padding: .15rem .5rem;
+  border: 1px solid rgba(37,99,235,.25);
+  border-radius: 6px;
+  background: rgba(37,99,235,.07);
+  transition: background .18s, border-color .18s;
+  margin-left: auto;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.p2-tool-link:hover {
+  background: rgba(37,99,235,.15);
+  border-color: var(--primary2);
+}
+.p2-tool-link i { font-size: .68rem }
+[data-theme="light"] .p2-tool-link {
+  background: rgba(37,99,235,.06);
+  border-color: rgba(37,99,235,.2);
+  color: var(--primary);
+}
