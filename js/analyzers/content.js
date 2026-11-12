@@ -8,11 +8,33 @@ const ContentAnalyzer = {
 
     const allText = [...headings, ...paras, metaKw].join(' ').toLowerCase();
     const words = allText.replace(/[^\w\s]/g, '').split(/\s+/).filter(w => w.length > 4);
-    const totalWords = words.length;
 
-    // Single-word keyword frequency
+    // Filter common English stop words so keyword results are meaningful
+    const STOP_WORDS = new Set([
+      'about','above','after','again','against','all','also','although','always',
+      'among','another','any','anyone','anything','are','around','because','been',
+      'before','being','below','between','both','but','came','cannot','come',
+      'could','does','doing','done','down','during','each','either','else',
+      'even','ever','every','everyone','everything','except','first','for',
+      'from','further','get','gets','getting','given','going','had','has',
+      'have','having','here','how','however','if','in','into','is','it',
+      'its','itself','just','know','last','like','made','make','many','may',
+      'more','most','much','must','my','need','new','next','no','not','now',
+      'of','off','often','on','once','only','or','other','our','out','over',
+      'own','part','per','put','rather','really','same','should','since','so',
+      'some','something','sometimes','still','such','take','than','that',
+      'the','their','them','then','there','therefore','these','they','this',
+      'those','though','through','thus','to','too','under','until','up',
+      'used','very','via','was','we','well','were','what','when','where',
+      'which','while','who','will','with','within','without','would','your',
+    ]);
+
+    const filteredWords = words.filter(w => !STOP_WORDS.has(w));
+    const totalWords = filteredWords.length || 1;
+
+    // Single-word keyword frequency (stop words already removed)
     const freq = {};
-    words.forEach(w => { freq[w] = (freq[w] || 0) + 1; });
+    filteredWords.forEach(w => { freq[w] = (freq[w] || 0) + 1; });
 
     const keywords = Object.entries(freq)
       .sort((a, b) => b[1] - a[1])
@@ -20,14 +42,12 @@ const ContentAnalyzer = {
       .map(([w, count]) => ({
         word: w,
         count,
-        density: totalWords > 0 ? ((count / totalWords) * 100).toFixed(1) : '0'
+        density: ((count / totalWords) * 100).toFixed(1)
       }));
 
-    // Bigrams (two-word phrases)
-    const bigrams = this._ngrams(words, 2, 10);
-
-    // Trigrams (three-word phrases)
-    const trigrams = this._ngrams(words, 3, 5);
+    // Bigrams and trigrams also use filtered words
+    const bigrams  = this._ngrams(filteredWords, 2, 10);
+    const trigrams = this._ngrams(filteredWords, 3, 5);
 
     // Readability (Flesch-Kincaid Reading Ease)
     const readability = this._readability(paras);
