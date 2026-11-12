@@ -8,14 +8,14 @@
   layout() {
     return `
     <div class="tools-grid">
-      ${this.toolCard('meta','bi-tags-fill','Meta Tag Generator','Generate complete meta tags for any page','#6470ff')}
+      ${this.toolCard('meta','bi-tags-fill','Meta Tag Generator','Generate complete meta tags for any page','#2563eb')}
       ${this.toolCard('robots','bi-robot','Robots.txt Generator','Build a robots.txt file instantly','#22c55e')}
-      ${this.toolCard('sitemap','bi-diagram-3-fill','Sitemap Generator','Generate an XML sitemap template','#00d4ff')}
-      ${this.toolCard('keyword','bi-bar-chart-fill','Keyword Density Checker','Analyze keyword frequency in any text','#a855f7')}
+      ${this.toolCard('sitemap','bi-diagram-3-fill','Sitemap Generator','Generate an XML sitemap template','#3b82f6')}
+      ${this.toolCard('keyword','bi-bar-chart-fill','Keyword Density Checker','Analyze keyword frequency in any text','#60a5fa')}
       ${this.toolCard('slug','bi-link-45deg','Slug Generator','Convert any title to a clean URL slug','#f59e0b')}
       ${this.toolCard('minifier','bi-code-slash','HTML Minifier','Minify HTML to reduce page size','#f04444')}
       ${this.toolCard('counter','bi-file-text-fill','Text Counter','Count words, chars, sentences, paragraphs','#ec4899')}
-      ${this.toolCard('checklist','bi-check2-all','SEO Checklist','Complete on-page SEO checklist generator','#00d4ff')}
+      ${this.toolCard('checklist','bi-check2-all','SEO Checklist','Complete on-page SEO checklist generator','#3b82f6')}
     </div>
     <div id="toolOutput" style="margin-top:2rem"></div>`;
   },
@@ -68,7 +68,7 @@
 
   // ── Meta Tag Generator
   tMeta() {
-    return `<div class="card-head"><i class="bi bi-tags-fill" style="color:#6470ff"></i> Meta Tag Generator</div>
+    return `<div class="card-head"><i class="bi bi-tags-fill" style="color:#2563eb"></i> Meta Tag Generator</div>
     <div class="g2">
       <div>
         ${this.field('mt-title','Page Title','e.g. Best SEO Tool — MianScan','text')}
@@ -169,7 +169,7 @@
 
   // ── Sitemap Generator
   tSitemap() {
-    return `<div class="card-head"><i class="bi bi-diagram-3-fill" style="color:#00d4ff"></i> Sitemap XML Generator</div>
+    return `<div class="card-head"><i class="bi bi-diagram-3-fill" style="color:#3b82f6"></i> Sitemap XML Generator</div>
     <div class="g2">
       <div>
         ${this.field('sm-domain','Domain','https://example.com','text')}
@@ -208,7 +208,7 @@
 
   // ── Keyword Density
   tKeyword() {
-    return `<div class="card-head"><i class="bi bi-bar-chart-fill" style="color:#a855f7"></i> Keyword Density Checker</div>
+    return `<div class="card-head"><i class="bi bi-bar-chart-fill" style="color:#60a5fa"></i> Keyword Density Checker</div>
     <div style="margin-bottom:.875rem">
       <textarea id="kd-text" rows="8" placeholder="Paste your content here…" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-s);padding:.875rem;color:var(--text);font-size:.9rem;resize:vertical"></textarea>
     </div>
@@ -332,7 +332,7 @@
           </label>`).join('')}
       </div>`).join('');
     const total = items.reduce((a,c)=>a+c.checks.length,0);
-    return `<div class="card-head"><i class="bi bi-check2-all" style="color:#00d4ff"></i> SEO Checklist <span id="cl-score" class="badge-cnt">0/${total}</span></div>
+    return `<div class="card-head"><i class="bi bi-check2-all" style="color:#3b82f6"></i> SEO Checklist <span id="cl-score" class="badge-cnt">0/${total}</span></div>
     <div id="cl-progress" style="height:6px;background:var(--bg4);border-radius:10px;margin-bottom:1.5rem;overflow:hidden"><div id="cl-bar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--primary),var(--accent));border-radius:10px;transition:width .3s"></div></div>
     ${html}`;
   },
@@ -357,3 +357,5 @@
 };
 
 document.addEventListener('DOMContentLoaded', () => Tools.init());
+
+

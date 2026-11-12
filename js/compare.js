@@ -371,7 +371,7 @@ const Compare = {
       ${sec('Color Palette',  'palette-fill',       '#ec4899',        col(colorBlock(a)) + col(colorBlock(b)))}
       ${sec('Typography',     'type',               'var(--accent)',   col(fontBlock(a)) + col(fontBlock(b)))}
       ${sec('Performance',    'speedometer2',       'var(--yellow)',   col(perfDetail(a)) + col(perfDetail(b)))}
-      ${sec('Contact Info',   'person-lines-fill',  'var(--cyan,#00d4ff)', col(contactBlock(a)) + col(contactBlock(b)))}
+      ${sec('Contact Info',   'person-lines-fill',  'var(--accent)', col(contactBlock(a)) + col(contactBlock(b)))}
     `;
   },
 };
