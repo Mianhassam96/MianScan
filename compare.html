@@ -174,27 +174,30 @@
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="js/analyzers/colors.js"></script>
-<script src="js/analyzers/fonts.js"></script>
-<script src="js/analyzers/structure.js"></script>
-<script src="js/analyzers/content.js"></script>
-<script src="js/analyzers/cta.js"></script>
-<script src="js/analyzers/seo.js"></script>
-<script src="js/analyzers/media.js"></script>
-<script src="js/analyzers/links.js"></script>
-<script src="js/analyzers/images.js"></script>
-<script src="js/analyzers/contacts.js"></script>
-<script src="js/analyzers/tech.js"></script>
-<script src="js/analyzers/performance.js"></script>
-<script src="js/analyzers/security.js"></script>
-<script src="js/analyzers/mobile.js"></script>
-<script src="js/analyzers/domain.js"></script>
-<script src="js/analyzers/ranking.js"></script>
-<script src="js/analyzers/indexing.js"></script>
-<script src="js/scanner.js"></script>
-<script src="js/ui.js"></script>
-<script src="js/compare.js"></script>
-<script src="js/export.js"></script>
+<script src="js/analyzers/conversion.js" defer></script>
+<script src="js/analyzers/business.js" defer></script>
+<script src="js/analyzers/colors.js" defer></script>
+<script src="js/analyzers/fonts.js" defer></script>
+<script src="js/analyzers/structure.js" defer></script>
+<script src="js/analyzers/content.js" defer></script>
+<script src="js/analyzers/cta.js" defer></script>
+<script src="js/analyzers/seo.js" defer></script>
+<script src="js/analyzers/media.js" defer></script>
+<script src="js/analyzers/links.js" defer></script>
+<script src="js/analyzers/images.js" defer></script>
+<script src="js/analyzers/contacts.js" defer></script>
+<script src="js/analyzers/tech.js" defer></script>
+<script src="js/analyzers/performance.js" defer></script>
+<script src="js/analyzers/security.js" defer></script>
+<script src="js/analyzers/mobile.js" defer></script>
+<script src="js/analyzers/domain.js" defer></script>
+<script src="js/analyzers/ranking.js" defer></script>
+<script src="js/analyzers/indexing.js" defer></script>
+<script src="js/growth.js" defer></script>
+<script src="js/scanner.js" defer></script>
+<script src="js/ui.js" defer></script>
+<script src="js/compare.js" defer></script>
+<script src="js/export.js" defer></script>
 <script>
 // Theme
 const saved = localStorage.getItem('ms_theme') || 'dark';
@@ -226,8 +229,8 @@ document.getElementById('cmpRunBtn').addEventListener('click', async () => {
   let urlA = document.getElementById('cmpUrlA').value.trim();
   let urlB = document.getElementById('cmpUrlB').value.trim();
   if (!urlA || !urlB) { showToast('Enter both URLs'); return; }
-  if (!urlA.startsWith('http')) urlA = 'https://' + urlA;
-  if (!urlB.startsWith('http')) urlB = 'https://' + urlB;
+  urlA = Scanner.normalizeUrl(urlA);
+  urlB = Scanner.normalizeUrl(urlB);
   const btn = document.getElementById('cmpRunBtn');
   const bar = document.getElementById('cmpBar');
   const lbl = document.getElementById('cmpLabel');

@@ -285,25 +285,25 @@ const Compare = {
 
     // SEO detail
     const seoDetail = col(`
-      ${kv('Score', a.seo.score + '/100')}
-      ${kv('Title', a.seo.title ? a.seo.title.slice(0,50)+'…' : '—')}
-      ${kv('Description', a.seo.metaDesc ? '✓ Set' : '✗ Missing')}
-      ${kv('H1 / H2 / H3', `${a.seo.h1s.length} / ${(a.seo.h2s||[]).length} / ${(a.seo.h3s||[]).length}`)}
-      ${kv('Missing alt', a.seo.noAlt)}
-      ${checkRow('Meta Title',    !!a.seo.title)}
-      ${checkRow('Meta Desc',     !!a.seo.metaDesc)}
-      ${checkRow('OG Tags',       !!a.seo.ogTitle)}
-      ${checkRow('Canonical',     !!a.seo.canonical)}
+      ${kv('Score', (a.seo?.score ?? 0) + '/100')}
+      ${kv('Title', a.seo?.title ? a.seo.title.slice(0,50)+'…' : '—')}
+      ${kv('Description', a.seo?.metaDesc ? '✓ Set' : '✗ Missing')}
+      ${kv('H1 / H2 / H3', `${a.seo?.h1s?.length ?? 0} / ${(a.seo?.h2s||[]).length} / ${(a.seo?.h3s||[]).length}`)}
+      ${kv('Missing alt', a.seo?.noAlt ?? 0)}
+      ${checkRow('Meta Title',    !!a.seo?.title)}
+      ${checkRow('Meta Desc',     !!a.seo?.metaDesc)}
+      ${checkRow('OG Tags',       !!a.seo?.ogTitle)}
+      ${checkRow('Canonical',     !!a.seo?.canonical)}
     `) + col(`
-      ${kv('Score', b.seo.score + '/100')}
-      ${kv('Title', b.seo.title ? b.seo.title.slice(0,50)+'…' : '—')}
-      ${kv('Description', b.seo.metaDesc ? '✓ Set' : '✗ Missing')}
-      ${kv('H1 / H2 / H3', `${b.seo.h1s.length} / ${(b.seo.h2s||[]).length} / ${(b.seo.h3s||[]).length}`)}
-      ${kv('Missing alt', b.seo.noAlt)}
-      ${checkRow('Meta Title',    !!b.seo.title)}
-      ${checkRow('Meta Desc',     !!b.seo.metaDesc)}
-      ${checkRow('OG Tags',       !!b.seo.ogTitle)}
-      ${checkRow('Canonical',     !!b.seo.canonical)}
+      ${kv('Score', (b.seo?.score ?? 0) + '/100')}
+      ${kv('Title', b.seo?.title ? b.seo.title.slice(0,50)+'…' : '—')}
+      ${kv('Description', b.seo?.metaDesc ? '✓ Set' : '✗ Missing')}
+      ${kv('H1 / H2 / H3', `${b.seo?.h1s?.length ?? 0} / ${(b.seo?.h2s||[]).length} / ${(b.seo?.h3s||[]).length}`)}
+      ${kv('Missing alt', b.seo?.noAlt ?? 0)}
+      ${checkRow('Meta Title',    !!b.seo?.title)}
+      ${checkRow('Meta Desc',     !!b.seo?.metaDesc)}
+      ${checkRow('OG Tags',       !!b.seo?.ogTitle)}
+      ${checkRow('Canonical',     !!b.seo?.canonical)}
     `);
 
     // Keywords
@@ -325,11 +325,14 @@ const Compare = {
 
     // Colors
     const colorBlock = d => `<div class="cmp6-swatches">
-      ${(d.colors?.colors||[]).slice(0,10).map(hex=>`
-        <div class="cmp6-swatch" title="${hex}" onclick="UI.copy('${hex}')">
-          <div style="background:${hex}"></div>
-          <span>${hex}</span>
-        </div>`).join('')}
+      ${(d.colors?.colors||[]).slice(0,10).map(hex => {
+        const safeHex = /^#[0-9a-fA-F]{3,8}$/.test(hex) ? hex : '';
+        if (!safeHex) return '';
+        return `<div class="cmp6-swatch" title="${safeHex}" data-hex="${safeHex}" onclick="UI.copy(this.dataset.hex)">
+          <div style="background:${safeHex}"></div>
+          <span>${safeHex}</span>
+        </div>`;
+      }).join('')}
     </div>`;
 
     // Fonts
