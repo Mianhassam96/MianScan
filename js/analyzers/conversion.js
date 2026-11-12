@@ -29,9 +29,9 @@ const ConversionAnalyzer = {
     const hasPrimaryCTA   = ctaEls.length > 0;
     const primaryCTACount = ctaEls.length;
 
-    // CTA clarity — primary CTAs use action verbs
+    // CTA clarity — primary CTAs use action verbs (expanded to cover modern patterns)
     const actionVerbCTAs = ctaEls.filter(el =>
-      /\b(get|start|try|book|hire|request|join|buy|order|subscribe|download|sign)\b/i.test(el.textContent.trim())
+      /\b(get|start|try|book|hire|request|join|buy|order|subscribe|download|sign|claim|access|discover|explore|submit|unlock|activate|enable|build|create|launch|open|add|save|send|apply|register|schedule|contact|chat|call|speak|see|view|watch|read)\b/i.test(el.textContent.trim())
     );
     const ctaHasActionVerb = actionVerbCTAs.length > 0;
 
@@ -120,11 +120,11 @@ const ConversionAnalyzer = {
 
     const hasSocialProof  = /(\d[\d,]* (?:customers|users|clients|companies|businesses|teams|projects)|trusted by|rated \d|\d+ reviews)/i.test(bodyText);
 
-    const hasGuarantee    = /money.back|guarantee|no.risk|risk.free|cancel anytime|no commitment/i.test(bodyText);
+    const hasGuarantee    = /money.back|guarantee|no.risk|risk.free|cancel anytime|no commitment|30.day free|free trial|try before|refund|satisfaction guaranteed|no obligation|try it free|free to cancel|no credit card/i.test(bodyText);
 
     const hasCertBadges   = /ssl|secure|certified|verified|award|accredited|iso |gdpr compliant/i.test(bodyText);
 
-    const hasPricing      = /pricing|our plans|starting (?:at|from)|\$\d|£\d|€\d|per month|\/mo\b/i.test(bodyText) ||
+    const hasPricing      = /pricing|our plans|starting (?:at|from)|\$\d|£\d|€\d|₨\d|Rs\s?\d|PKR\s?\d|AED\s?\d|SAR\s?\d|per month|\/mo\b/i.test(bodyText) ||
       doc.querySelectorAll('[class*="pricing"], [class*="plan"]').length > 0;
 
     // Trust section score (0–20)
