@@ -46,13 +46,14 @@ const PerformanceAnalyzer = {
       checks.push({ type:'ok', msg:`HTML size is good (${htmlSizeKB} KB)` });
     }
 
-    // Scripts count
-    if (scripts.length > 20) {
+    // Scripts count — modern bundled apps may have many small chunks;
+    // only penalise genuinely excessive counts
+    if (scripts.length > 30) {
       score -= 15;
-      checks.push({ type:'warn', msg:`High script count (${scripts.length}) — reduces load speed` });
-    } else if (scripts.length > 10) {
+      checks.push({ type:'warn', msg:`Very high script count (${scripts.length}) — may impact load speed` });
+    } else if (scripts.length > 20) {
       score -= 5;
-      checks.push({ type:'warn', msg:`Moderate script count (${scripts.length})` });
+      checks.push({ type:'warn', msg:`High script count (${scripts.length}) — consider code splitting or bundling` });
     } else {
       checks.push({ type:'ok', msg:`Script count is fine (${scripts.length})` });
     }
@@ -84,10 +85,10 @@ const PerformanceAnalyzer = {
       checks.push({ type:'ok', msg:`${lazyImgs} image(s) use lazy loading` });
     }
 
-    // External scripts
-    if (extScripts > 15) {
+    // External scripts — only penalise genuinely risky counts
+    if (extScripts > 20) {
       score -= 10;
-      checks.push({ type:'warn', msg:`${extScripts} external scripts — increases dependency risk` });
+      checks.push({ type:'warn', msg:`${extScripts} external scripts — high dependency risk and slower load` });
     } else {
       checks.push({ type:'ok', msg:`${extScripts} external script(s)` });
     }
